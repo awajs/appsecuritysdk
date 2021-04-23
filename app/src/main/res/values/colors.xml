@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#3F51B5</color>
+    <color name="colorPrimaryDark">#303F9F</color>
+    <color name="colorAccent">#00C78C</color>
+    <color name="colorBlack">#000000</color>
+    <color name="colorBlackTrans">#CC000000</color>
+    <color name="colorWhiteTrans">#CCF0F0F0</color>
+    <color name="colorOrange">#ED9121</color>
+    <color name="colorOrangeLight">#EC9761</color>
+    <color name="colorGray">#b0b0b0</color>
+    <color name="colorSeaGreen">#00C78C</color>
+    <color name="colorDarkGray">#282828</color>
+    <color name="colorProgressBg">#99000000</color>
+    <color name="colorLightGray">#f0f0f0</color>
+    <color name="colorProfileGray">#707070</color>
+    <color name="colorTextGray">#b0b0b0</color>
+    <color name="bgLevel1">#32CD32</color>
+    <color name="bgLevel2">#FFFF00</color>
+    <color name="bgLevel3">#FF8000</color>
+    <color name="bgLevel4">#FF3030</color>
+    <color name="colorAppGray">#808080</color>
+    <color name="color_black">#0106000c</color>
+    <color name="control_background">#cc4285f4</color>
+    <color name="colorWhite">#FFFFFF</color>
+    <color name="caldroid_holo_blue_dark">#ff0099cc</color>
+    <color name="colorConnect">#4da3ff</color>
+    <color name="colorLineHorizontal">#cfcfcf</color>
+    <color name="colorTerms">#a4a4a4</color>
+</resources>

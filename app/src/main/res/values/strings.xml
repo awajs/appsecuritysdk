@@ -1,0 +1,92 @@
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+
+    <string name="default_notification_channel_id" translatable="false">fcm_default_channel</string>
+    <string name="text_scenera_version">Scenera Version</string>
+    <!--Application Name-->
+    <string name="app_name">App Security</string>
+
+    <!--Activity Titles-->
+    <string name="text_activity_alerts">Activity Alerts</string>
+
+    <!--Alert Fragment Strings-->
+    <string name="text_all_cameras">All Cameras</string>
+    <string name="text_all_activities">All Activities</string>
+    <string name="text_date">Date</string>
+    <string name="text_select_camera">Please select camera.</string>
+    <string name="text_dialog_no_internet">Internet not available</string>
+    <string name="text_dialog_no_inter_message">You have no internet connection.</string>
+    <string name="text_dialog_enable_3g">Enable 3G</string>
+    <string name="text_dialog_enable_wifi">Enable WIFI</string>
+    <string name="text_dialog_exit">Exit</string>
+    <string name="text_no_items">No items to display</string>
+
+    <!--Home Activity-->
+    <string name="text_cameras">Cameras</string>
+    <string name="text_alerts">Alerts</string>
+    <string name="text_profile">Profile</string>
+    <string name="text_curation">Curation</string>
+    <string name="text_alert_positive">OK</string>
+    <string name="text_alert_negative">Cancel</string>
+
+    <!--Profile -->
+    <string name="text_my_account">MY ACCOUNT</string>
+    <string name="text_sign_in">Sign In</string>
+    <string name="text_logout">Sign Out</string>
+
+    <string-array name="service_provider_list">
+        <item>Link App To My Account</item>
+        <item>ABC Telecom</item>
+        <item>Purple Telecom</item>
+    </string-array>
+
+    <!--Curation-->
+    <string name="text_speech_prompt">Say something&#8230;</string>
+    <string name="text_speech_not_supported">Sorry! Your device doesn\'t support speech input</string>
+    <string name="text_done">Done</string>
+    <string name="text_tap_to_speak">Tap to speak</string>
+    <string name="text_error_no_scenemarks">Sorry! No Data Found.</string>
+    <string name="text_error_select_camera">Please select camera from Camera Page.</string>
+    <string name="text_error_enter_keyword">Please input some keyword to search.</string>
+    <string name="text_1x">1X</string>
+    <string name="text_2x">2X</string>
+    <string name="text_4x">4X</string>
+    <string name="text_8x">8X</string>
+
+    <string name="text_error_Speed">Sorry! Selected speed is not supported for this video.</string>
+
+
+    <!--Camera Fragment-->
+    <string name="text_camera_setup">CAMERA SETUP</string>
+    <string name="text_camera">Name</string>
+    <string name="text_size">Enable</string>
+    <string name="text_name">Use Camera\'s Time Zone</string>
+    <string name="text_camera_settings">Camera Settings</string>
+
+
+    <string name="text_back">Back</string>
+    <string name="text_detected">detected</string>
+    <string name="text_error_try_again">Please try again!</string>
+    <string name="text_error_app_link_success">Your app is successfully linked with BSS Account!</string>
+    <string name="text_error_app_link_with_bss">Your app is already linked with BSS Account!</string>
+
+    <!--New Strings-->
+
+    <!--Pushy Notification-->
+    <string name="pushy_registration_error">Pushy Registration Error</string>
+    <string name="pushy_registering_device">Registering your device for Pushy Notification...</string>
+    <string name="text_dash">Dash</string>
+
+    <!-- Strings used for Landing screen -->
+    <string name="text_connect_account">Connect your account</string>
+    <string name="text_connect_account_to_start">Connect your account to get started</string>
+    <string name="text_connect">Connect</string>
+    <string name="text_terms">Terms &amp; Conditions</string>
+    <string name="text_scenera">scenera</string>
+
+    <string name="text_select_provider">Select your provider</string>
+    <string name="text_version">Version</string>
+    <string name="text_error_no_items">Sorry, No SceneMarks available for your query</string>
+    <string name="text_app_instance_id">App Instance Id : </string>
+    <string name="text_account_id">Account Id : </string>
+
+</resources>
