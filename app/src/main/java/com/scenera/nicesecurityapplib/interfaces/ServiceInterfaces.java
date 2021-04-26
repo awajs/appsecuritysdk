@@ -94,6 +94,17 @@ public class ServiceInterfaces {
 
     }
 
+    public interface GetEventDates {
+        @Headers("Content-Type:application/json")
+        @POST("/{Version}/{EndPointID}/data/{NodeID}/{PortID}/"+ Constants.ServiceType.GET_SCENEMARK_MANIFEST)
+        Call<GetSceneMarkManifestResponse> getEventDates(@Header("Authorization") String auth,
+                                                         @Path("Version") String version,
+                                                         @Path("EndPointID") String EndPointID,
+                                                         @Path("NodeID") String NodeID,
+                                                         @Path("PortID") String PortID,
+                                                         @Body RequestBody requestBody);
+    }
+
 
     public interface AddDeviceToken {
 

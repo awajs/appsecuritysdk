@@ -2,6 +2,7 @@ package com.scenera.nicesecurityapplib.viewmodel;
 
 import android.util.Log;
 import android.widget.Switch;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.MutableLiveData;
@@ -9,6 +10,7 @@ import androidx.lifecycle.ViewModel;
 
 import com.auth0.android.jwt.JWT;
 import com.google.gson.Gson;
+import com.scenera.nicesecurityapplib.BaseActivity;
 import com.scenera.nicesecurityapplib.interfaces.ServiceInterfaces;
 import com.scenera.nicesecurityapplib.models.data.NodeList;
 import com.scenera.nicesecurityapplib.models.data.PersonFace;
@@ -99,7 +101,7 @@ public class MainViewModel extends ViewModel {
         niceItemTypesLiveData = new MutableLiveData<>();
         niceItemTypes = new ArrayList<String>();
 
-        nodeListLiveData = new MutableLiveData<ArrayList<NodeList>>();
+        nodeListLiveData = new MutableLiveData<>();
         nodeList = new ArrayList<>();
         format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss:" + "000000");
 
@@ -119,7 +121,7 @@ public class MainViewModel extends ViewModel {
         return sceneMarkResponseLive;
     }
     /** get Event Dates **/
-    public MutableLiveData<ArrayList<String>> getEventDates() {
+    public MutableLiveData<ArrayList<String>> getEventDatesData() {
         Log.d(TAG,"getEventMutableLiveData: " + eventDatesLiveData);
         return eventDatesLiveData;
     }
@@ -315,6 +317,96 @@ public class MainViewModel extends ViewModel {
         }
         return sceneMarkManifestLiveData;
     }
+
+    /** Get Event Dates For SceneMarks for selected month..**/
+    public MutableLiveData<ArrayList<String>> getEventDates(AppCompatActivity activity, ArrayList<String> nodeIds,String startTime, String endTime,
+                                                            int pageLength, boolean returnNiceItemTypes, boolean returnSceneMarksDates,
+                                                            boolean returnPage, ArrayList<String> niceItemList, String continuationToken) {
+        pHelper = PreferenceHelper.getInstance(activity);
+        if (isTokenNotExpired()) {
+            JSONObject jsonObject = new JSONObject();
+            try {
+
+                jsonObject.put(Constants.Params.NODE_IDS, Utils.convertListToJsonArray(nodeIds));
+
+
+                jsonObject.put(Constants.Params.START_TIME, startTime);
+                jsonObject.put(Constants.Params.END_TIME, endTime);
+
+                jsonObject.put(Constants.Params.PAGE_LENGTH, pageLength);
+                jsonObject.put(Constants.Params.RETURN_NICE_ITEM_TYPES, returnNiceItemTypes);
+                jsonObject.put(Constants.Params.RETURN_SCENEMARKS_DATES, returnSceneMarksDates);
+                jsonObject.put(Constants.Params.RETURN_PAGE, returnPage);
+
+                /*Filter by NICE_ITEM_TYPES*/
+                if (niceItemList.size() > 0) {
+                    JSONArray niceItemArray = new JSONArray();
+                    for (int i = 0; i < niceItemList.size(); i++) {
+                        niceItemArray.put(niceItemList.get(i));
+                    }
+                    jsonObject.put(Constants.Params.NICE_ITEM_TYPES, niceItemArray);
+                } else {
+                    JSONArray niceItemArray = new JSONArray();
+                    jsonObject.put(Constants.Params.NICE_ITEM_TYPES, niceItemArray);
+                }
+                AppLog.Log("continuationTokenMain=> ", continuationToken);
+                jsonObject.put(Constants.Params.CONTINUATION_TOKEN, continuationToken);
+                AppLog.Log("jsonObject => ", jsonObject.toString());
+
+
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+
+            String accessToken = pHelper.getAppControlObject().getPayload().getDataEndPoints().get(0).getNetEndPointAppControl().getSchemeAppControlObject().get(0).getAccessToken();
+            String authority = "https://" + pHelper.getAppControlObject().getPayload().getDataEndPoints().get(0).getNetEndPointAppControl().getSchemeAppControlObject().get(0).getAuthority();
+
+            ServiceInterfaces.GetEventDates api = ApiClient.getClient(activity, authority).create(ServiceInterfaces.GetEventDates.class);
+
+            Call<GetSceneMarkManifestResponse> call = api.getEventDates("Bearer " + accessToken,
+                    pHelper.getAppControlObject().getPayload().getControlEndPoints().get(0).getNetEndPointAppControl().getAPIVersion(),
+                    pHelper.getAppInstanceId(), Constants.NODE_ID, Constants.PORT_ID, ApiClient.makeJSONRequestBody(jsonObject));
+            call.enqueue(new Callback<GetSceneMarkManifestResponse>() {
+                @Override
+                public void onResponse(Call<GetSceneMarkManifestResponse> call, retrofit2.Response<GetSceneMarkManifestResponse> response) {
+
+                    Log.i("url", "GetTotalSceneCountforDate------->>>> " + response.raw().request().url());
+                    if (!response.equals("{}") && response != null && response.body() != null) {
+                        if (response.body().getListDates() != null) {
+                            Log.d("totalEventDates==> ", response.body().getListDates().size() + "");
+
+                            eventDatesList.addAll(response.body().getListDates());
+                            eventDatesLiveData.setValue(eventDatesList);
+
+                        } else {
+                            Toast.makeText(activity, "No Date Found", Toast.LENGTH_LONG).show();
+                            Utils.removeCustomProgressDialog();
+                        }
+                    } else {
+
+                        Utils.removeCustomProgressDialog();
+                        //Utils.showAlert(activity, activity.getResources().getString(R.string.text_error_no_scenemarks));
+                    }
+                }
+
+                @Override
+                public void onFailure(Call<GetSceneMarkManifestResponse> call, Throwable t) {
+                    Utils.removeCustomProgressDialog();
+                    Log.i("onFailure", "EventDatesResponse ---->>>> " + t.toString());
+                }
+            });
+            return eventDatesLiveData;
+        }else {
+            getAppControlObject(pHelper.getAppSecurityObject(),activity,
+                    Constants.Method.GET_SCENEMARKS_MANIFEST, nodeIds,startTime,endTime,
+                    pageLength, returnNiceItemTypes, returnSceneMarksDates,
+                    returnPage, niceItemList, continuationToken, "","", "");
+            return null;
+        }
+    }
+
+
     /** Get NiceItemTypes List **/
     public MutableLiveData<ArrayList<String>> getNiceItemTypesList(AppCompatActivity activity) {
 
