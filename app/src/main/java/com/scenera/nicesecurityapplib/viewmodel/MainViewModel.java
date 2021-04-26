@@ -214,7 +214,7 @@ public class MainViewModel extends ViewModel {
                 getAppControlObject(pHelper.getAppSecurityObject(),activity,
                         Constants.Method.GET_NODE_LIST, new ArrayList<String>(),"","",
                 0, false, false,
-                false, new ArrayList<String>(), "", "","", "");
+                false, new ArrayList<String>(), "", "","", "","", "");
             }
         }catch (Exception et){
             et.printStackTrace();
@@ -313,7 +313,7 @@ public class MainViewModel extends ViewModel {
             getAppControlObject(pHelper.getAppSecurityObject(),activity,
                     Constants.Method.GET_SCENEMARKS_MANIFEST, nodeIds,startTime,endTime,
                     pageLength, returnNiceItemTypes, returnSceneMarksDates,
-                    returnPage, niceItemList, continuationToken, "","", "");
+                    returnPage, niceItemList, continuationToken, "","", "", "", "");
         }
         return sceneMarkManifestLiveData;
     }
@@ -401,11 +401,57 @@ public class MainViewModel extends ViewModel {
             getAppControlObject(pHelper.getAppSecurityObject(),activity,
                     Constants.Method.GET_SCENEMARKS_MANIFEST, nodeIds,startTime,endTime,
                     pageLength, returnNiceItemTypes, returnSceneMarksDates,
-                    returnPage, niceItemList, continuationToken, "","", "");
+                    returnPage, niceItemList, continuationToken, "","", "", "", "");
             return null;
         }
     }
 
+
+    /** get LiveSceneMarks from SceneMarksManifest api V1.02**/
+    public MutableLiveData<ArrayList<SceneMarkResponseCMF>> getCurationLive(AppCompatActivity activity, String sceneMarkURI, final String deviceName, String deviceTimeZone) {
+        pHelper = PreferenceHelper.getInstance(activity);
+        if(isTokenNotExpired()){
+            String accessToken = pHelper.getAppControlObject().getPayload().getDataEndPoints().get(0).getNetEndPointAppControl().getSchemeAppControlObject().get(0).getAccessToken();
+
+            String authority = "https://" + pHelper.getAppControlObject().getPayload().getDataEndPoints().get(0).getNetEndPointAppControl().getSchemeAppControlObject().get(0).getAuthority();
+            ServiceInterfaces.GetSceneMarks api = ApiClient.getClient(activity,authority).create(ServiceInterfaces.GetSceneMarks.class);
+            Call<SceneMarkResponseCMF> call = api.getSceneMarks("Bearer "+ accessToken, sceneMarkURI);
+
+            call.enqueue(new Callback<SceneMarkResponseCMF>() {
+                @Override
+                public void onResponse(Call<SceneMarkResponseCMF> call, retrofit2.Response<SceneMarkResponseCMF> response) {
+                    Log.i("url", "---->>> getSceneMarks" + response.raw().request().url());
+
+                    if (response.body() != null && response.body().getDetectedObjects().size() > 0) {
+
+                        Log.i("response body", "---->>>> " + response.body());
+                        response.body().setDeviceName(deviceName);
+                        response.body().setDeviceTimeZone(deviceTimeZone);
+
+                        alertArrayList.add(response.body());
+                        alertLiveData.setValue(alertArrayList);
+
+                    }else{
+                        Utils.removeCustomProgressDialog();
+                        // Utils.showAlert(activity, activity.getResources().getString(R.string.text_error_no_scenemarks));
+                    }
+                }
+                @Override
+                public void onFailure(Call<SceneMarkResponseCMF> call, Throwable t) {
+                    Utils.removeCustomProgressDialog();
+                    Log.i("onFailure", "---->>>> " + t.toString());
+                }
+            });
+            return alertLiveData;
+        }else {
+            getAppControlObject(pHelper.getAppSecurityObject(),activity,
+                    Constants.Method.GET_CURATION_LIVE, new ArrayList<String>(),"","",
+                    0, false, false,
+                    false, new ArrayList<String>(), "",
+                    sceneMarkURI, "", "", deviceName, deviceTimeZone);
+        }
+        return null;
+    }
 
     /** Get NiceItemTypes List **/
     public MutableLiveData<ArrayList<String>> getNiceItemTypesList(AppCompatActivity activity) {
@@ -457,7 +503,7 @@ public class MainViewModel extends ViewModel {
             getAppControlObject(pHelper.getAppSecurityObject(),activity,
                     Constants.Method.GET_NICEITEMTYPES_LIST, new ArrayList<String>(),"","",
                     0, false, false,
-                    false, new ArrayList<String>(), "", "","", "");
+                    false, new ArrayList<String>(), "", "","", "","", "");
         }
         return niceItemTypesLiveData;
     }
@@ -500,7 +546,7 @@ public class MainViewModel extends ViewModel {
                     Constants.Method.GET_LIVE_SCENEMARKS, new ArrayList<String>(),"","",
                     0, false, false,
                     false, new ArrayList<String>(), "",
-                    sceneMarkURI, "", "");
+                    sceneMarkURI, "", "","", "");
         }
         return sceneMarkResponseLive;
     }
@@ -584,7 +630,7 @@ public class MainViewModel extends ViewModel {
                     Constants.Method.GET_PRIVACY_OBJECT, new ArrayList<String>(),"","",
                     0, false, false,
                     false, new ArrayList<String>(), "",
-                    "", currentDate, sceneEncryptionKeyID);
+                    "", currentDate, sceneEncryptionKeyID,"", "");
         }
     }
     /** get AppControlObject to refresh the token when expires **/
@@ -664,7 +710,8 @@ public class MainViewModel extends ViewModel {
                                      AppCompatActivity activity, int method, ArrayList<String> nodeIds,String startTime, String endTime,
                                      int pageLength, boolean returnNiceItemTypes, boolean returnSceneMarksDates,
                                      boolean returnPage, ArrayList<String> niceItemList, String continuationToken,
-                                     String sceneMarkURI, String currentDateString, String sceneEncryptionKeyID) {
+                                     String sceneMarkURI, String currentDateString, String sceneEncryptionKeyID,
+                                     String deviceName, String deviceTimeZone) {
         Utils.showCustomProgressDialog(activity, "", false);
 
         Date today = new Date();
@@ -725,11 +772,11 @@ public class MainViewModel extends ViewModel {
                                 pageLength, returnNiceItemTypes, returnSceneMarksDates,
                                 returnPage, niceItemList, continuationToken);
                                 break;
-                           /* case Constants.Method.GET_EVENT_DATES:
-                                getSceneMarksManifest(activity, nodeIds, startTime, endTime,
+                            case Constants.Method.GET_EVENT_DATES:
+                                getEventDates(activity, nodeIds, startTime, endTime,
                                         pageLength, returnNiceItemTypes, returnSceneMarksDates,
                                         returnPage, niceItemList, continuationToken);
-                                break;*/
+                                break;
                             case Constants.Method.GET_NICEITEMTYPES_LIST:
                                 getNiceItemTypesList(activity);
                                 break;
@@ -742,9 +789,9 @@ public class MainViewModel extends ViewModel {
                             case Constants.Method.GET_PRIVACY_OBJECT:
                                 getPrivacyObject(activity, currentDateString, sceneEncryptionKeyID);
                                 break;
-                         /*   case Constants.Method.GET_CURATION_LIVE:
+                            case Constants.Method.GET_CURATION_LIVE:
                                 getCurationLive(activity, sceneMarkURI, deviceName, deviceTimeZone);
-                                break;*/
+                                break;
                         }
 
                     }
