@@ -30,7 +30,7 @@
                 android:visibility="gone"
                 android:paddingStart="@dimen/dimen_Activity_home_padding_top"
                />
-            <com.scenera.nicesecurityapp.customviews.CustomTextViewMedium
+            <com.scenera.nicesecurityapplib.customviews.CustomTextViewMedium
                 android:id="@+id/tvBackTitle"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
@@ -54,7 +54,7 @@
             android:paddingLeft="@dimen/dimen_Activity_home_padding_top"
             android:paddingRight="@dimen/dimen_Activity_home_padding_top"/>
 
-        <com.scenera.nicesecurityapp.customviews.CustomTextViewMedium
+        <com.scenera.nicesecurityapplib.customviews.CustomTextViewMedium
             android:id="@+id/tvActivityTitle"
             android:layout_width="match_parent"
             android:layout_height="25dp"
