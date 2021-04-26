@@ -161,7 +161,7 @@ public class MainActivity extends BaseActivity {
             AppLog.Log("TAG", "showHTML: " + html);
 
             System.out.println(html);
-            responseString = html;
+            responseString = html.trim();
             AppLog.Log("TAG", "responseString: " + responseString);
 
             runOnUiThread(new Runnable() {
