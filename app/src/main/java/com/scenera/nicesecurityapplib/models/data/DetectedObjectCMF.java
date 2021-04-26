@@ -22,6 +22,9 @@ public class DetectedObjectCMF implements Parcelable
     @SerializedName("NICEItemType")
     @Expose
     private String nICEItemType;
+    @SerializedName("CustomItemType")
+    @Expose
+    private String customItemType;
     @SerializedName("RelatedSceneData")
     @Expose
     private List<String> relatedSceneData = null;
@@ -43,10 +46,20 @@ public class DetectedObjectCMF implements Parcelable
             ;
 
     protected DetectedObjectCMF(Parcel in) {
-        this.algorithmID = ((String) in.readValue((String.class.getClassLoader())));
-        this.boundingBox = ((BoundingBox) in.readValue((BoundingBox.class.getClassLoader())));
-        this.nICEItemType = ((String) in.readValue((String.class.getClassLoader())));
-        in.readList(this.relatedSceneData, (String.class.getClassLoader()));
+        algorithmID = in.readString();
+        boundingBox = in.readParcelable(BoundingBox.class.getClassLoader());
+        nICEItemType = in.readString();
+        customItemType = in.readString();
+        relatedSceneData = in.createStringArrayList();
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(algorithmID);
+        dest.writeParcelable(boundingBox, flags);
+        dest.writeString(nICEItemType);
+        dest.writeString(customItemType);
+        dest.writeStringList(relatedSceneData);
     }
 
     public DetectedObjectCMF() {
@@ -84,11 +97,13 @@ public class DetectedObjectCMF implements Parcelable
         this.relatedSceneData = relatedSceneData;
     }
 
-    public void writeToParcel(Parcel dest, int flags) {
-        dest.writeValue(algorithmID);
-        dest.writeValue(boundingBox);
-        dest.writeValue(nICEItemType);
-        dest.writeList(relatedSceneData);
+
+    public String getCustomItemType() {
+        return customItemType;
+    }
+
+    public void setCustomItemType(String customItemType) {
+        this.customItemType = customItemType;
     }
 
     public int describeContents() {
