@@ -427,9 +427,11 @@ public class MainViewModel extends ViewModel {
                         Log.i("response body", "---->>>> " + response.body());
                         response.body().setDeviceName(deviceName);
                         response.body().setDeviceTimeZone(deviceTimeZone);
+                        if(!alertArrayList.contains(response.body())){
+                            alertArrayList.add(response.body());
+                            alertLiveData.setValue(alertArrayList);
+                        }
 
-                        alertArrayList.add(response.body());
-                        alertLiveData.setValue(alertArrayList);
 
                     }else{
                         Utils.removeCustomProgressDialog();
@@ -858,7 +860,7 @@ public class MainViewModel extends ViewModel {
     }
 
     /** remove token from server to stop notification of particular node **/
-    private void removeTokenFromServer(AppCompatActivity activity, String nodeID, String devideToken, String applicationId) {
+    public void removeTokenFromServer(AppCompatActivity activity, String nodeID, String devideToken, String applicationId) {
         Utils.showCustomProgressDialog(activity, "", false);
         pHelper = PreferenceHelper.getInstance(activity);
 
@@ -901,7 +903,7 @@ public class MainViewModel extends ViewModel {
         });
     }
 
-    private void addFaceDatabaseApi(AppCompatActivity activity, String name, String currentPhotoPath) {
+    public void addFaceDatabaseApi(AppCompatActivity activity, String name, String currentPhotoPath) {
 
         Utils.showCustomProgressDialog(activity, "", false);
 
@@ -945,7 +947,7 @@ public class MainViewModel extends ViewModel {
 
     }
 
-    private void changeFaceDatabaseApi(AppCompatActivity activity, String personId, boolean isChecked, Switch swFace) {
+    public void changeFaceDatabaseApi(AppCompatActivity activity, String personId, boolean isChecked, Switch swFace) {
 
         Utils.showCustomProgressDialog(activity, "", false);
 
@@ -994,7 +996,7 @@ public class MainViewModel extends ViewModel {
         }
     }
 
-    private void getFaceDatabaseApi(AppCompatActivity activity) {
+    public void getFaceDatabaseApi(AppCompatActivity activity) {
 
         Utils.showCustomProgressDialog(activity, "", false);
 
