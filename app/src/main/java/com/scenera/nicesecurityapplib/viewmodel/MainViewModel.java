@@ -427,10 +427,25 @@ public class MainViewModel extends ViewModel {
                         Log.i("response body", "---->>>> " + response.body());
                         response.body().setDeviceName(deviceName);
                         response.body().setDeviceTimeZone(deviceTimeZone);
-                        if(!alertArrayList.contains(response.body())){
+                        if(alertArrayList.isEmpty()){
                             alertArrayList.add(response.body());
                             alertLiveData.setValue(alertArrayList);
+                        }else {
+                            boolean isExists = false;
+                            for (SceneMarkResponseCMF sceneMarkResponseCMF : alertArrayList) {
+                                if (sceneMarkResponseCMF.getSceneMarkID().equals(response.body().getSceneMarkID())) {
+                                    isExists = true;
+                                }
+                            }
+                            if(!isExists){
+                                alertArrayList.add(response.body());
+                                alertLiveData.setValue(alertArrayList);
+                            }
                         }
+//                        if(!alertArrayList.contains(response.body())){
+//                            alertArrayList.add(response.body());
+//                            alertLiveData.setValue(alertArrayList);
+//                        }
 
 
                     }else{
@@ -904,7 +919,7 @@ public class MainViewModel extends ViewModel {
     }
 
     public void addFaceDatabaseApi(AppCompatActivity activity, String name, String currentPhotoPath) {
-
+        pHelper = PreferenceHelper.getInstance(activity);
         Utils.showCustomProgressDialog(activity, "", false);
 
         String authority = "http://" + pHelper.getAppControlObject().getPayload().
@@ -948,7 +963,7 @@ public class MainViewModel extends ViewModel {
     }
 
     public void changeFaceDatabaseApi(AppCompatActivity activity, String personId, boolean isChecked, Switch swFace) {
-
+        pHelper = PreferenceHelper.getInstance(activity);
         Utils.showCustomProgressDialog(activity, "", false);
 
         String authority = "http://" + pHelper.getAppControlObject().getPayload().
@@ -999,7 +1014,7 @@ public class MainViewModel extends ViewModel {
     public void getFaceDatabaseApi(AppCompatActivity activity) {
 
         Utils.showCustomProgressDialog(activity, "", false);
-
+        pHelper = PreferenceHelper.getInstance(activity);
         String authority = "http://" + pHelper.getAppControlObject().getPayload().getNotificationEndPoints().get(0).getNetEndPointAppControl().getSchemeAppControlObject().get(0).getAuthority();
 
 
