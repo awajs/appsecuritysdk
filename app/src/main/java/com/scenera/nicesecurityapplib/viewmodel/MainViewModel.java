@@ -49,7 +49,7 @@ public class MainViewModel extends ViewModel {
     private String keyEncrypted = "", ivEncrypted="", keyId="";
 
     private MutableLiveData<AppConrolObjectResponse> appConrolObjectLiveData;
-    private MutableLiveData<GetPrivaceObjectResponse> privaceObjectLiveData;
+    private MutableLiveData<GetPrivaceObjectResponse> privacyObjectLiveData;
     private MutableLiveData<ArrayList<SceneMarkResponseCMF>> alertLiveData;
     private ArrayList<SceneMarkResponseCMF> alertArrayList;
 
@@ -80,7 +80,7 @@ public class MainViewModel extends ViewModel {
     public MainViewModel() {
 
         appConrolObjectLiveData = new MutableLiveData<>();
-        privaceObjectLiveData = new MutableLiveData<>();
+        privacyObjectLiveData = new MutableLiveData<>();
         isTokenAdded = new MutableLiveData<>();
         isTokenRemoved = new MutableLiveData<>();
         isFaceAdded = new MutableLiveData<>();
@@ -135,6 +135,18 @@ public class MainViewModel extends ViewModel {
     public MutableLiveData<GetSceneMarkManifestResponse> getSceneMarkManifestLiveData() {
 
         return sceneMarkManifestLiveData;
+    }
+
+    /** get PrivateObject **/
+    public MutableLiveData<GetPrivaceObjectResponse> getPrivacyObjectLiveData() {
+
+        return privacyObjectLiveData;
+    }
+
+    /** get PrivateObject **/
+    public MutableLiveData<AppConrolObjectResponse> getAppConrolObjectLiveData() {
+
+        return appConrolObjectLiveData;
     }
 
     public MutableLiveData<Boolean> getIsTokenAdded() {
@@ -625,7 +637,7 @@ public class MainViewModel extends ViewModel {
                                 keyId = response.body().getPayload().getSceneEncryptionKey().getKid();
                                 pHelper.putIvBytes(ivEncrypted);  // IvBytes
                                 pHelper.putKid(keyId); // KeyID
-                                privaceObjectLiveData.setValue(response.body());
+                                privacyObjectLiveData.setValue(response.body());
 
                             } catch (Exception e) {
                                 e.printStackTrace();
