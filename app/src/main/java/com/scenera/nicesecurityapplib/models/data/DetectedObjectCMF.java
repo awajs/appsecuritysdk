@@ -28,22 +28,10 @@ public class DetectedObjectCMF implements Parcelable
     @SerializedName("RelatedSceneData")
     @Expose
     private List<String> relatedSceneData = null;
-    public final static Creator<DetectedObject> CREATOR = new Creator<DetectedObject>() {
 
 
-        @SuppressWarnings({
-                "unchecked"
-        })
-        public DetectedObject createFromParcel(Parcel in) {
-            return new DetectedObject(in);
-        }
-
-        public DetectedObject[] newArray(int size) {
-            return (new DetectedObject[size]);
-        }
-
+    public DetectedObjectCMF() {
     }
-            ;
 
     protected DetectedObjectCMF(Parcel in) {
         algorithmID = in.readString();
@@ -62,8 +50,22 @@ public class DetectedObjectCMF implements Parcelable
         dest.writeStringList(relatedSceneData);
     }
 
-    public DetectedObjectCMF() {
+    @Override
+    public int describeContents() {
+        return 0;
     }
+
+    public static final Creator<DetectedObjectCMF> CREATOR = new Creator<DetectedObjectCMF>() {
+        @Override
+        public DetectedObjectCMF createFromParcel(Parcel in) {
+            return new DetectedObjectCMF(in);
+        }
+
+        @Override
+        public DetectedObjectCMF[] newArray(int size) {
+            return new DetectedObjectCMF[size];
+        }
+    };
 
     public String getAlgorithmID() {
         return algorithmID;
@@ -106,9 +108,6 @@ public class DetectedObjectCMF implements Parcelable
         this.customItemType = customItemType;
     }
 
-    public int describeContents() {
-        return 0;
-    }
 
 
 }
