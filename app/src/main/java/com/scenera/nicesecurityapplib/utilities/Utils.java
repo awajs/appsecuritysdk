@@ -278,7 +278,7 @@ public class Utils {
         return jwe;
     }
 
-    public static String decryptAndValidateCMF(Context context, String jws){
+    public static AppConrolObjectResponse decryptAndValidateCMF(Context context, String jws){
         AppConrolObjectResponse appConrolObjectResponse = null;
         try {
             String privateKey = PreferenceHelper.getInstance(context).getPrivateKeyRSA();
@@ -296,7 +296,7 @@ public class Utils {
             e.printStackTrace();
         }
 
-        return new Gson().toJson(appConrolObjectResponse);
+        return appConrolObjectResponse;
 
     }
 

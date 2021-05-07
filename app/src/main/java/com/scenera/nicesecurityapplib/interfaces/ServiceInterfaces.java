@@ -3,6 +3,7 @@ package com.scenera.nicesecurityapplib.interfaces;
 
 import com.scenera.nicesecurityapplib.models.response.AddFaceResponse;
 import com.scenera.nicesecurityapplib.models.response.AppConrolObjectResponse;
+import com.scenera.nicesecurityapplib.models.response.EncryptedCMFResponse;
 import com.scenera.nicesecurityapplib.models.response.GetDevicesResponse;
 import com.scenera.nicesecurityapplib.models.response.GetFaceDataResponse;
 import com.scenera.nicesecurityapplib.models.response.GetPrivaceObjectResponse;
@@ -52,6 +53,17 @@ public class ServiceInterfaces {
                                                           @Path("EndPointID") String EndPointID,
                                                           @Query("code") String code,
                                                           @Body RequestBody requestBody);
+
+    }
+
+    public interface GetAppControlObjectEncrypted {
+
+        @Headers("Content-Type:application/json")
+        @POST("/{Version}/{EndPointID}/management/"+ Constants.ServiceType.GET_APP_CONTROL)
+        Call<EncryptedCMFResponse> getAppControlObject(@Path("Version") String version,
+                                                       @Path("EndPointID") String EndPointID,
+                                                       @Query("code") String code,
+                                                       @Body RequestBody requestBody);
 
     }
     public interface GetPrivacyObject {

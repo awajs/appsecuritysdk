@@ -28,9 +28,11 @@ import com.scenera.nicesecurityapplib.models.data.AppSecurityObject;
 import com.scenera.nicesecurityapplib.models.data.NodeList;
 import com.scenera.nicesecurityapplib.models.response.AppConrolObjectResponse;
 import com.scenera.nicesecurityapplib.models.response.AppSecurityObjectResponse;
+import com.scenera.nicesecurityapplib.models.response.EncryptedCMFResponse;
 import com.scenera.nicesecurityapplib.retrofit.ApiClient;
 import com.scenera.nicesecurityapplib.utilities.AppLog;
 import com.scenera.nicesecurityapplib.utilities.Constants;
+import com.scenera.nicesecurityapplib.utilities.PreferenceHelper;
 import com.scenera.nicesecurityapplib.utilities.Utils;
 import com.scenera.nicesecurityapplib.viewmodel.MainViewModel;
 
@@ -55,6 +57,7 @@ import java.security.spec.ECGenParameterSpec;
 import java.security.spec.ECPoint;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.Date;
 
 import javax.crypto.BadPaddingException;
@@ -317,20 +320,28 @@ public class MainActivity extends BaseActivity {
 
             String accessToken = pHelper.getAppSecurityObject().getNICEASEndPoint().getNetEndPoint().getScheme().get(0).getAccessToken();
 
-            ServiceInterfaces.GetAppControlObject api = ApiClient.getClientAccount(this,"https://" +
-                    pHelper.getAppSecurityObject().getNICEASEndPoint().getNetEndPoint().getScheme().get(0).getAuthority()).create(ServiceInterfaces.GetAppControlObject.class);
+            String encryptedPayload = Utils.encryptAndSignCMF(this, jsonObject,
+                    Base64.getUrlEncoder().encodeToString(accessToken.getBytes()) + "." +
+                            Base64.getUrlEncoder().encodeToString(jsonPayLoad.toString().getBytes()));
 
-            Call<AppConrolObjectResponse> call = api.getAppControlObject("Bearer "+ accessToken,
+
+            JSONObject jsonObjectRequest = new JSONObject();
+            jsonObject.put("EncryptionKey", PreferenceHelper.getInstance(this).getPublicKeyRSA());
+            jsonObject.put("EncryptedAndSignedObject",encryptedPayload);
+            ServiceInterfaces.GetAppControlObjectEncrypted api = ApiClient.getClientAccount(this,"https://" +
+                    pHelper.getAppSecurityObject().getNICEASEndPoint().getNetEndPoint().getScheme().get(0).getAuthority()).create(ServiceInterfaces.GetAppControlObjectEncrypted.class);
+
+            Call<EncryptedCMFResponse> call = api.getAppControlObject(
                     pHelper.getAppSecurityObject().getNICEASEndPoint().getNetEndPoint().getAPIVersion(),
                     pHelper.getAppSecurityObject().getNICEASEndPoint().getNetEndPoint().getEndPointID(),
                     Constants.CODE_GET_APP_CONTROL_REQUEST,
-                    ApiClient.makeJSONRequestBody(jsonObject));
+                    ApiClient.makeJSONRequestBody(jsonObjectRequest));
 
 
 
-            call.enqueue(new Callback<AppConrolObjectResponse>() {
+            call.enqueue(new Callback<EncryptedCMFResponse>() {
                 @Override
-                public void onResponse(Call<AppConrolObjectResponse> call, retrofit2.Response<AppConrolObjectResponse> response) {
+                public void onResponse(Call<EncryptedCMFResponse> call, retrofit2.Response<EncryptedCMFResponse> response) {
                     Log.i(TAG, "---->>> AppControl " + response.raw().request().url());
 
                     Utils.removeCustomProgressDialog();
@@ -338,8 +349,10 @@ public class MainActivity extends BaseActivity {
                     if (!response.equals("{}") && response != null && response.body() != null) {
 
                         /**************************** PUT APPCONTROL TIME*********************************/
-
-                        pHelper.putAppControlObject(response.body());
+                        String encryptedPayload = response.body().getEncryptedPayload();
+                        AppConrolObjectResponse appConrolObjectResponse = Utils.decryptAndValidateCMF(MainActivity.this, encryptedPayload);
+                        AppLog.Log("appConrolObjectResponse","****"+new Gson().toJson(appConrolObjectResponse));
+                        pHelper.putAppControlObject(appConrolObjectResponse);
                         pHelper.putEmail("test");
                         Toast.makeText(getApplicationContext(), getResources().getString(R.string.text_error_app_link_success), Toast.LENGTH_LONG).show();
                         //((HomeActivity) getActivity()).changeButtonUI(R.id.tvCameras);
@@ -356,7 +369,7 @@ public class MainActivity extends BaseActivity {
                 }
 
                 @Override
-                public void onFailure(Call<AppConrolObjectResponse> call, Throwable t) {
+                public void onFailure(Call<EncryptedCMFResponse> call, Throwable t) {
                     Utils.removeCustomProgressDialog();
                     Log.i("onFailure", "---->>>> " + t.toString());
                 }

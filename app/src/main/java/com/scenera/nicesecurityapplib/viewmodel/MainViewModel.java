@@ -11,12 +11,14 @@ import androidx.lifecycle.ViewModel;
 import com.auth0.android.jwt.JWT;
 import com.google.gson.Gson;
 import com.scenera.nicesecurityapplib.BaseActivity;
+import com.scenera.nicesecurityapplib.MainActivity;
 import com.scenera.nicesecurityapplib.interfaces.ServiceInterfaces;
 import com.scenera.nicesecurityapplib.models.data.NodeList;
 import com.scenera.nicesecurityapplib.models.data.PersonFace;
 import com.scenera.nicesecurityapplib.models.response.AddFaceResponse;
 import com.scenera.nicesecurityapplib.models.response.AppConrolObjectResponse;
 import com.scenera.nicesecurityapplib.models.response.AppSecurityObjectResponse;
+import com.scenera.nicesecurityapplib.models.response.EncryptedCMFResponse;
 import com.scenera.nicesecurityapplib.models.response.GetDevicesResponse;
 import com.scenera.nicesecurityapplib.models.response.GetFaceDataResponse;
 import com.scenera.nicesecurityapplib.models.response.GetPrivaceObjectResponse;
@@ -34,6 +36,7 @@ import org.json.JSONObject;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.Date;
 import java.util.HashMap;
 
@@ -688,37 +691,47 @@ public class MainViewModel extends ViewModel {
 
             String accessToken = pHelper.getAppSecurityObject().getNICEASEndPoint().getNetEndPoint().getScheme().get(0).getAccessToken();
 
-            ServiceInterfaces.GetAppControlObject api = ApiClient.getClientAccount(activity,"https://" +
-                    pHelper.getAppSecurityObject().getNICEASEndPoint().getNetEndPoint().getScheme().get(0).getAuthority()).create(ServiceInterfaces.GetAppControlObject.class);
+            String encryptedPayload = Utils.encryptAndSignCMF(activity, jsonObject,
+                    Base64.getUrlEncoder().encodeToString(accessToken.getBytes()) + "." +
+                            Base64.getUrlEncoder().encodeToString(jsonPayLoad.toString().getBytes()));
 
-            Call<AppConrolObjectResponse> call = api.getAppControlObject("Bearer "+ accessToken,
-                    pHelper.getAppSecurityObject().getNICEASEndPoint().getNetEndPoint().getAPIVersion(),
+            JSONObject jsonObjectRequest = new JSONObject();
+            jsonObject.put("EncryptionKey", PreferenceHelper.getInstance(activity).getPublicKeyRSA());
+            jsonObject.put("EncryptedAndSignedObject",encryptedPayload);
+
+            ServiceInterfaces.GetAppControlObjectEncrypted api = ApiClient.getClientAccount(activity,"https://" +
+                    pHelper.getAppSecurityObject().getNICEASEndPoint().getNetEndPoint().getScheme().get(0).getAuthority()).create(ServiceInterfaces.GetAppControlObjectEncrypted.class);
+
+            Call<EncryptedCMFResponse> call = api.getAppControlObject(pHelper.getAppSecurityObject().getNICEASEndPoint().getNetEndPoint().getAPIVersion(),
                     pHelper.getAppSecurityObject().getNICEASEndPoint().getNetEndPoint().getEndPointID(),
                     Constants.CODE_GET_APP_CONTROL_REQUEST,
                     ApiClient.makeJSONRequestBody(jsonObject));
 
 
-            call.enqueue(new Callback<AppConrolObjectResponse>() {
+            call.enqueue(new Callback<EncryptedCMFResponse>() {
                 @Override
-                public void onResponse(Call<AppConrolObjectResponse> call, retrofit2.Response<AppConrolObjectResponse> response) {
+                public void onResponse(Call<EncryptedCMFResponse> call, retrofit2.Response<EncryptedCMFResponse> response) {
                     Log.i(TAG, "---->>> AppControl " + response.raw().request().url());
 
                     Utils.removeCustomProgressDialog();
 
                     if (!response.equals("{}") && response != null && response.body() != null) {
 
-                        pHelper.putAppControlObject(response.body());
-                        String token = response.body().getPayload().getDataEndPoints().get(0).
+                        String encryptedPayload = response.body().getEncryptedPayload();
+                        AppConrolObjectResponse appConrolObjectResponse = Utils.decryptAndValidateCMF(activity, encryptedPayload);
+                        AppLog.Log("appConrolObjectResponse","****"+new Gson().toJson(appConrolObjectResponse));
+                        pHelper.putAppControlObject(appConrolObjectResponse);
+                        String token = appConrolObjectResponse.getPayload().getDataEndPoints().get(0).
                                 getNetEndPointAppControl().getSchemeAppControlObject().get(0).getAccessToken();
                         JWT jwt = new JWT(token);
                         pHelper.putExpiryDate(jwt.getExpiresAt().getTime());
                         pHelper.putNotBeforeDate(jwt.getNotBefore().getTime());
-                        appConrolObjectLiveData.setValue(response.body());
+                        appConrolObjectLiveData.setValue(appConrolObjectResponse);
                     }
                 }
 
                 @Override
-                public void onFailure(Call<AppConrolObjectResponse> call, Throwable t) {
+                public void onFailure(Call<EncryptedCMFResponse> call, Throwable t) {
                     Utils.removeCustomProgressDialog();
                     Log.i("onFailure", "---->>>> " + t.toString());
                 }
@@ -766,20 +779,28 @@ public class MainViewModel extends ViewModel {
 
             String accessToken = pHelper.getAppSecurityObject().getNICEASEndPoint().getNetEndPoint().getScheme().get(0).getAccessToken();
 
-            ServiceInterfaces.GetAppControlObject api = ApiClient.getClientAccount(activity,"https://" +
-                    pHelper.getAppSecurityObject().getNICEASEndPoint().getNetEndPoint().getScheme().get(0).getAuthority()).create(ServiceInterfaces.GetAppControlObject.class);
+            String encryptedPayload = Utils.encryptAndSignCMF(activity, jsonObject,
+                    Base64.getUrlEncoder().encodeToString(accessToken.getBytes()) + "." +
+                            Base64.getUrlEncoder().encodeToString(jsonPayLoad.toString().getBytes()));
 
-            Call<AppConrolObjectResponse> call = api.getAppControlObject("Bearer "+ accessToken,
-                    pHelper.getAppSecurityObject().getNICEASEndPoint().getNetEndPoint().getAPIVersion(),
+            JSONObject jsonObjectRequest = new JSONObject();
+            jsonObject.put("EncryptionKey", PreferenceHelper.getInstance(activity).getPublicKeyRSA());
+            jsonObject.put("EncryptedAndSignedObject",encryptedPayload);
+
+            ServiceInterfaces.GetAppControlObjectEncrypted api = ApiClient.getClientAccount(activity,"https://" +
+                    pHelper.getAppSecurityObject().getNICEASEndPoint().getNetEndPoint().getScheme().get(0).getAuthority()).create(ServiceInterfaces.GetAppControlObjectEncrypted.class);
+
+            Call<EncryptedCMFResponse> call = api.getAppControlObject(pHelper.getAppSecurityObject().getNICEASEndPoint().getNetEndPoint().getAPIVersion(),
                     pHelper.getAppSecurityObject().getNICEASEndPoint().getNetEndPoint().getEndPointID(),
                     Constants.CODE_GET_APP_CONTROL_REQUEST,
                     ApiClient.makeJSONRequestBody(jsonObject));
 
 
 
-            call.enqueue(new Callback<AppConrolObjectResponse>() {
+
+            call.enqueue(new Callback<EncryptedCMFResponse>() {
                 @Override
-                public void onResponse(Call<AppConrolObjectResponse> call, retrofit2.Response<AppConrolObjectResponse> response) {
+                public void onResponse(Call<EncryptedCMFResponse> call, retrofit2.Response<EncryptedCMFResponse> response) {
                     Log.i(TAG, "---->>> AppControl " + response.raw().request().url());
                     Gson gson = new Gson();
                     Log.i(TAG, "---->>> AppControl-RESPONSE " + gson.toJson(response.body()));
@@ -787,9 +808,11 @@ public class MainViewModel extends ViewModel {
                     Utils.removeCustomProgressDialog();
 
                     if (!response.equals("{}") && response != null && response.body() != null) {
-
-                        pHelper.putAppControlObject(response.body());
-                        String token = response.body().getPayload().getDataEndPoints().get(0).
+                        String encryptedPayload = response.body().getEncryptedPayload();
+                        AppConrolObjectResponse appConrolObjectResponse = Utils.decryptAndValidateCMF(activity, encryptedPayload);
+                        AppLog.Log("appConrolObjectResponse","****"+new Gson().toJson(appConrolObjectResponse));
+                        pHelper.putAppControlObject(appConrolObjectResponse);
+                        String token = appConrolObjectResponse.getPayload().getDataEndPoints().get(0).
                                 getNetEndPointAppControl().getSchemeAppControlObject().get(0).getAccessToken();
                         JWT jwt = new JWT(token);
                         pHelper.putExpiryDate(jwt.getExpiresAt().getTime());
@@ -827,7 +850,7 @@ public class MainViewModel extends ViewModel {
                 }
 
                 @Override
-                public void onFailure(Call<AppConrolObjectResponse> call, Throwable t) {
+                public void onFailure(Call<EncryptedCMFResponse> call, Throwable t) {
                     Utils.removeCustomProgressDialog();
                     Log.i("onFailure", "---->>>> " + t.toString());
                 }
