@@ -326,8 +326,8 @@ public class MainActivity extends BaseActivity {
 
 
             JSONObject jsonObjectRequest = new JSONObject();
-            jsonObject.put("EncryptionKey", PreferenceHelper.getInstance(this).getPublicKeyRSA());
-            jsonObject.put("EncryptedAndSignedObject",encryptedPayload);
+            jsonObjectRequest.put("EncryptionKey", PreferenceHelper.getInstance(this).getPublicKeyRSA());
+            jsonObjectRequest.put("EncryptedAndSignedObject",encryptedPayload);
             ServiceInterfaces.GetAppControlObjectEncrypted api = ApiClient.getClientAccount(this,"https://" +
                     pHelper.getAppSecurityObject().getNICEASEndPoint().getNetEndPoint().getScheme().get(0).getAuthority()).create(ServiceInterfaces.GetAppControlObjectEncrypted.class);
 
