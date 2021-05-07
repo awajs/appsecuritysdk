@@ -24,6 +24,7 @@ import com.scenera.nicesecurityapplib.Encryption.EcdhDecrypt;
 import com.scenera.nicesecurityapplib.R;
 import com.scenera.nicesecurityapplib.models.data.AppControlHeader;
 import com.scenera.nicesecurityapplib.models.response.AppConrolObjectResponse;
+import com.scenera.nicesecurityapplib.models.response.GetPrivaceObjectResponse;
 
 import org.jose4j.jwe.ContentEncryptionAlgorithmIdentifiers;
 import org.jose4j.jwe.KeyManagementAlgorithmIdentifiers;
@@ -297,6 +298,28 @@ public class Utils {
         }
 
         return appConrolObjectResponse;
+
+    }
+
+    public static GetPrivaceObjectResponse decryptAndValidateCMF2(Context context, String jws){
+        GetPrivaceObjectResponse getPrivaceObjectResponse = null;
+        try {
+            String privateKey = PreferenceHelper.getInstance(context).getPrivateKeyRSA();
+
+            jws = jws.replace("\"", "");
+            AppControlHeader appControlHeader = SplitAndDecrypt(jws);
+
+            /*********** Decrypt Encrypted Payload **************/
+            EcdhDecrypt ecdhDecrypt = new EcdhDecrypt();
+
+            getPrivaceObjectResponse = ecdhDecrypt.getPrivaceObjectResponse(jws,privateKey,appControlHeader);
+            AppLog.Log("appConrolObjectResponse","****"+new Gson().toJson(getPrivaceObjectResponse));
+
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+
+        return getPrivaceObjectResponse;
 
     }
 

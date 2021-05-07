@@ -615,32 +615,41 @@ public class MainViewModel extends ViewModel {
 
                 String accessToken = pHelper.getAppSecurityObject().getNICEASEndPoint().getNetEndPoint().getScheme().get(0).getAccessToken();
 
-                ServiceInterfaces.GetPrivacyObject api = ApiClient.getClientAccount(activity, "https://" +
-                        pHelper.getAppSecurityObject().getNICEASEndPoint().getNetEndPoint().getScheme().get(0).getAuthority()).create(ServiceInterfaces.GetPrivacyObject.class);
+                String encryptedPayload = Utils.encryptAndSignCMF(activity, jsonObject,
+                        Base64.getUrlEncoder().encodeToString(accessToken.getBytes()) + "." +
+                                Base64.getUrlEncoder().encodeToString(jsonBody.toString().getBytes()));
 
-                Call<GetPrivaceObjectResponse> call = api.getPrivacyObject("Bearer " + accessToken,
-                        pHelper.getAppSecurityObject().getNICEASEndPoint().getNetEndPoint().getAPIVersion(),
+                JSONObject jsonObjectRequest = new JSONObject();
+                jsonObjectRequest.put("EncryptionKey", PreferenceHelper.getInstance(activity).getPublicKeyRSA());
+                jsonObjectRequest.put("EncryptedAndSignedObject",encryptedPayload);
+
+                ServiceInterfaces.GetPrivacyObjectEncrypted api = ApiClient.getClientAccount(activity, "https://" +
+                        pHelper.getAppSecurityObject().getNICEASEndPoint().getNetEndPoint().getScheme().get(0).getAuthority()).create(ServiceInterfaces.GetPrivacyObjectEncrypted.class);
+
+                Call<EncryptedCMFResponse> call = api.getPrivacyObject(pHelper.getAppSecurityObject().getNICEASEndPoint().getNetEndPoint().getAPIVersion(),
                         pHelper.getAppSecurityObject().getNICEASEndPoint().getNetEndPoint().getEndPointID(),
                         ApiClient.makeJSONRequestBody(jsonObject));
 
 
-                call.enqueue(new Callback<GetPrivaceObjectResponse>() {
+                call.enqueue(new Callback<EncryptedCMFResponse>() {
                     @Override
-                    public void onResponse(Call<GetPrivaceObjectResponse> call, retrofit2.Response<GetPrivaceObjectResponse> response) {
+                    public void onResponse(Call<EncryptedCMFResponse> call, retrofit2.Response<EncryptedCMFResponse> response) {
                         Log.i(TAG, "---->>> GetPrivacy " + response.raw().request().url());
 
                         //  Utils.removeCustomProgressDialog();
 
                         if (!response.equals("{}") && response != null && response.body() != null) {
                             try {
-
-                                keyEncrypted = response.body().getPayload().getSceneEncryptionKey().getK();
+                                String encryptedPayload = response.body().getEncryptedPayload();
+                                GetPrivaceObjectResponse getPrivaceObjectResponse = Utils.decryptAndValidateCMF2(activity, encryptedPayload);
+                                AppLog.Log("getPrivaceObjectResponse","****"+new Gson().toJson(getPrivaceObjectResponse));
+                                keyEncrypted = getPrivaceObjectResponse.getPayload().getSceneEncryptionKey().getK();
                                 pHelper.putSceneEncryptionID(keyEncrypted); // SceneEncryptionID
-                                ivEncrypted = response.body().getPayload().getSceneEncryptionKey().getIv();
-                                keyId = response.body().getPayload().getSceneEncryptionKey().getKid();
+                                ivEncrypted = getPrivaceObjectResponse.getPayload().getSceneEncryptionKey().getIv();
+                                keyId = getPrivaceObjectResponse.getPayload().getSceneEncryptionKey().getKid();
                                 pHelper.putIvBytes(ivEncrypted);  // IvBytes
                                 pHelper.putKid(keyId); // KeyID
-                                privacyObjectLiveData.setValue(response.body());
+                                privacyObjectLiveData.setValue(getPrivaceObjectResponse);
 
                             } catch (Exception e) {
                                 e.printStackTrace();
@@ -649,7 +658,7 @@ public class MainViewModel extends ViewModel {
                     }
 
                     @Override
-                    public void onFailure(Call<GetPrivaceObjectResponse> call, Throwable t) {
+                    public void onFailure(Call<EncryptedCMFResponse> call, Throwable t) {
                         Utils.removeCustomProgressDialog();
                         Log.i("onFailure", "---->>>> " + t.toString());
                     }

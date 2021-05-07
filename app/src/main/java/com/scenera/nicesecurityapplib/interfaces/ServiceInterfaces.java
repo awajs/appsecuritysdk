@@ -76,6 +76,16 @@ public class ServiceInterfaces {
                                                         @Body RequestBody requestBody);
 
     }
+
+    public interface GetPrivacyObjectEncrypted {
+
+        @Headers("Content-Type:application/json")
+        @POST("/{Version}/{EndPointID}/management/"+ Constants.ServiceType.GET_PRIVACY_OBJECT)
+        Call<EncryptedCMFResponse> getPrivacyObject(@Path("Version") String version,
+                                                        @Path("EndPointID") String EndPointID,
+                                                        @Body RequestBody requestBody);
+
+    }
     public interface GetAccountNode{
 
         @Headers("Content-Type:application/json")

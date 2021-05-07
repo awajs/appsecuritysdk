@@ -4,8 +4,10 @@ package com.scenera.nicesecurityapplib.models.response;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import com.google.gson.Gson;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
+import com.scenera.nicesecurityapplib.models.data.Payload;
 import com.scenera.nicesecurityapplib.models.data.PrivacyPayload;
 
 
@@ -36,7 +38,7 @@ public class GetPrivaceObjectResponse implements Parcelable {
     private String replyStatusMessage;
     @SerializedName("Payload")
     @Expose
-    private PrivacyPayload payload;
+    private Object payload;
 
     public final static Creator<GetPrivaceObjectResponse> CREATOR = new Creator<GetPrivaceObjectResponse>() {
 
@@ -135,7 +137,11 @@ public class GetPrivaceObjectResponse implements Parcelable {
     }
 
     public PrivacyPayload getPayload() {
-        return payload;
+        return new Gson().fromJson(new Gson().toJson(payload), PrivacyPayload.class);
+    }
+
+    public String getStringPayload() {
+        return String.valueOf(payload);
     }
 
     public void setPayload(PrivacyPayload payload) {

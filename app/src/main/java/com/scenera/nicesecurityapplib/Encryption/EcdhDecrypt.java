@@ -6,8 +6,10 @@ import android.util.Log;
 import com.google.gson.Gson;
 import com.scenera.nicesecurityapplib.models.data.AppControlHeader;
 import com.scenera.nicesecurityapplib.models.data.Payload;
+import com.scenera.nicesecurityapplib.models.data.PrivacyPayload;
 import com.scenera.nicesecurityapplib.models.response.AppConrolObjectResponse;
 import com.scenera.nicesecurityapplib.models.response.AppSecurityObjectResponse;
+import com.scenera.nicesecurityapplib.models.response.GetPrivaceObjectResponse;
 
 import org.jose4j.jca.ProviderContext;
 import org.jose4j.jwe.JsonWebEncryption;
@@ -168,6 +170,44 @@ public class EcdhDecrypt {
             e.printStackTrace();
         }
         return appConrolObjectResponse;
+    }
+
+    public GetPrivaceObjectResponse getPrivaceObjectResponse(String encryptedPayload,
+                                                        String privateKeyToDecrypt, AppControlHeader appControlHeader)
+    {
+        GetPrivaceObjectResponse getPrivaceObjectResponse = null;
+
+        try {
+
+            Security.insertProviderAt(new org.spongycastle.jce.provider.BouncyCastleProvider(), 1);
+
+            String jwsPayload = parseCertificate(encryptedPayload, appControlHeader.getX5c());
+            getPrivaceObjectResponse = new Gson().fromJson(jwsPayload, GetPrivaceObjectResponse.class);
+
+            System.out.println("Before ::" + jwsPayload);
+            final PrivateKey privateKey = getPrivateKey(privateKeyToDecrypt, "RSA");
+            final JsonWebEncryption jsonWebEncryption = new JsonWebEncryption();
+            final ProviderContext provideContext = new ProviderContext();
+            provideContext.getGeneralProviderContext().setGeneralProvider("SC");
+            jsonWebEncryption.setProviderContext(provideContext);
+            jsonWebEncryption.setKey(privateKey);
+            jsonWebEncryption.setCompactSerialization(getPrivaceObjectResponse.getStringPayload());
+            String response = jsonWebEncryption.getPayload();
+
+            System.out.println("JsonWebEncryption: " +jsonWebEncryption.getPayload()); // JWE
+            System.out.println("Payload: " +new Gson().fromJson(jsonWebEncryption.getPayload(), PrivacyPayload.class).toString()); // JWE
+
+            getPrivaceObjectResponse.setPayload(new Gson().fromJson(jsonWebEncryption.getPayload(), PrivacyPayload.class));
+
+        }
+        catch(JoseException e)
+        {
+            e.printStackTrace();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return getPrivaceObjectResponse;
     }
 
 }
