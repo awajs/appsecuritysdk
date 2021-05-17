@@ -616,54 +616,84 @@ public class MainViewModel extends ViewModel {
 
                 String accessToken = pHelper.getAppSecurityObject().getNICEASEndPoint().getNetEndPoint().getScheme().get(0).getAccessToken();
 
-                String encryptedPayload = Utils.encryptAndSignCMF(activity, jsonObject,
-                        Base64.getUrlEncoder().encodeToString(accessToken.getBytes()) + "." +
-                                Base64.getUrlEncoder().encodeToString(jsonBody.toString().getBytes()));
+                if(pHelper.getSignInMode() == Constants.STAGING_SIGN_IN){
+                    String encryptedPayload = Utils.encryptAndSignCMF(activity, jsonObject,
+                            Base64.getUrlEncoder().encodeToString(accessToken.getBytes()) + "." +
+                                    Base64.getUrlEncoder().encodeToString(jsonBody.toString().getBytes()));
 
-                JSONObject jsonObjectRequest = new JSONObject();
-                jsonObjectRequest.put("EncryptionKey", PreferenceHelper.getInstance(activity).getPublicKeyRSA());
-                jsonObjectRequest.put("EncryptedAndSignedObject",encryptedPayload);
+                    JSONObject jsonObjectRequest = new JSONObject();
+                    jsonObjectRequest.put("EncryptionKey", PreferenceHelper.getInstance(activity).getPublicKeyRSA());
+                    jsonObjectRequest.put("EncryptedAndSignedObject",encryptedPayload);
 
-                ServiceInterfaces.GetPrivacyObjectEncrypted api = ApiClient.getClientAccount(activity, "https://" +
-                        pHelper.getAppSecurityObject().getNICEASEndPoint().getNetEndPoint().getScheme().get(0).getAuthority()).create(ServiceInterfaces.GetPrivacyObjectEncrypted.class);
+                    ServiceInterfaces.GetPrivacyObjectEncrypted api = ApiClient.getClientAccount(activity, "https://" +
+                            pHelper.getAppSecurityObject().getNICEASEndPoint().getNetEndPoint().getScheme().get(0).getAuthority()).create(ServiceInterfaces.GetPrivacyObjectEncrypted.class);
 
-                Call<EncryptedCMFResponse> call = api.getPrivacyObject(pHelper.getAppSecurityObject().getNICEASEndPoint().getNetEndPoint().getAPIVersion(),
-                        pHelper.getAppSecurityObject().getNICEASEndPoint().getNetEndPoint().getEndPointID(),
-                        ApiClient.makeJSONRequestBody(jsonObject));
+                    Call<EncryptedCMFResponse> call = api.getPrivacyObject(pHelper.getAppSecurityObject().getNICEASEndPoint().getNetEndPoint().getAPIVersion(),
+                            pHelper.getAppSecurityObject().getNICEASEndPoint().getNetEndPoint().getEndPointID(),
+                            ApiClient.makeJSONRequestBody(jsonObjectRequest));
 
 
-                call.enqueue(new Callback<EncryptedCMFResponse>() {
-                    @Override
-                    public void onResponse(Call<EncryptedCMFResponse> call, retrofit2.Response<EncryptedCMFResponse> response) {
-                        Log.i(TAG, "---->>> GetPrivacy " + response.raw().request().url());
+                    call.enqueue(new Callback<EncryptedCMFResponse>() {
+                        @Override
+                        public void onResponse(Call<EncryptedCMFResponse> call, retrofit2.Response<EncryptedCMFResponse> response) {
+                            Log.i(TAG, "---->>> GetPrivacy " + response.raw().request().url());
 
-                        //  Utils.removeCustomProgressDialog();
+                            //  Utils.removeCustomProgressDialog();
 
-                        if (!response.equals("{}") && response != null && response.body() != null) {
-                            try {
-                                String encryptedPayload = response.body().getEncryptedPayload();
-                                GetPrivaceObjectResponse getPrivaceObjectResponse = Utils.decryptAndValidateCMF2(activity, encryptedPayload);
-                                AppLog.Log("getPrivaceObjectResponse","****"+new Gson().toJson(getPrivaceObjectResponse));
-                                keyEncrypted = getPrivaceObjectResponse.getPayload().getSceneEncryptionKey().getK();
-                                pHelper.putSceneEncryptionID(keyEncrypted); // SceneEncryptionID
-                                ivEncrypted = getPrivaceObjectResponse.getPayload().getSceneEncryptionKey().getIv();
-                                keyId = getPrivaceObjectResponse.getPayload().getSceneEncryptionKey().getKid();
-                                pHelper.putIvBytes(ivEncrypted);  // IvBytes
-                                pHelper.putKid(keyId); // KeyID
-                                privacyObjectLiveData.setValue(getPrivaceObjectResponse);
+                            if (!response.equals("{}") && response != null && response.body() != null) {
+                                try {
+                                    String encryptedPayload = response.body().getEncryptedPayload();
+                                    GetPrivaceObjectResponse getPrivaceObjectResponse = Utils.decryptAndValidateCMF2(activity, encryptedPayload);
+                                    AppLog.Log("getPrivaceObjectResponse","****"+new Gson().toJson(getPrivaceObjectResponse));
+                                    keyEncrypted = getPrivaceObjectResponse.getPayload().getSceneEncryptionKey().getK();
+                                    pHelper.putSceneEncryptionID(keyEncrypted); // SceneEncryptionID
+                                    ivEncrypted = getPrivaceObjectResponse.getPayload().getSceneEncryptionKey().getIv();
+                                    keyId = getPrivaceObjectResponse.getPayload().getSceneEncryptionKey().getKid();
+                                    pHelper.putIvBytes(ivEncrypted);  // IvBytes
+                                    pHelper.putKid(keyId); // KeyID
+                                    privacyObjectLiveData.setValue(getPrivaceObjectResponse);
 
-                            } catch (Exception e) {
-                                e.printStackTrace();
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                }
                             }
                         }
-                    }
 
-                    @Override
-                    public void onFailure(Call<EncryptedCMFResponse> call, Throwable t) {
-                        Utils.removeCustomProgressDialog();
-                        Log.i("onFailure", "---->>>> " + t.toString());
-                    }
-                });
+                        @Override
+                        public void onFailure(Call<EncryptedCMFResponse> call, Throwable t) {
+                            Utils.removeCustomProgressDialog();
+                            Log.i("onFailure", "---->>>> " + t.toString());
+                        }
+                    });
+                }else {
+                    ServiceInterfaces.GetPrivacyObject api = ApiClient.getClientAccount(activity, "https://" +
+                            pHelper.getAppSecurityObject().getNICEASEndPoint().getNetEndPoint().getScheme().get(0).getAuthority()).create(ServiceInterfaces.GetPrivacyObject.class);
+
+                    Call<GetPrivaceObjectResponse> call = api.getPrivacyObject("Bearer "+ accessToken,pHelper.getAppSecurityObject().getNICEASEndPoint().getNetEndPoint().getAPIVersion(),
+                            pHelper.getAppSecurityObject().getNICEASEndPoint().getNetEndPoint().getEndPointID(),
+                            ApiClient.makeJSONRequestBody(jsonObject));
+
+                    call.enqueue(new Callback<GetPrivaceObjectResponse>() {
+                        @Override
+                        public void onResponse(Call<GetPrivaceObjectResponse> call, Response<GetPrivaceObjectResponse> response) {
+                            GetPrivaceObjectResponse getPrivaceObjectResponse = response.body();
+                            AppLog.Log("getPrivaceObjectResponse","****"+new Gson().toJson(getPrivaceObjectResponse));
+                            keyEncrypted = getPrivaceObjectResponse.getPayload().getSceneEncryptionKey().getK();
+                            pHelper.putSceneEncryptionID(keyEncrypted); // SceneEncryptionID
+                            ivEncrypted = getPrivaceObjectResponse.getPayload().getSceneEncryptionKey().getIv();
+                            keyId = getPrivaceObjectResponse.getPayload().getSceneEncryptionKey().getKid();
+                            pHelper.putIvBytes(ivEncrypted);  // IvBytes
+                            pHelper.putKid(keyId); // KeyID
+                            privacyObjectLiveData.setValue(getPrivaceObjectResponse);
+                        }
+
+                        @Override
+                        public void onFailure(Call<GetPrivaceObjectResponse> call, Throwable t) {
+
+                        }
+                    });
+                }
+
             } catch (JSONException e) {
                 e.printStackTrace();
             }
