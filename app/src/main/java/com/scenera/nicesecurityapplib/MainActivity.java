@@ -322,16 +322,16 @@ public class MainActivity extends BaseActivity {
 
             String accessToken = pHelper.getAppSecurityObject().getNICEASEndPoint().getNetEndPoint().getScheme().get(0).getAccessToken();
 
-            String encryptedPayload = Utils.encryptAndSignCMF(this, jsonObject,
-                    Base64.getUrlEncoder().encodeToString(accessToken.getBytes()) + "." +
-                            Base64.getUrlEncoder().encodeToString(jsonPayLoad.toString().getBytes()));
-
-
-            JSONObject jsonObjectRequest = new JSONObject();
-            jsonObjectRequest.put("EncryptionKey", PreferenceHelper.getInstance(this).getPublicKeyRSA());
-            jsonObjectRequest.put("EncryptedAndSignedObject",encryptedPayload);
-
             if(pHelper.getSignInMode() == Constants.STAGING_SIGN_IN) {
+                String encryptedPayload = Utils.encryptAndSignCMF(this, jsonObject,
+                        Base64.getUrlEncoder().encodeToString(accessToken.getBytes()) + "." +
+                                Base64.getUrlEncoder().encodeToString(jsonPayLoad.toString().getBytes()));
+
+
+                JSONObject jsonObjectRequest = new JSONObject();
+                jsonObjectRequest.put("EncryptionKey", PreferenceHelper.getInstance(this).getPublicKeyRSA());
+                jsonObjectRequest.put("EncryptedAndSignedObject",encryptedPayload);
+
                 ServiceInterfaces.GetAppControlObjectEncrypted api = ApiClient.getClientAccount(this, "https://" +
                         pHelper.getAppSecurityObject().getNICEASEndPoint().getNetEndPoint().getScheme().get(0).getAuthority()).create(ServiceInterfaces.GetAppControlObjectEncrypted.class);
 
