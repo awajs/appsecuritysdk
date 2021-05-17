@@ -66,6 +66,7 @@ public class PreferenceHelper {
     private final String IV_BYTES = "ivBytes";
     private final String KID = "kid";
     private final String APP_CONTROL_REQUEST_TIME = "appControlRequestTime";
+    private final String SIGN_IN_MODE = "sign_in_mode";
     public PreferenceHelper() {
     }
 
@@ -383,6 +384,16 @@ public class PreferenceHelper {
 
     public String getAppControlTime(){
         return app_preferences.getString(APP_CONTROL_REQUEST_TIME, null);
+    }
+
+    public void putSignInMode(int signInMode){
+        SharedPreferences.Editor edit = app_preferences.edit();
+        edit.putInt(SIGN_IN_MODE, signInMode);
+        edit.apply();
+    }
+
+    public int getSignInMode(){
+        return app_preferences.getInt(SIGN_IN_MODE,0);
     }
 
     public String getKid(){
