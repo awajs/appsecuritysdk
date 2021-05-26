@@ -6,12 +6,14 @@ import android.os.Parcelable;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
+import java.util.List;
+
 public class SceneDataThumbnail implements Parcelable
 {
 
-    @SerializedName("SceneModeDetectionType")
+    @SerializedName("NICEItemTypes")
     @Expose
-    private String sceneModeDetectionType;
+    private List<String> sceneModeDetectionType = null;
     @SerializedName("SceneDataThumbnailURI")
     @Expose
     private String sceneDataThumbnailURI;
@@ -39,7 +41,7 @@ public class SceneDataThumbnail implements Parcelable
             ;
 
     protected SceneDataThumbnail(Parcel in) {
-        this.sceneModeDetectionType = ((String) in.readValue((String.class.getClassLoader())));
+        this.sceneModeDetectionType = in.createStringArrayList();
         this.sceneDataThumbnailURI = ((String) in.readValue((String.class.getClassLoader())));
         this.encryptionOn = ((Boolean) in.readValue((Boolean.class.getClassLoader())));
         this.sceneEncryptionKeyID = ((String) in.readValue((String.class.getClassLoader())));
@@ -59,7 +61,7 @@ public class SceneDataThumbnail implements Parcelable
      * @param encryptionOn
      * @param sceneEncryptionKeyID
      */
-    public SceneDataThumbnail(String sceneModeDetectionType, String sceneDataThumbnailURI, Boolean encryptionOn, String sceneEncryptionKeyID) {
+    public SceneDataThumbnail(List<String> sceneModeDetectionType, String sceneDataThumbnailURI, Boolean encryptionOn, String sceneEncryptionKeyID) {
         super();
         this.sceneModeDetectionType = sceneModeDetectionType;
         this.sceneDataThumbnailURI = sceneDataThumbnailURI;
@@ -67,11 +69,11 @@ public class SceneDataThumbnail implements Parcelable
         this.sceneEncryptionKeyID = sceneEncryptionKeyID;
     }
 
-    public String getSceneModeDetectionType() {
+    public List<String> getSceneModeDetectionType() {
         return sceneModeDetectionType;
     }
 
-    public void setSceneModeDetectionType(String sceneModeDetectionType) {
+    public void setSceneModeDetectionType(List<String> sceneModeDetectionType) {
         this.sceneModeDetectionType = sceneModeDetectionType;
     }
 
@@ -100,7 +102,7 @@ public class SceneDataThumbnail implements Parcelable
     }
 
     public void writeToParcel(Parcel dest, int flags) {
-        dest.writeValue(sceneModeDetectionType);
+        dest.writeStringList(sceneModeDetectionType);
         dest.writeValue(sceneDataThumbnailURI);
         dest.writeValue(encryptionOn);
         dest.writeValue(sceneEncryptionKeyID);

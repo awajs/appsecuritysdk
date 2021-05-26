@@ -638,7 +638,7 @@ public class MainViewModel extends ViewModel {
                         public void onResponse(Call<EncryptedCMFResponse> call, retrofit2.Response<EncryptedCMFResponse> response) {
                             Log.i(TAG, "---->>> GetPrivacy " + response.raw().request().url());
 
-                            //  Utils.removeCustomProgressDialog();
+                              Utils.removeCustomProgressDialog();
 
                             if (!response.equals("{}") && response != null && response.body() != null) {
                                 try {
@@ -676,6 +676,7 @@ public class MainViewModel extends ViewModel {
                     call.enqueue(new Callback<GetPrivaceObjectResponse>() {
                         @Override
                         public void onResponse(Call<GetPrivaceObjectResponse> call, Response<GetPrivaceObjectResponse> response) {
+                            Utils.removeCustomProgressDialog();
                             GetPrivaceObjectResponse getPrivaceObjectResponse = response.body();
                             AppLog.Log("getPrivaceObjectResponse","****"+new Gson().toJson(getPrivaceObjectResponse));
                             keyEncrypted = getPrivaceObjectResponse.getPayload().getSceneEncryptionKey().getK();
@@ -689,13 +690,14 @@ public class MainViewModel extends ViewModel {
 
                         @Override
                         public void onFailure(Call<GetPrivaceObjectResponse> call, Throwable t) {
-
+                            Utils.removeCustomProgressDialog();
                         }
                     });
                 }
 
             } catch (JSONException e) {
                 e.printStackTrace();
+                Utils.removeCustomProgressDialog();
             }
         }else {
             getAppControlObject(pHelper.getAppSecurityObject(),activity,
