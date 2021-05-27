@@ -6,6 +6,8 @@ import android.os.Parcelable;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
+import java.util.List;
+
 /**
  * Created by Ekta Bhatt on 15-11-2019.
  */
@@ -23,6 +25,9 @@ public class SceneMarkList implements Parcelable {
     @SerializedName("TimeStamp")
     @Expose
     private String timeStamp;
+    @SerializedName("ItemIdentities")
+    @Expose
+    private List<ItemIdentities> itemIdentities;
     @SerializedName("SceneDataThumbnail")
     @Expose
     private SceneDataThumbnail sceneDataThumbnail;
@@ -49,6 +54,7 @@ public class SceneMarkList implements Parcelable {
         this.sceneMarkURI = ((String) in.readValue((String.class.getClassLoader())));
         this.timeStamp = ((String) in.readValue((String.class.getClassLoader())));
         this.sceneDataThumbnail = ((SceneDataThumbnail) in.readValue((SceneDataThumbnail.class.getClassLoader())));
+        in.readList(this.itemIdentities, (ItemIdentities.class.getClassLoader()));
     }
 
     /**
@@ -115,12 +121,21 @@ public class SceneMarkList implements Parcelable {
         this.sceneDataThumbnail = sceneDataThumbnail;
     }
 
+    public List<ItemIdentities> getItemIdentities() {
+        return itemIdentities;
+    }
+
+    public void setItemIdentities(List<ItemIdentities> itemIdentities) {
+        this.itemIdentities = itemIdentities;
+    }
+
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeValue(sceneMarkID);
         dest.writeValue(nodeID);
         dest.writeValue(sceneMarkURI);
         dest.writeValue(timeStamp);
         dest.writeValue(sceneDataThumbnail);
+        dest.writeList(itemIdentities);
     }
 
     public int describeContents() {
