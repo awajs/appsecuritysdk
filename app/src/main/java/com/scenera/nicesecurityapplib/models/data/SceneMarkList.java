@@ -1,3 +1,4 @@
+
 package com.scenera.nicesecurityapplib.models.data;
 
 import android.os.Parcel;

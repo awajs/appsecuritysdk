@@ -5,7 +5,6 @@ import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 import android.util.Log;
 
-import com.scenera.nicesecurityapplib.BaseActivity;
 
 import org.jose4j.base64url.internal.apache.commons.codec.binary.Base64;
 
@@ -19,10 +18,12 @@ import javax.crypto.CipherInputStream;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
+import androidx.appcompat.app.AppCompatActivity;
+
 public class DownloadImage extends AsyncTask<String, Void, Bitmap> {
     public PreferenceHelper pHelper;
     public byte[] sessionKey, ivBytes;
-    public DownloadImage(BaseActivity activity) {
+    public DownloadImage(AppCompatActivity activity) {
         pHelper = PreferenceHelper.getInstance(activity);
     }
 

@@ -4,8 +4,6 @@ import android.content.Context;
 import android.os.AsyncTask;
 import android.os.CountDownTimer;
 
-import com.scenera.nicesecurityapplib.BaseActivity;
-
 import org.jose4j.base64url.internal.apache.commons.codec.binary.Base64;
 
 import java.io.ByteArrayOutputStream;
@@ -20,13 +18,15 @@ import javax.crypto.Cipher;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
+import androidx.appcompat.app.AppCompatActivity;
+
 public class DownloadVideo  {
     boolean  fWaitForDownloadFromInternetToComplete = false;
     public PreferenceHelper pHelper;
     public byte[] sessionKey, ivBytes;
-    public BaseActivity activity;
+    public AppCompatActivity activity;
     public String vidoeURI ;
-    public DownloadVideo(BaseActivity activity) {
+    public DownloadVideo(AppCompatActivity activity) {
         this.activity = activity;
         pHelper = PreferenceHelper.getInstance(activity);
     }
