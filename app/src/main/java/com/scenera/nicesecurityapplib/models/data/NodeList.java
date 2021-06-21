@@ -16,6 +16,9 @@ public class NodeList implements Parcelable
     @SerializedName("isSelected")
     @Expose
     private Boolean isSelected = false;
+    @SerializedName("isNotificationEnabled")
+    @Expose
+    private Boolean isNotificationEnabled = false;
     @SerializedName("Description")
     @Expose
     private String description;
@@ -58,6 +61,7 @@ public class NodeList implements Parcelable
         this.status = ((String) in.readValue((String.class.getClassLoader())));
         this.timeZone = ((String) in.readValue((String.class.getClassLoader())));
         this.isSelected = ((Boolean)in.readValue((Boolean.class.getClassLoader())));
+        this.isNotificationEnabled = ((Boolean)in.readValue((Boolean.class.getClassLoader())));
         this.isTimeZoneSelected = ((Boolean)in.readValue((Boolean.class.getClassLoader())));
     }
 
@@ -112,6 +116,7 @@ public class NodeList implements Parcelable
         dest.writeValue(status);
         dest.writeValue(timeZone);
         dest.writeValue(isSelected);
+        dest.writeValue(isNotificationEnabled);
         dest.writeValue(isTimeZoneSelected);
     }
 
@@ -125,6 +130,15 @@ public class NodeList implements Parcelable
     public void setSelected(Boolean selected) {
         isSelected = selected;
     }
+
+    public Boolean getNotificationEnabled() {
+        return isNotificationEnabled;
+    }
+
+    public void setNotificationEnabled(Boolean notificationEnabled) {
+        isNotificationEnabled = notificationEnabled;
+    }
+
     public Boolean getTimezoneSelected() {
         return isTimeZoneSelected;
     }
@@ -150,6 +164,7 @@ public class NodeList implements Parcelable
     public String toString() {
         return "NodeList{" +
                 "isSelected=" + isSelected +
+                "isNotificationEnabled=" + isNotificationEnabled +
                 ", description='" + description + '\'' +
                 ", nodeID='" + nodeID + '\'' +
                 ", imageURL='" + imageURL + '\'' +
