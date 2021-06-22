@@ -68,7 +68,7 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class MainActivity extends BaseActivity {
+public class BSSLoginActivity extends BaseActivity {
 
     private static final String SPEC = "secp256r1";
     private static final String ALGO = "EC";
@@ -93,7 +93,7 @@ public class MainActivity extends BaseActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_bss_login);
         mainViewModel = new ViewModelProvider(this).get(MainViewModel.class);
 
 
@@ -146,7 +146,7 @@ public class MainActivity extends BaseActivity {
 
                 wvNiceAS.loadUrl(niceUrl);
 
-                wvNiceAS.addJavascriptInterface(new MyJavaScriptInterface(MainActivity.this), "HtmlViewer");
+                wvNiceAS.addJavascriptInterface(new MyJavaScriptInterface(BSSLoginActivity.this), "HtmlViewer");
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -174,7 +174,7 @@ public class MainActivity extends BaseActivity {
                 public void run() {
                     if (responseString.contains("error_message")) {
                         AppControlError appControlError = new Gson().fromJson(responseString.toString(), AppControlError.class);
-                        AlertDialog appLinkDialog = new android.app.AlertDialog.Builder(MainActivity.this).create();
+                        AlertDialog appLinkDialog = new android.app.AlertDialog.Builder(BSSLoginActivity.this).create();
                         appLinkDialog.setTitle(getResources().getString(R.string.text_error_try_again));
                         appLinkDialog.setMessage(appControlError.getErrorMessage());
                         appLinkDialog.setCancelable(false);
@@ -353,7 +353,7 @@ public class MainActivity extends BaseActivity {
 
                             /**************************** PUT APPCONTROL TIME*********************************/
                             String encryptedPayload = response.body().getEncryptedPayload();
-                            AppConrolObjectResponse appConrolObjectResponse = Utils.decryptAndValidateCMF(MainActivity.this, encryptedPayload);
+                            AppConrolObjectResponse appConrolObjectResponse = Utils.decryptAndValidateCMF(BSSLoginActivity.this, encryptedPayload);
                             AppLog.Log("appConrolObjectResponse", "****" + new Gson().toJson(appConrolObjectResponse));
                             pHelper.putAppControlObject(appConrolObjectResponse);
                             pHelper.putEmail("test");

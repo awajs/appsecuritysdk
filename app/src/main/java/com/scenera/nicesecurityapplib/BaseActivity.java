@@ -24,9 +24,7 @@ import com.scenera.nicesecurityapplib.utilities.Utils;
 public class BaseActivity extends AppCompatActivity implements View.OnClickListener {
     public static final String TAG = "BaseActivity";
 
-    public Toolbar toolbar;
-    public ImageView ivBack, ivDelete, ivAddMember, ivBackVid;
-    public TextView tvActivityTitle, tvBackTitle;
+
     public PreferenceHelper pHelper;
     public LinearLayout llBack;
     public boolean isNetDialogShowing, isReceiverMainRegistered;
@@ -175,27 +173,6 @@ public class BaseActivity extends AppCompatActivity implements View.OnClickListe
         internetDialog = internetBuilder.create();
         internetDialog.show();
     }
-
-
-    protected void initToolbar(){
-        toolbar = (Toolbar) findViewById(R.id.toolbar);
-        tvActivityTitle = (TextView) findViewById(R.id.tvActivityTitle);
-        tvBackTitle = findViewById(R.id.tvBackTitle);
-
-        llBack = findViewById(R.id.llBack);
-
-       // setToolbarTitle(getResources().getString(R.string.text_activity_alerts));
-        ivBack = (ImageView) findViewById(R.id.ivBack);
-      //  ivBackVid = (ImageView)findViewById(R.id.ivBackVid);
-        ivAddMember = (ImageView) findViewById(R.id.ivAddMember);
-     //   ivDelete = (ImageView) findViewById(R.id.ivDelete);
-        setSupportActionBar(toolbar);
-    }
-
-    public void setToolbarTitle(String toolbarTitle){
-        tvActivityTitle.setText(toolbarTitle);
-    }
-
 
     //    @Override
 //    protected void onStop() {

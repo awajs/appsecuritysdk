@@ -10,8 +10,6 @@ import androidx.lifecycle.ViewModel;
 
 import com.auth0.android.jwt.JWT;
 import com.google.gson.Gson;
-import com.scenera.nicesecurityapplib.BaseActivity;
-import com.scenera.nicesecurityapplib.MainActivity;
 import com.scenera.nicesecurityapplib.interfaces.ServiceInterfaces;
 import com.scenera.nicesecurityapplib.models.data.NodeList;
 import com.scenera.nicesecurityapplib.models.data.PersonFace;
