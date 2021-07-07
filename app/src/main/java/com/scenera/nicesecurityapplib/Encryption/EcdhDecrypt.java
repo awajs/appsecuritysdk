@@ -79,6 +79,47 @@ public class EcdhDecrypt {
         }
         return appSecurityObjectResponse;
     }
+
+    private String parseCertificateAppSecurity(Context context, String jwe, List<String> listX5c) throws JoseException, CertificateException, NoSuchProviderException {
+
+        String jweResponse = null;
+        try {
+            String encodedCert = listX5c.get(0);
+            System.out.println("encodedCert: " + encodedCert);
+
+            InputStream inputStream = null;
+            final CertificateFactory certFactory = CertificateFactory.getInstance("X.509", "SC");
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                inputStream = new ByteArrayInputStream(
+                        Base64.getDecoder().decode(encodedCert));
+            } else {
+                inputStream = new ByteArrayInputStream(
+                        org.spongycastle.util.encoders.Base64.decode(encodedCert));
+            }
+
+            X509Certificate cert = (X509Certificate) certFactory.generateCertificate(inputStream);
+
+            PublicKey pubKey = cert.getPublicKey();
+
+            if (pubKey instanceof RSAPublicKey) {
+                // We have an RSA public key
+                Log.d("Inside => ", "RSA Pub");
+                final JsonWebSignature jws = new JsonWebSignature();
+                jws.setCompactSerialization(jwe);
+                jws.setKey(pubKey);
+                final boolean valid = jws.verifySignature(); //JWS
+                System.out.println("The payload is RSA: " + jws.getPayload());
+                System.out.println("IsValid ==> " + valid);
+                jweResponse = jws.getPayload().toString();
+
+            }
+
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return jweResponse;
+    }
+
     private String parseCertificate(Context context, String jwe, List<String> listX5c) throws JoseException, CertificateException, NoSuchProviderException {
 
         String jweResponse = null;
