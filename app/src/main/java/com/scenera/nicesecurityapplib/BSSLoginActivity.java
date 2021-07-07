@@ -229,7 +229,7 @@ public class BSSLoginActivity extends BaseActivity {
             /*********** Decrypt Encrypted Payload **************/
             EcdhDecrypt ecdhDecrypt = new EcdhDecrypt();
 
-            AppSecurityObjectResponse appSecurityObject = ecdhDecrypt.getAppSecurityObject(responseString, privateKey, appControlHeader);
+            AppSecurityObjectResponse appSecurityObject = ecdhDecrypt.getAppSecurityObject(this,responseString, privateKey, appControlHeader);
             Gson gson = new Gson();
             String jsonInString = gson.toJson(appSecurityObject);
 
@@ -300,32 +300,37 @@ public class BSSLoginActivity extends BaseActivity {
     private void getAppControlObject(AppSecurityObjectResponse appSecurityObject) {
         Utils.showCustomProgressDialog(this, "", false);
 
-
+        String accessToken = pHelper.getAppSecurityObject().getNICEASEndPoint().getNetEndPoint().getScheme().get(0).getAccessToken();
         JSONObject jsonObject = new JSONObject();
+        JSONObject jsonObjectAccessTokenPayload = new JSONObject();
+        JSONObject CMFHeaderObject = new JSONObject();
         try {
-            jsonObject.put(Constants.CMF.Header.VERSION, appSecurityObject.getVersion());
-            jsonObject.put(Constants.CMF.Header.MESSAGE_TYPE, Constants.CMF.HeaderValue.MESSAGE_TYPE);
-            jsonObject.put(Constants.CMF.Header.SOURCE_END_POINT_ID, appSecurityObject.getAppInstanceID());
-            jsonObject.put(Constants.CMF.Header.DESTINATION_END_POINT_ID, appSecurityObject.getNICEASEndPoint().getNetEndPoint().getEndPointID());
-            jsonObject.put(Constants.CMF.Header.DATE_TIME_STAMP, currentDate);
-            jsonObject.put(Constants.CMF.Header.COMMAND_ID, Constants.CMF.HeaderValue.COMMAND_ID);
-            jsonObject.put(Constants.CMF.Header.COMMAND_TYPE, Constants.CMF.HeaderValue.COMMAND_TYPE);
+            CMFHeaderObject.put(Constants.CMF.Header.VERSION, appSecurityObject.getVersion());
+            CMFHeaderObject.put(Constants.CMF.Header.MESSAGE_TYPE, Constants.CMF.HeaderValue.MESSAGE_TYPE);
+            CMFHeaderObject.put(Constants.CMF.Header.SOURCE_END_POINT_ID, appSecurityObject.getAppInstanceID());
+            CMFHeaderObject.put(Constants.CMF.Header.DESTINATION_END_POINT_ID, appSecurityObject.getNICEASEndPoint().getNetEndPoint().getEndPointID());
+            CMFHeaderObject.put(Constants.CMF.Header.DATE_TIME_STAMP, currentDate);
+            CMFHeaderObject.put(Constants.CMF.Header.COMMAND_ID, Constants.CMF.HeaderValue.COMMAND_ID);
+            CMFHeaderObject.put(Constants.CMF.Header.COMMAND_TYPE, Constants.CMF.HeaderValue.COMMAND_TYPE);
 
             JSONObject jsonPayLoad = new JSONObject();
             String appId = appSecurityObject.getAppInstanceID();
 
             jsonPayLoad.put(Constants.Params.APP_ID, appId);
 
-            jsonObject.put(Constants.CMF.Payload.PAYLOAD, jsonPayLoad);
+            jsonObjectAccessTokenPayload.put(Constants.CMF.Payload.PAYLOAD_OBJECT, jsonPayLoad);
+            jsonObjectAccessTokenPayload.put(Constants.CMF.Header.ACCESS_TOKEN, accessToken);
+
+            jsonObject.put(Constants.CMF.Payload.EndPointX509Certificate,appSecurityObject.getNICEASEndPoint().getAppEndPoint().getX509Certificate());
+            jsonObject.put(Constants.CMF.Payload.CMF_HEADER,CMFHeaderObject.toString());
+            jsonObject.put(Constants.CMF.Payload.ACCESSTOKEN_PAYLOAD,jsonObjectAccessTokenPayload);
+
             AppLog.Log("jsonObjectMain => ", jsonObject.toString());
 
 
-            String accessToken = pHelper.getAppSecurityObject().getNICEASEndPoint().getNetEndPoint().getScheme().get(0).getAccessToken();
-
             if(pHelper.getSignInMode() == Constants.STAGING_SIGN_IN) {
                 String encryptedPayload = Utils.encryptAndSignCMF(this, jsonObject,
-                        Base64.getUrlEncoder().encodeToString(accessToken.getBytes()) + "." +
-                                Base64.getUrlEncoder().encodeToString(jsonPayLoad.toString().getBytes()));
+                        jsonObjectAccessTokenPayload.toString());
 
 
                 JSONObject jsonObjectRequest = new JSONObject();

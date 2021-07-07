@@ -129,6 +129,11 @@ public class Constants {
         }
 
         public static class Payload {
+            public static final String EndPointX509Certificate = "EndPointX509Certificate";
+            public static final String CMF_HEADER = "CMFHeader";
+            public static final String ACCESSTOKEN_PAYLOAD = "AccessToken&Payload";
+            public static final String PAYLOAD_OBJECT = "PayloadObject";
+            public static final String DEVICE_ID = "DeviceID";
             public static final String PAYLOAD = "Payload";
             public static final String BODY = "Body";
         }

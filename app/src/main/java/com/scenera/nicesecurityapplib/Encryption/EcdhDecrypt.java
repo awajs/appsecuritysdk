@@ -1,7 +1,9 @@
 package com.scenera.nicesecurityapplib.Encryption;
 
+import android.content.Context;
 import android.os.Build;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.google.gson.Gson;
 import com.scenera.nicesecurityapplib.models.data.AppControlHeader;
@@ -10,6 +12,8 @@ import com.scenera.nicesecurityapplib.models.data.PrivacyPayload;
 import com.scenera.nicesecurityapplib.models.response.AppConrolObjectResponse;
 import com.scenera.nicesecurityapplib.models.response.AppSecurityObjectResponse;
 import com.scenera.nicesecurityapplib.models.response.GetPrivaceObjectResponse;
+import com.scenera.nicesecurityapplib.utilities.PreferenceHelper;
+import com.scenera.nicesecurityapplib.utilities.Utils;
 
 import org.jose4j.jca.ProviderContext;
 import org.jose4j.jwe.JsonWebEncryption;
@@ -30,6 +34,7 @@ import java.security.cert.X509Certificate;
 import java.security.interfaces.RSAPublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.List;
 
@@ -38,7 +43,7 @@ import java.util.List;
  */
 public class EcdhDecrypt {
 
-    public AppSecurityObjectResponse getAppSecurityObject(String encryptedPayload, String privateKeyToDecrypt, AppControlHeader appControlHeader)
+    public AppSecurityObjectResponse getAppSecurityObject(Context context,String encryptedPayload, String privateKeyToDecrypt, AppControlHeader appControlHeader)
     {
         AppSecurityObjectResponse appSecurityObjectResponse = null;
 
@@ -46,7 +51,7 @@ public class EcdhDecrypt {
 
             Security.insertProviderAt(new org.spongycastle.jce.provider.BouncyCastleProvider(), 1);
 
-            String jwsPayload = parseCertificate(encryptedPayload, appControlHeader.getX5c());
+            String jwsPayload = parseCertificate(context, encryptedPayload, appControlHeader.getX5c());
 
             final PrivateKey privateKey = getPrivateKey(privateKeyToDecrypt, "ECDSA");
             final JsonWebEncryption jsonWebEncryption = new JsonWebEncryption();
@@ -74,41 +79,55 @@ public class EcdhDecrypt {
         }
         return appSecurityObjectResponse;
     }
-    private String parseCertificate(String jwe, List<String> listX5c) throws JoseException, CertificateException, NoSuchProviderException {
+    private String parseCertificate(Context context, String jwe, List<String> listX5c) throws JoseException, CertificateException, NoSuchProviderException {
 
         String jweResponse = null;
         try {
             String encodedCert = listX5c.get(0);
+            String encodedASCert = PreferenceHelper.getInstance(context).
+                    getAppSecurityObject().getNICEASEndPoint().getAppEndPoint().getX509Certificate();
             System.out.println("encodedCert: " + encodedCert);
 
-            InputStream inputStream = null;
+            InputStream inputStream = null, inputStreamAS = null;
             final CertificateFactory certFactory = CertificateFactory.getInstance("X.509", "SC");
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 inputStream = new ByteArrayInputStream(
                         Base64.getDecoder().decode(encodedCert));
+                inputStreamAS = new ByteArrayInputStream(
+                        Base64.getDecoder().decode(encodedASCert));
             } else {
                 inputStream = new ByteArrayInputStream(
                         org.spongycastle.util.encoders.Base64.decode(encodedCert));
+                inputStreamAS = new ByteArrayInputStream(
+                        org.spongycastle.util.encoders.Base64.decode(encodedASCert));
             }
 
             X509Certificate cert = (X509Certificate) certFactory.generateCertificate(inputStream);
+            X509Certificate aSCert = (X509Certificate) certFactory.generateCertificate(inputStreamAS);
 
-            PublicKey pubKey = cert.getPublicKey();
+            if(Arrays.equals(cert.getPublicKey().getEncoded(), aSCert.getPublicKey().getEncoded())) {
+                PublicKey pubKey = cert.getPublicKey();
 
-            if (pubKey instanceof RSAPublicKey) {
-                // We have an RSA public key
-                Log.d("Inside => ", "RSA Pub");
-                final JsonWebSignature jws = new JsonWebSignature();
-                jws.setCompactSerialization(jwe);
-                jws.setKey(pubKey);
-                final boolean valid = jws.verifySignature(); //JWS
-                System.out.println("The payload is RSA: " + jws.getPayload());
-                System.out.println("IsValid ==> " + valid);
-                jweResponse = jws.getPayload().toString();
+                if (pubKey instanceof RSAPublicKey) {
+                    // We have an RSA public key
+                    Log.d("Inside => ", "RSA Pub");
+                    final JsonWebSignature jws = new JsonWebSignature();
+                    jws.setCompactSerialization(jwe);
+                    jws.setKey(pubKey);
+                    final boolean valid = jws.verifySignature(); //JWS
+                    System.out.println("The payload is RSA: " + jws.getPayload());
+                    System.out.println("IsValid ==> " + valid);
+                    jweResponse = jws.getPayload().toString();
 
 
+                }
+            }else {
+                throw new IllegalStateException("");
             }
 
+        }catch (IllegalStateException e1){
+            Toast.makeText(context, "Wrong Certificate chain", Toast.LENGTH_SHORT).show();
+            e1.printStackTrace();
         }catch (Exception e){
             e.printStackTrace();
         }
@@ -134,7 +153,7 @@ public class EcdhDecrypt {
     }
 
 
-    public AppConrolObjectResponse getAppControlObject(String encryptedPayload,
+    public AppConrolObjectResponse getAppControlObject(Context context, String encryptedPayload,
                                                        String privateKeyToDecrypt, AppControlHeader appControlHeader)
     {
         AppConrolObjectResponse appConrolObjectResponse = null;
@@ -143,7 +162,7 @@ public class EcdhDecrypt {
 
             Security.insertProviderAt(new org.spongycastle.jce.provider.BouncyCastleProvider(), 1);
 
-            String jwsPayload = parseCertificate(encryptedPayload, appControlHeader.getX5c());
+            String jwsPayload = parseCertificate(context, encryptedPayload, appControlHeader.getX5c());
             appConrolObjectResponse = new Gson().fromJson(jwsPayload, AppConrolObjectResponse.class);
 
             System.out.println("Before ::" + jwsPayload);
@@ -172,7 +191,7 @@ public class EcdhDecrypt {
         return appConrolObjectResponse;
     }
 
-    public GetPrivaceObjectResponse getPrivaceObjectResponse(String encryptedPayload,
+    public GetPrivaceObjectResponse getPrivaceObjectResponse(Context context,String encryptedPayload,
                                                         String privateKeyToDecrypt, AppControlHeader appControlHeader)
     {
         GetPrivaceObjectResponse getPrivaceObjectResponse = null;
@@ -181,7 +200,7 @@ public class EcdhDecrypt {
 
             Security.insertProviderAt(new org.spongycastle.jce.provider.BouncyCastleProvider(), 1);
 
-            String jwsPayload = parseCertificate(encryptedPayload, appControlHeader.getX5c());
+            String jwsPayload = parseCertificate(context,encryptedPayload, appControlHeader.getX5c());
             getPrivaceObjectResponse = new Gson().fromJson(jwsPayload, GetPrivaceObjectResponse.class);
 
             System.out.println("Before ::" + jwsPayload);

@@ -225,10 +225,11 @@ public class Utils {
             PrivateKey privateKeyRSA = getPrivateKey(PreferenceHelper.getInstance(context).getPrivateKeyRSA());
 
             String publicKeyCertEncoded = java.util.Base64.getEncoder().encodeToString(publicKeyRSA.getEncoded());
-            X509Certificate certJWE = X509CertUtils.parse(Constants.NICE_AS_X509_CERTIFICATE);
+//            X509Certificate certJWE = X509CertUtils.parse(Constants.NICE_AS_X509_CERTIFICATE);
+            X509Certificate certJWE = X509CertUtils.parse(PreferenceHelper.getInstance(context).getAppSecurityObject().getNICEASEndPoint().getAppEndPoint().getX509Certificate());
             jsonObjectHeader.addProperty("alg", KeyManagementAlgorithmIdentifiers.RSA_OAEP_256);
             jsonObjectHeader.addProperty("enc", ContentEncryptionAlgorithmIdentifiers.AES_256_GCM);
-            jsonObjectHeader.addProperty("kid", Constants.KID);
+            jsonObjectHeader.addProperty("kid", PreferenceHelper.getInstance(context).getAppSecurityObject().getNICEASEndPoint().getAppEndPoint().getEndPointID());
             if (publicKeyRSA != null) {
 
                 JsonPrimitive encodedX509JsonPrimitive = new JsonPrimitive(publicKeyCertEncoded);
@@ -268,7 +269,7 @@ public class Utils {
             jwe = stringJoiner.add(headerPortion).add(wrappedKeyPortion).add(ivPortion)
                     .add(encryptedPayloadPortion).add(tagPortion).toString();
 
-            jsonObjectCMFHeader.put(Constants.CMF.Payload.PAYLOAD , jwe );
+            jsonObjectCMFHeader.put(Constants.CMF.Payload.ACCESSTOKEN_PAYLOAD , jwe );
 
             return sign(privateKeyRSA, x5cList, jsonObjectCMFHeader.toString());
 
@@ -290,7 +291,7 @@ public class Utils {
             /*********** Decrypt Encrypted Payload **************/
             EcdhDecrypt ecdhDecrypt = new EcdhDecrypt();
 
-            appConrolObjectResponse = ecdhDecrypt.getAppControlObject(jws,privateKey,appControlHeader);
+            appConrolObjectResponse = ecdhDecrypt.getAppControlObject(context,jws,privateKey,appControlHeader);
             AppLog.Log("appConrolObjectResponse","****"+new Gson().toJson(appConrolObjectResponse));
 
         }catch (Exception e){
@@ -312,7 +313,7 @@ public class Utils {
             /*********** Decrypt Encrypted Payload **************/
             EcdhDecrypt ecdhDecrypt = new EcdhDecrypt();
 
-            getPrivaceObjectResponse = ecdhDecrypt.getPrivaceObjectResponse(jws,privateKey,appControlHeader);
+            getPrivaceObjectResponse = ecdhDecrypt.getPrivaceObjectResponse(context, jws,privateKey,appControlHeader);
             AppLog.Log("appConrolObjectResponse","****"+new Gson().toJson(getPrivaceObjectResponse));
 
         }catch (Exception e){
@@ -381,13 +382,6 @@ public class Utils {
             jws.setHeader(HeaderParameterNames.X509_CERTIFICATE_CHAIN, x5cList);
             String encryptedJws = jws.getCompactSerialization();
 
-
-//            JWSObject jwsObject = new JWSObject(new JWSHeader.Builder(JWSAlgorithm.RS256)
-//                    .keyID(Constants.KID).x509CertChain(x5cList).build(),
-//                    new Payload(payload));
-//            JWSSigner signer = new RSASSASigner(privateKey);
-//            jwsObject.sign(signer);
-//            String encryptedJws = jwsObject.serialize();
             String[] parts = encryptedJws.split("//.");
             System.out.println("jwsObject parts"+ parts.length );
             System.out.println("jwsObject encryptedJws"+ encryptedJws);

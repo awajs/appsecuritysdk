@@ -587,18 +587,20 @@ public class MainViewModel extends ViewModel {
         pHelper = PreferenceHelper.getInstance(activity);
         if(isTokenNotExpired()) {
 
+            String accessToken = pHelper.getAppSecurityObject().getNICEASEndPoint().getNetEndPoint().getScheme().get(0).getAccessToken();
             JSONObject jsonObject = new JSONObject();
+            JSONObject jsonObjectAccessTokenPayload = new JSONObject();
+            JSONObject CMFHeaderObject = new JSONObject();
             try {
-                jsonObject.put(Constants.CMF.Header.VERSION, pHelper.getAppSecurityObject().getVersion());
-                jsonObject.put(Constants.CMF.Header.MESSAGE_TYPE, Constants.CMF.HeaderValue.MESSAGE_TYPE);
-                //00000001-5e84-224c-8003-000000000065
-                jsonObject.put(Constants.CMF.Header.SOURCE_END_POINT_ID, pHelper.getAppInstanceId());
+                CMFHeaderObject.put(Constants.CMF.Header.VERSION, pHelper.getAppSecurityObject().getVersion());
+                CMFHeaderObject.put(Constants.CMF.Header.MESSAGE_TYPE, Constants.CMF.HeaderValue.MESSAGE_TYPE);
+                CMFHeaderObject.put(Constants.CMF.Header.SOURCE_END_POINT_ID, pHelper.getAppInstanceId());
                 //jsonObject.put(Constants.CMF.Header.SOURCE_END_POINT_ID, pHelper.getAppSecurityObject().getAppInstanceID());
-                jsonObject.put(Constants.CMF.Header.DESTINATION_END_POINT_ID, pHelper.getAppSecurityObject().getNICEASEndPoint().getNetEndPoint().getEndPointID());
-                jsonObject.put(Constants.CMF.Header.COMMAND_ID, Constants.CMF.HeaderValue.COMMAND_ID);
-                jsonObject.put(Constants.CMF.Header.COMMAND_TYPE, Constants.CMF.HeaderValue.COMMAND_TYPE_PRIVACY);
-                jsonObject.put(Constants.CMF.Header.DATE_TIME_STAMP, currentDate);
-                jsonObject.put(Constants.CMF.Header.ENCRYPTION_ON, true);
+                CMFHeaderObject.put(Constants.CMF.Header.DESTINATION_END_POINT_ID, pHelper.getAppSecurityObject().getNICEASEndPoint().getNetEndPoint().getEndPointID());
+                CMFHeaderObject.put(Constants.CMF.Header.COMMAND_ID, Constants.CMF.HeaderValue.COMMAND_ID);
+                CMFHeaderObject.put(Constants.CMF.Header.COMMAND_TYPE, Constants.CMF.HeaderValue.COMMAND_TYPE_PRIVACY);
+                CMFHeaderObject.put(Constants.CMF.Header.DATE_TIME_STAMP, currentDate);
+                CMFHeaderObject.put(Constants.CMF.Header.ENCRYPTION_ON, true);
 
                 JSONObject jsonBody = new JSONObject();
                 JSONObject jsonCreateBody = new JSONObject();
@@ -609,15 +611,21 @@ public class MainViewModel extends ViewModel {
 
                 jsonBody.put(Constants.CMF.Payload.BODY, jsonCreateBody);
 
-                jsonObject.put(Constants.CMF.Payload.PAYLOAD, jsonBody);
+//                jsonObject.put(Constants.CMF.Payload.PAYLOAD, jsonBody);
+                jsonObjectAccessTokenPayload.put(Constants.CMF.Payload.PAYLOAD_OBJECT, jsonBody);
+                jsonObjectAccessTokenPayload.put(Constants.CMF.Header.ACCESS_TOKEN, accessToken);
+
+                jsonObject.put(Constants.CMF.Payload.EndPointX509Certificate,pHelper.getAppSecurityObject().getNICEASEndPoint().getAppEndPoint().getX509Certificate());
+                jsonObject.put(Constants.CMF.Payload.CMF_HEADER,CMFHeaderObject.toString());
+                jsonObject.put(Constants.CMF.Payload.ACCESSTOKEN_PAYLOAD,jsonObjectAccessTokenPayload);
+
                 AppLog.Log("jsonObjectMain => ", jsonObject.toString());
 
-                String accessToken = pHelper.getAppSecurityObject().getNICEASEndPoint().getNetEndPoint().getScheme().get(0).getAccessToken();
 
-                if(pHelper.getSignInMode() == Constants.STAGING_SIGN_IN){
+
+//                if(pHelper.getSignInMode() == Constants.STAGING_SIGN_IN){
                     String encryptedPayload = Utils.encryptAndSignCMF(activity, jsonObject,
-                            Base64.getUrlEncoder().encodeToString(accessToken.getBytes()) + "." +
-                                    Base64.getUrlEncoder().encodeToString(jsonBody.toString().getBytes()));
+                            jsonObjectAccessTokenPayload.toString());
 
                     JSONObject jsonObjectRequest = new JSONObject();
                     jsonObjectRequest.put("EncryptionKey", PreferenceHelper.getInstance(activity).getPublicKeyRSA());
@@ -663,35 +671,35 @@ public class MainViewModel extends ViewModel {
                             Log.i("onFailure", "---->>>> " + t.toString());
                         }
                     });
-                }else {
-                    ServiceInterfaces.GetPrivacyObject api = ApiClient.getClientAccount(activity, "https://" +
-                            pHelper.getAppSecurityObject().getNICEASEndPoint().getNetEndPoint().getScheme().get(0).getAuthority()).create(ServiceInterfaces.GetPrivacyObject.class);
-
-                    Call<GetPrivaceObjectResponse> call = api.getPrivacyObject("Bearer "+ accessToken,pHelper.getAppSecurityObject().getNICEASEndPoint().getNetEndPoint().getAPIVersion(),
-                            pHelper.getAppSecurityObject().getNICEASEndPoint().getNetEndPoint().getEndPointID(),
-                            ApiClient.makeJSONRequestBody(jsonObject));
-
-                    call.enqueue(new Callback<GetPrivaceObjectResponse>() {
-                        @Override
-                        public void onResponse(Call<GetPrivaceObjectResponse> call, Response<GetPrivaceObjectResponse> response) {
-                            Utils.removeCustomProgressDialog();
-                            GetPrivaceObjectResponse getPrivaceObjectResponse = response.body();
-                            AppLog.Log("getPrivaceObjectResponse","****"+new Gson().toJson(getPrivaceObjectResponse));
-                            keyEncrypted = getPrivaceObjectResponse.getPayload().getSceneEncryptionKey().getK();
-                            pHelper.putSceneEncryptionID(keyEncrypted); // SceneEncryptionID
-                            ivEncrypted = getPrivaceObjectResponse.getPayload().getSceneEncryptionKey().getIv();
-                            keyId = getPrivaceObjectResponse.getPayload().getSceneEncryptionKey().getKid();
-                            pHelper.putIvBytes(ivEncrypted);  // IvBytes
-                            pHelper.putKid(keyId); // KeyID
-                            privacyObjectLiveData.setValue(getPrivaceObjectResponse);
-                        }
-
-                        @Override
-                        public void onFailure(Call<GetPrivaceObjectResponse> call, Throwable t) {
-                            Utils.removeCustomProgressDialog();
-                        }
-                    });
-                }
+//                }else {
+//                    ServiceInterfaces.GetPrivacyObject api = ApiClient.getClientAccount(activity, "https://" +
+//                            pHelper.getAppSecurityObject().getNICEASEndPoint().getNetEndPoint().getScheme().get(0).getAuthority()).create(ServiceInterfaces.GetPrivacyObject.class);
+//
+//                    Call<GetPrivaceObjectResponse> call = api.getPrivacyObject("Bearer "+ accessToken,pHelper.getAppSecurityObject().getNICEASEndPoint().getNetEndPoint().getAPIVersion(),
+//                            pHelper.getAppSecurityObject().getNICEASEndPoint().getNetEndPoint().getEndPointID(),
+//                            ApiClient.makeJSONRequestBody(jsonObject));
+//
+//                    call.enqueue(new Callback<GetPrivaceObjectResponse>() {
+//                        @Override
+//                        public void onResponse(Call<GetPrivaceObjectResponse> call, Response<GetPrivaceObjectResponse> response) {
+//                            Utils.removeCustomProgressDialog();
+//                            GetPrivaceObjectResponse getPrivaceObjectResponse = response.body();
+//                            AppLog.Log("getPrivaceObjectResponse","****"+new Gson().toJson(getPrivaceObjectResponse));
+//                            keyEncrypted = getPrivaceObjectResponse.getPayload().getSceneEncryptionKey().getK();
+//                            pHelper.putSceneEncryptionID(keyEncrypted); // SceneEncryptionID
+//                            ivEncrypted = getPrivaceObjectResponse.getPayload().getSceneEncryptionKey().getIv();
+//                            keyId = getPrivaceObjectResponse.getPayload().getSceneEncryptionKey().getKid();
+//                            pHelper.putIvBytes(ivEncrypted);  // IvBytes
+//                            pHelper.putKid(keyId); // KeyID
+//                            privacyObjectLiveData.setValue(getPrivaceObjectResponse);
+//                        }
+//
+//                        @Override
+//                        public void onFailure(Call<GetPrivaceObjectResponse> call, Throwable t) {
+//                            Utils.removeCustomProgressDialog();
+//                        }
+//                    });
+//                }
 
             } catch (JSONException e) {
                 e.printStackTrace();
@@ -798,32 +806,38 @@ public class MainViewModel extends ViewModel {
         this.pHelper = PreferenceHelper.getInstance(activity);
         Date today = new Date();
         currentDate =  format.format(today);
+        String accessToken = pHelper.getAppSecurityObject().getNICEASEndPoint().getNetEndPoint().getScheme().get(0).getAccessToken();
+
         JSONObject jsonObject = new JSONObject();
+        JSONObject jsonObjectAccessTokenPayload = new JSONObject();
+        JSONObject CMFHeaderObject = new JSONObject();
         try {
-            jsonObject.put(Constants.CMF.Header.VERSION, appSecurityObject.getVersion());
-            jsonObject.put(Constants.CMF.Header.MESSAGE_TYPE, Constants.CMF.HeaderValue.MESSAGE_TYPE);
-            jsonObject.put(Constants.CMF.Header.SOURCE_END_POINT_ID, appSecurityObject.getAppInstanceID());
-            jsonObject.put(Constants.CMF.Header.DESTINATION_END_POINT_ID, appSecurityObject.getNICEASEndPoint().getNetEndPoint().getEndPointID());
-            jsonObject.put(Constants.CMF.Header.DATE_TIME_STAMP, currentDate);
-            jsonObject.put(Constants.CMF.Header.COMMAND_ID, Constants.CMF.HeaderValue.COMMAND_ID);
-            jsonObject.put(Constants.CMF.Header.COMMAND_TYPE, Constants.CMF.HeaderValue.COMMAND_TYPE);
+            CMFHeaderObject.put(Constants.CMF.Header.VERSION, appSecurityObject.getVersion());
+            CMFHeaderObject.put(Constants.CMF.Header.MESSAGE_TYPE, Constants.CMF.HeaderValue.MESSAGE_TYPE);
+            CMFHeaderObject.put(Constants.CMF.Header.SOURCE_END_POINT_ID, appSecurityObject.getAppInstanceID());
+            CMFHeaderObject.put(Constants.CMF.Header.DESTINATION_END_POINT_ID, appSecurityObject.getNICEASEndPoint().getNetEndPoint().getEndPointID());
+            CMFHeaderObject.put(Constants.CMF.Header.DATE_TIME_STAMP, currentDate);
+            CMFHeaderObject.put(Constants.CMF.Header.COMMAND_ID, Constants.CMF.HeaderValue.COMMAND_ID);
+            CMFHeaderObject.put(Constants.CMF.Header.COMMAND_TYPE, Constants.CMF.HeaderValue.COMMAND_TYPE);
 
             JSONObject jsonPayLoad = new JSONObject();
             String appInstanceID = appSecurityObject.getAppInstanceID();
 
             jsonPayLoad.put(Constants.Params.APP_ID, appInstanceID);
 
-            jsonObject.put(Constants.CMF.Payload.PAYLOAD, jsonPayLoad);
+            jsonObjectAccessTokenPayload.put(Constants.CMF.Payload.PAYLOAD_OBJECT, jsonPayLoad);
+            jsonObjectAccessTokenPayload.put(Constants.CMF.Header.ACCESS_TOKEN, accessToken);
+
+
+            jsonObject.put(Constants.CMF.Payload.EndPointX509Certificate,appSecurityObject.getNICEASEndPoint().getAppEndPoint().getX509Certificate());
+            jsonObject.put(Constants.CMF.Payload.CMF_HEADER,CMFHeaderObject.toString());
+            jsonObject.put(Constants.CMF.Payload.ACCESSTOKEN_PAYLOAD,jsonObjectAccessTokenPayload);
+
             AppLog.Log("jsonObjectMain => ", jsonObject.toString());
-
-
-            String accessToken = pHelper.getAppSecurityObject().getNICEASEndPoint().getNetEndPoint().getScheme().get(0).getAccessToken();
-
-            if(pHelper.getSignInMode() == Constants.STAGING_SIGN_IN){
+//            if(pHelper.getSignInMode() == Constants.STAGING_SIGN_IN){
 
                 String encryptedPayload = Utils.encryptAndSignCMF(activity, jsonObject,
-                        Base64.getUrlEncoder().encodeToString(accessToken.getBytes()) + "." +
-                                Base64.getUrlEncoder().encodeToString(jsonPayLoad.toString().getBytes()));
+                                jsonObjectAccessTokenPayload.toString());
 
                 JSONObject jsonObjectRequest = new JSONObject();
                 jsonObjectRequest.put("EncryptionKey", PreferenceHelper.getInstance(activity).getPublicKeyRSA());
@@ -897,73 +911,73 @@ public class MainViewModel extends ViewModel {
                         Log.i("onFailure", "---->>>> " + t.toString());
                     }
                 });
-            }else {
-                ServiceInterfaces.GetAppControlObject api = ApiClient.getClientAccount(activity,"https://" +
-                        pHelper.getAppSecurityObject().getNICEASEndPoint().getNetEndPoint().getScheme().get(0).getAuthority()).create(ServiceInterfaces.GetAppControlObject.class);
-
-                Call<AppConrolObjectResponse> call = api.getAppControlObject("Bearer "+ accessToken, pHelper.getAppSecurityObject().getNICEASEndPoint().getNetEndPoint().getAPIVersion(),
-                        pHelper.getAppSecurityObject().getNICEASEndPoint().getNetEndPoint().getEndPointID(),
-                        Constants.CODE_GET_APP_CONTROL_REQUEST,
-                        ApiClient.makeJSONRequestBody(jsonObject));
-
-                call.enqueue(new Callback<AppConrolObjectResponse>() {
-                    @Override
-                    public void onResponse(Call<AppConrolObjectResponse> call, Response<AppConrolObjectResponse> response) {
-                        Log.i(TAG, "---->>> AppControl " + response.raw().request().url());
-                        Gson gson = new Gson();
-                        Log.i(TAG, "---->>> AppControl-RESPONSE " + gson.toJson(response.body()));
-
-                        Utils.removeCustomProgressDialog();
-
-                        if (!response.equals("{}") && response != null && response.body() != null) {
-                            AppConrolObjectResponse appConrolObjectResponse = response.body();
-                            AppLog.Log("appConrolObjectResponse","****"+new Gson().toJson(appConrolObjectResponse));
-                            pHelper.putAppControlObject(appConrolObjectResponse);
-                            String token = appConrolObjectResponse.getPayload().getDataEndPoints().get(0).
-                                    getNetEndPointAppControl().getSchemeAppControlObject().get(0).getAccessToken();
-                            JWT jwt = new JWT(token);
-                            pHelper.putExpiryDate(jwt.getExpiresAt().getTime());
-                            pHelper.putNotBeforeDate(jwt.getNotBefore().getTime());
-                            pHelper.putEmail("test");
-                            switch (method){
-                                case Constants.Method.GET_SCENEMARKS_MANIFEST:
-                                    getSceneMarksManifest(activity, nodeIds, startTime, endTime,
-                                            pageLength, returnNiceItemTypes, returnSceneMarksDates,
-                                            returnPage, niceItemList, continuationToken);
-                                    break;
-                                case Constants.Method.GET_EVENT_DATES:
-                                    getEventDates(activity, nodeIds, startTime, endTime,
-                                            pageLength, returnNiceItemTypes, returnSceneMarksDates,
-                                            returnPage, niceItemList, continuationToken);
-                                    break;
-                                case Constants.Method.GET_NICEITEMTYPES_LIST:
-                                    getNiceItemTypesList(activity);
-                                    break;
-                                case Constants.Method.GET_LIVE_SCENEMARKS:
-                                    getLiveSceneMarks(activity, sceneMarkURI);
-                                    break;
-                                case Constants.Method.GET_NODE_LIST:
-                                    getNodeList(activity);
-                                    break;
-                                case Constants.Method.GET_PRIVACY_OBJECT:
-                                    getPrivacyObject(activity, currentDateString, sceneEncryptionKeyID);
-                                    break;
-                                case Constants.Method.GET_CURATION_LIVE:
-                                    getCurationLive(activity, sceneMarkURI, deviceName, deviceTimeZone);
-                                    break;
-                            }
-
-                        }
-                    }
-
-                    @Override
-                    public void onFailure(Call<AppConrolObjectResponse> call, Throwable t) {
-
-                    }
-                });
-
-
-            }
+//            }else {
+//                ServiceInterfaces.GetAppControlObject api = ApiClient.getClientAccount(activity,"https://" +
+//                        pHelper.getAppSecurityObject().getNICEASEndPoint().getNetEndPoint().getScheme().get(0).getAuthority()).create(ServiceInterfaces.GetAppControlObject.class);
+//
+//                Call<AppConrolObjectResponse> call = api.getAppControlObject("Bearer "+ accessToken, pHelper.getAppSecurityObject().getNICEASEndPoint().getNetEndPoint().getAPIVersion(),
+//                        pHelper.getAppSecurityObject().getNICEASEndPoint().getNetEndPoint().getEndPointID(),
+//                        Constants.CODE_GET_APP_CONTROL_REQUEST,
+//                        ApiClient.makeJSONRequestBody(jsonObject));
+//
+//                call.enqueue(new Callback<AppConrolObjectResponse>() {
+//                    @Override
+//                    public void onResponse(Call<AppConrolObjectResponse> call, Response<AppConrolObjectResponse> response) {
+//                        Log.i(TAG, "---->>> AppControl " + response.raw().request().url());
+//                        Gson gson = new Gson();
+//                        Log.i(TAG, "---->>> AppControl-RESPONSE " + gson.toJson(response.body()));
+//
+//                        Utils.removeCustomProgressDialog();
+//
+//                        if (!response.equals("{}") && response != null && response.body() != null) {
+//                            AppConrolObjectResponse appConrolObjectResponse = response.body();
+//                            AppLog.Log("appConrolObjectResponse","****"+new Gson().toJson(appConrolObjectResponse));
+//                            pHelper.putAppControlObject(appConrolObjectResponse);
+//                            String token = appConrolObjectResponse.getPayload().getDataEndPoints().get(0).
+//                                    getNetEndPointAppControl().getSchemeAppControlObject().get(0).getAccessToken();
+//                            JWT jwt = new JWT(token);
+//                            pHelper.putExpiryDate(jwt.getExpiresAt().getTime());
+//                            pHelper.putNotBeforeDate(jwt.getNotBefore().getTime());
+//                            pHelper.putEmail("test");
+//                            switch (method){
+//                                case Constants.Method.GET_SCENEMARKS_MANIFEST:
+//                                    getSceneMarksManifest(activity, nodeIds, startTime, endTime,
+//                                            pageLength, returnNiceItemTypes, returnSceneMarksDates,
+//                                            returnPage, niceItemList, continuationToken);
+//                                    break;
+//                                case Constants.Method.GET_EVENT_DATES:
+//                                    getEventDates(activity, nodeIds, startTime, endTime,
+//                                            pageLength, returnNiceItemTypes, returnSceneMarksDates,
+//                                            returnPage, niceItemList, continuationToken);
+//                                    break;
+//                                case Constants.Method.GET_NICEITEMTYPES_LIST:
+//                                    getNiceItemTypesList(activity);
+//                                    break;
+//                                case Constants.Method.GET_LIVE_SCENEMARKS:
+//                                    getLiveSceneMarks(activity, sceneMarkURI);
+//                                    break;
+//                                case Constants.Method.GET_NODE_LIST:
+//                                    getNodeList(activity);
+//                                    break;
+//                                case Constants.Method.GET_PRIVACY_OBJECT:
+//                                    getPrivacyObject(activity, currentDateString, sceneEncryptionKeyID);
+//                                    break;
+//                                case Constants.Method.GET_CURATION_LIVE:
+//                                    getCurationLive(activity, sceneMarkURI, deviceName, deviceTimeZone);
+//                                    break;
+//                            }
+//
+//                        }
+//                    }
+//
+//                    @Override
+//                    public void onFailure(Call<AppConrolObjectResponse> call, Throwable t) {
+//
+//                    }
+//                });
+//
+//
+//            }
 
 
         } catch (JSONException e) {
