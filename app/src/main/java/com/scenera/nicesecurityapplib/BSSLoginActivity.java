@@ -328,7 +328,7 @@ public class BSSLoginActivity extends BaseActivity {
             AppLog.Log("jsonObjectMain => ", jsonObject.toString());
 
 
-            if(pHelper.getSignInMode() == Constants.STAGING_SIGN_IN) {
+//            if(pHelper.getSignInMode() == Constants.STAGING_SIGN_IN) {
                 String encryptedPayload = Utils.encryptAndSignCMF(this, jsonObject,
                         jsonObjectAccessTokenPayload.toString());
 
@@ -382,42 +382,42 @@ public class BSSLoginActivity extends BaseActivity {
                         Log.i("onFailure", "---->>>> " + t.toString());
                     }
                 });
-            }else {
-                ServiceInterfaces.GetAppControlObject api = ApiClient.getClientAccount(this,"https://" +
-                        pHelper.getAppSecurityObject().getNICEASEndPoint().getNetEndPoint().getScheme().get(0).getAuthority()).create(ServiceInterfaces.GetAppControlObject.class);
-
-                Call<AppConrolObjectResponse> call = api.getAppControlObject("Bearer "+ accessToken, pHelper.getAppSecurityObject().getNICEASEndPoint().getNetEndPoint().getAPIVersion(),
-                        pHelper.getAppSecurityObject().getNICEASEndPoint().getNetEndPoint().getEndPointID(),
-                        Constants.CODE_GET_APP_CONTROL_REQUEST,
-                        ApiClient.makeJSONRequestBody(jsonObject));
-                call.enqueue(new Callback<AppConrolObjectResponse>() {
-                    @Override
-                    public void onResponse(Call<AppConrolObjectResponse> call, Response<AppConrolObjectResponse> response) {
-                        /**************************** PUT APPCONTROL TIME*********************************/
-
-                        AppConrolObjectResponse appConrolObjectResponse = response.body();
-                        AppLog.Log("appConrolObjectResponse", "****" + new Gson().toJson(appConrolObjectResponse));
-                        pHelper.putAppControlObject(appConrolObjectResponse);
-                        pHelper.putEmail("test");
-                        Toast.makeText(getApplicationContext(), getResources().getString(R.string.text_error_app_link_success), Toast.LENGTH_LONG).show();
-                        //((HomeActivity) getActivity()).changeButtonUI(R.id.tvCameras);
-
-
-                        Intent intent = new Intent();
-                        intent.putExtra("TestData", "TestData");
-                        setResult(RESULT_OK, intent);
-                        finish();
-                      /*  Intent intent = new Intent(MainActivity.this, HomeActivity.class);
-                        startActivity(intent);*/
-                        // finish();
-                    }
-
-                    @Override
-                    public void onFailure(Call<AppConrolObjectResponse> call, Throwable t) {
-
-                    }
-                });
-            }
+//            }else {
+//                ServiceInterfaces.GetAppControlObject api = ApiClient.getClientAccount(this,"https://" +
+//                        pHelper.getAppSecurityObject().getNICEASEndPoint().getNetEndPoint().getScheme().get(0).getAuthority()).create(ServiceInterfaces.GetAppControlObject.class);
+//
+//                Call<AppConrolObjectResponse> call = api.getAppControlObject("Bearer "+ accessToken, pHelper.getAppSecurityObject().getNICEASEndPoint().getNetEndPoint().getAPIVersion(),
+//                        pHelper.getAppSecurityObject().getNICEASEndPoint().getNetEndPoint().getEndPointID(),
+//                        Constants.CODE_GET_APP_CONTROL_REQUEST,
+//                        ApiClient.makeJSONRequestBody(jsonObject));
+//                call.enqueue(new Callback<AppConrolObjectResponse>() {
+//                    @Override
+//                    public void onResponse(Call<AppConrolObjectResponse> call, Response<AppConrolObjectResponse> response) {
+//                        /**************************** PUT APPCONTROL TIME*********************************/
+//
+//                        AppConrolObjectResponse appConrolObjectResponse = response.body();
+//                        AppLog.Log("appConrolObjectResponse", "****" + new Gson().toJson(appConrolObjectResponse));
+//                        pHelper.putAppControlObject(appConrolObjectResponse);
+//                        pHelper.putEmail("test");
+//                        Toast.makeText(getApplicationContext(), getResources().getString(R.string.text_error_app_link_success), Toast.LENGTH_LONG).show();
+//                        //((HomeActivity) getActivity()).changeButtonUI(R.id.tvCameras);
+//
+//
+//                        Intent intent = new Intent();
+//                        intent.putExtra("TestData", "TestData");
+//                        setResult(RESULT_OK, intent);
+//                        finish();
+//                      /*  Intent intent = new Intent(MainActivity.this, HomeActivity.class);
+//                        startActivity(intent);*/
+//                        // finish();
+//                    }
+//
+//                    @Override
+//                    public void onFailure(Call<AppConrolObjectResponse> call, Throwable t) {
+//
+//                    }
+//                });
+//            }
         } catch (JSONException e) {
             e.printStackTrace();
         }
