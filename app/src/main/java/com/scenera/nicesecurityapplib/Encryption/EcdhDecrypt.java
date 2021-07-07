@@ -51,7 +51,7 @@ public class EcdhDecrypt {
 
             Security.insertProviderAt(new org.spongycastle.jce.provider.BouncyCastleProvider(), 1);
 
-            String jwsPayload = parseCertificate(context, encryptedPayload, appControlHeader.getX5c());
+            String jwsPayload = parseCertificateAppSecurity(encryptedPayload, appControlHeader.getX5c());
 
             final PrivateKey privateKey = getPrivateKey(privateKeyToDecrypt, "ECDSA");
             final JsonWebEncryption jsonWebEncryption = new JsonWebEncryption();
@@ -80,7 +80,7 @@ public class EcdhDecrypt {
         return appSecurityObjectResponse;
     }
 
-    private String parseCertificateAppSecurity(Context context, String jwe, List<String> listX5c) throws JoseException, CertificateException, NoSuchProviderException {
+    private String parseCertificateAppSecurity(String jwe, List<String> listX5c) throws JoseException, CertificateException, NoSuchProviderException {
 
         String jweResponse = null;
         try {
