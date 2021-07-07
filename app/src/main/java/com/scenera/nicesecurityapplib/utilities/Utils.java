@@ -36,7 +36,9 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.spongycastle.util.encoders.Base64;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
@@ -48,7 +50,9 @@ import java.security.NoSuchProviderException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.SecureRandom;
+import java.security.Security;
 import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.MGF1ParameterSpec;
@@ -226,7 +230,16 @@ public class Utils {
 
             String publicKeyCertEncoded = java.util.Base64.getEncoder().encodeToString(publicKeyRSA.getEncoded());
 //            X509Certificate certJWE = X509CertUtils.parse(Constants.NICE_AS_X509_CERTIFICATE);
-            X509Certificate certJWE = X509CertUtils.parse(PreferenceHelper.getInstance(context).getAppSecurityObject().getNICEASEndPoint().getAppEndPoint().getX509Certificate());
+            InputStream inputStream = null;
+
+            CertificateFactory certFactory = CertificateFactory.getInstance("X.509");
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                inputStream = new ByteArrayInputStream(java.util.Base64.getDecoder().decode( PreferenceHelper.getInstance(context).getAppSecurityObject().getNICEASEndPoint().getAppEndPoint().getX509Certificate()));
+            } else {
+                inputStream = new ByteArrayInputStream(org.spongycastle.util.encoders.Base64.decode( PreferenceHelper.getInstance(context).getAppSecurityObject().getNICEASEndPoint().getAppEndPoint().getX509Certificate()));
+            }
+            X509Certificate certJWE = (X509Certificate) certFactory.generateCertificate(inputStream);
+
             jsonObjectHeader.addProperty("alg", KeyManagementAlgorithmIdentifiers.RSA_OAEP_256);
             jsonObjectHeader.addProperty("enc", ContentEncryptionAlgorithmIdentifiers.AES_256_GCM);
             jsonObjectHeader.addProperty("kid", PreferenceHelper.getInstance(context).getAppSecurityObject().getNICEASEndPoint().getAppEndPoint().getEndPointID());
