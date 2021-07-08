@@ -628,8 +628,8 @@ public class MainViewModel extends ViewModel {
                             jsonObjectAccessTokenPayload.toString());
 
                     JSONObject jsonObjectRequest = new JSONObject();
-                    jsonObjectRequest.put("EncryptionKey", PreferenceHelper.getInstance(activity).getPublicKeyRSA());
-                    jsonObjectRequest.put("EncryptedAndSignedObject",encryptedPayload);
+                    jsonObjectRequest.put(Constants.CMF.Payload.ENCRYPTED_KEY, PreferenceHelper.getInstance(activity).getPublicKeyRSA());
+                    jsonObjectRequest.put(Constants.CMF.Payload.ENCRYPTED_PAYLOAD,encryptedPayload);
 
                     ServiceInterfaces.GetPrivacyObjectEncrypted api = ApiClient.getClientAccount(activity, "https://" +
                             pHelper.getAppSecurityObject().getNICEASEndPoint().getNetEndPoint().getScheme().get(0).getAuthority()).create(ServiceInterfaces.GetPrivacyObjectEncrypted.class);
@@ -744,8 +744,8 @@ public class MainViewModel extends ViewModel {
                             Base64.getUrlEncoder().encodeToString(jsonPayLoad.toString().getBytes()));
 
             JSONObject jsonObjectRequest = new JSONObject();
-            jsonObjectRequest.put("EncryptionKey", PreferenceHelper.getInstance(activity).getPublicKeyRSA());
-            jsonObjectRequest.put("EncryptedAndSignedObject",encryptedPayload);
+            jsonObjectRequest.put(Constants.CMF.Payload.ENCRYPTED_KEY, PreferenceHelper.getInstance(activity).getPublicKeyRSA());
+            jsonObjectRequest.put(Constants.CMF.Payload.ENCRYPTED_PAYLOAD,encryptedPayload);
 
             ServiceInterfaces.GetAppControlObjectEncrypted api = ApiClient.getClientAccount(activity,"https://" +
                     pHelper.getAppSecurityObject().getNICEASEndPoint().getNetEndPoint().getScheme().get(0).getAuthority()).create(ServiceInterfaces.GetAppControlObjectEncrypted.class);
@@ -840,8 +840,8 @@ public class MainViewModel extends ViewModel {
                                 jsonObjectAccessTokenPayload.toString());
 
                 JSONObject jsonObjectRequest = new JSONObject();
-                jsonObjectRequest.put("EncryptionKey", PreferenceHelper.getInstance(activity).getPublicKeyRSA());
-                jsonObjectRequest.put("EncryptedAndSignedObject",encryptedPayload);
+                jsonObjectRequest.put(Constants.CMF.Payload.ENCRYPTED_KEY, PreferenceHelper.getInstance(activity).getPublicKeyRSA());
+                jsonObjectRequest.put(Constants.CMF.Payload.ENCRYPTED_PAYLOAD,encryptedPayload);
 
                 ServiceInterfaces.GetAppControlObjectEncrypted api = ApiClient.getClientAccount(activity,"https://" +
                         pHelper.getAppSecurityObject().getNICEASEndPoint().getNetEndPoint().getScheme().get(0).getAuthority()).create(ServiceInterfaces.GetAppControlObjectEncrypted.class);

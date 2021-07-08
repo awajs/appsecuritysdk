@@ -334,8 +334,8 @@ public class BSSLoginActivity extends BaseActivity {
 
 
                 JSONObject jsonObjectRequest = new JSONObject();
-                jsonObjectRequest.put("EncryptionKey", PreferenceHelper.getInstance(this).getPublicKeyRSA());
-                jsonObjectRequest.put("EncryptedAndSignedObject",encryptedPayload);
+                jsonObjectRequest.put(Constants.CMF.Payload.ENCRYPTED_KEY, PreferenceHelper.getInstance(this).getPublicKeyRSA());
+                jsonObjectRequest.put(Constants.CMF.Payload.ENCRYPTED_PAYLOAD,encryptedPayload);
 
                 ServiceInterfaces.GetAppControlObjectEncrypted api = ApiClient.getClientAccount(this, "https://" +
                         pHelper.getAppSecurityObject().getNICEASEndPoint().getNetEndPoint().getScheme().get(0).getAuthority()).create(ServiceInterfaces.GetAppControlObjectEncrypted.class);

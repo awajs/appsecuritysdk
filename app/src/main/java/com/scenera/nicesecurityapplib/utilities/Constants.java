@@ -136,6 +136,8 @@ public class Constants {
             public static final String DEVICE_ID = "DeviceID";
             public static final String PAYLOAD = "Payload";
             public static final String BODY = "Body";
+            public static final String ENCRYPTED_KEY = "EncryptionKey";
+            public static final String ENCRYPTED_PAYLOAD = "EncryptedPayload";
         }
 
         public static class HeaderValue {
