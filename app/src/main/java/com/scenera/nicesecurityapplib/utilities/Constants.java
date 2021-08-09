@@ -24,6 +24,7 @@ public class Constants {
     //public static final String HOST_URL = "https://nodesequencer.ds.scenera.live";
      public static final String HOST_URL = "http://scenerasec1.southafricanorth.cloudapp.azure.com"; //The Normal Azure Server URL
     public static String BSS_URL = "bssUrl";
+    public static String BSS_APP_ID = "bssAppId";
     public static String SIGN_IN_MODE = "sign_in_mode";
     public static int DEMO_SIGN_IN = 0;
     public static int STAGING_SIGN_IN = 1;

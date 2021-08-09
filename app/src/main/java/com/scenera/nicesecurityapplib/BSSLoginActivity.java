@@ -136,11 +136,16 @@ public class BSSLoginActivity extends BaseActivity {
                 encodedPublicKey = Utils.base64Encode(bytes);
                 Log.d("encodedPublicKey => ", encodedPublicKey + "");
                 String bssUrl = Constants.ServiceType.LINK_APP_TO_BSS_ACCOUNT;
+                String appId = Constants.APP_ID;
                 if(getIntent() != null && getIntent().hasExtra(Constants.BSS_URL)){
                     bssUrl = getIntent().getStringExtra(Constants.BSS_URL);
                     pHelper.putSignInMode(getIntent().getIntExtra(Constants.SIGN_IN_MODE, 0));
                 }
-                niceUrl = bssUrl + "/" + "link_app/" + Constants.APP_ID + "/" + encodedPublicKey;
+                if(getIntent() != null && getIntent().hasExtra(Constants.BSS_APP_ID)){
+                    appId = getIntent().getStringExtra(Constants.BSS_APP_ID);
+                    pHelper.putSignInMode(getIntent().getIntExtra(Constants.SIGN_IN_MODE, 0));
+                }
+                niceUrl = bssUrl + "/" + "link_app/" + appId + "/" + encodedPublicKey;
 
                 AppLog.Log(TAG + "NiceURL==> ", niceUrl + "");
 
