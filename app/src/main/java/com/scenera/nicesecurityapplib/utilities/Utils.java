@@ -83,7 +83,9 @@ public class Utils {
     private static Dialog mDialog;
     private static String uniqueID = null;
     private final static String JWE_SECTION_DELIMITER = ".";
-
+    static {
+        Security.insertProviderAt(new org.spongycastle.jce.provider.BouncyCastleProvider(), 1);
+    }
     public static boolean isNetworkAvailable(AppCompatActivity activity) {
         ConnectivityManager connectivity = (ConnectivityManager) activity.getSystemService(Context.CONNECTIVITY_SERVICE);
         if (connectivity == null) {

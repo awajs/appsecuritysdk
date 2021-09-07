@@ -168,6 +168,7 @@ public class Constants {
         public static final String PASSWORD = "pass";
         public static final String ACCOUNT_ID = "AccountID";
         public static final String APP_ID = "AppID";
+        public static final String APP_INSTANCE_ID = "AppInstanceID";
         public static final String PROPERTIES = "properties";
 
 

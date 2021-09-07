@@ -189,6 +189,8 @@ public class MainViewModel extends ViewModel {
 
                 JSONObject jsonObject = new JSONObject();
                 jsonObject.put(Constants.Params.ACCOUNT_ID, pHelper.getAppSecurityObject().getAccountID());
+                jsonObject.put(Constants.Params.APP_ID, pHelper.getAppSecurityObject().getAppID());
+                jsonObject.put(Constants.Params.APP_INSTANCE_ID, pHelper.getAppSecurityObject().getAppInstanceID());
 
                 call = api.getAccountNode("Bearer " + accessToken,
                         pHelper.getAppSecurityObject().getNICEASEndPoint().getNetEndPoint().getAPIVersion(),
