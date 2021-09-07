@@ -143,11 +143,10 @@ public class BSSLoginActivity extends BaseActivity {
                 }
                 if(getIntent() != null && getIntent().hasExtra(Constants.BSS_APP_ID)){
                     appId = getIntent().getStringExtra(Constants.BSS_APP_ID);
-                    pHelper.putSignInMode(getIntent().getIntExtra(Constants.SIGN_IN_MODE, 0));
                 }
                 niceUrl = bssUrl + "/" + "link_app/" + appId + "/" + encodedPublicKey;
 
-                AppLog.Log(TAG + "NiceURL==> ", niceUrl + "");
+                Log.d(TAG + "NiceURL==> ", niceUrl + "");
 
                 wvNiceAS.loadUrl(niceUrl);
 

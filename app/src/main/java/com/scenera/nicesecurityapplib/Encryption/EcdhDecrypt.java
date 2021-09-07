@@ -207,7 +207,7 @@ public class EcdhDecrypt {
             appConrolObjectResponse = new Gson().fromJson(jwsPayload, AppConrolObjectResponse.class);
 
             System.out.println("Before ::" + jwsPayload);
-            final PrivateKey privateKey = getPrivateKey(privateKeyToDecrypt, "RSA");
+            final PrivateKey privateKey = getPrivateKey(privateKeyToDecrypt, "ECDSA");
             final JsonWebEncryption jsonWebEncryption = new JsonWebEncryption();
             final ProviderContext provideContext = new ProviderContext();
             provideContext.getGeneralProviderContext().setGeneralProvider("SC");
@@ -245,7 +245,7 @@ public class EcdhDecrypt {
             getPrivaceObjectResponse = new Gson().fromJson(jwsPayload, GetPrivaceObjectResponse.class);
 
             System.out.println("Before ::" + jwsPayload);
-            final PrivateKey privateKey = getPrivateKey(privateKeyToDecrypt, "RSA");
+            final PrivateKey privateKey = getPrivateKey(privateKeyToDecrypt, "ECDSA");
             final JsonWebEncryption jsonWebEncryption = new JsonWebEncryption();
             final ProviderContext provideContext = new ProviderContext();
             provideContext.getGeneralProviderContext().setGeneralProvider("SC");

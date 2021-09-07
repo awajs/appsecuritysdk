@@ -27,6 +27,7 @@ import com.scenera.nicesecurityapplib.models.response.AppConrolObjectResponse;
 import com.scenera.nicesecurityapplib.models.response.GetPrivaceObjectResponse;
 
 import org.jose4j.jwe.ContentEncryptionAlgorithmIdentifiers;
+import org.jose4j.jwe.JsonWebEncryption;
 import org.jose4j.jwe.KeyManagementAlgorithmIdentifiers;
 import org.jose4j.jws.AlgorithmIdentifiers;
 import org.jose4j.jws.JsonWebSignature;
@@ -223,12 +224,12 @@ public class Utils {
             JsonArray x5cArray = new JsonArray();
             List<com.nimbusds.jose.util.Base64> x5cList = new ArrayList<>();
             JsonObject jsonObjectHeader = new JsonObject();
-            Key publicKeyRSA = getPublicKey(PreferenceHelper.getInstance(context).getPublicKeyRSA());
+            Key publicKey = getPublicKey(PreferenceHelper.getInstance(context).getPublicKey());
 
-            AppLog.Log("getPublicKeyRSA", " ****"+PreferenceHelper.getInstance(context).getPublicKeyRSA());
-            PrivateKey privateKeyRSA = getPrivateKey(PreferenceHelper.getInstance(context).getPrivateKeyRSA());
+            AppLog.Log("getPublicKeyEC", " ****"+PreferenceHelper.getInstance(context).getPublicKey());
+            PrivateKey privateKey = getPrivateKey(PreferenceHelper.getInstance(context).getPrivateKey());
 
-            String publicKeyCertEncoded = java.util.Base64.getEncoder().encodeToString(publicKeyRSA.getEncoded());
+            String publicKeyCertEncoded = PreferenceHelper.getInstance(context).getAppSecurityObject().getAppInstanceCertificate();
 //            X509Certificate certJWE = X509CertUtils.parse(Constants.NICE_AS_X509_CERTIFICATE);
             InputStream inputStream = null;
 
@@ -243,11 +244,11 @@ public class Utils {
             jsonObjectHeader.addProperty("alg", KeyManagementAlgorithmIdentifiers.RSA_OAEP_256);
             jsonObjectHeader.addProperty("enc", ContentEncryptionAlgorithmIdentifiers.AES_256_GCM);
             jsonObjectHeader.addProperty("kid", PreferenceHelper.getInstance(context).getAppSecurityObject().getNICEASEndPoint().getAppEndPoint().getEndPointID());
-            if (publicKeyRSA != null) {
+            if (publicKeyCertEncoded != null) {
 
                 JsonPrimitive encodedX509JsonPrimitive = new JsonPrimitive(publicKeyCertEncoded);
                 x5cArray.add(encodedX509JsonPrimitive);
-                x5cList.add(com.nimbusds.jose.util.Base64.encode(publicKeyRSA.getEncoded()));
+                x5cList.add(com.nimbusds.jose.util.Base64.encode(publicKey.getEncoded()));
                 jsonObjectHeader.add("x5c", x5cArray);
             }
 
@@ -282,9 +283,18 @@ public class Utils {
             jwe = stringJoiner.add(headerPortion).add(wrappedKeyPortion).add(ivPortion)
                     .add(encryptedPayloadPortion).add(tagPortion).toString();
 
-            jsonObjectCMFHeader.put(Constants.CMF.Payload.ACCESSTOKEN_PAYLOAD , jwe );
+            JsonWebEncryption jwe1 = new JsonWebEncryption();
+            jwe1.setAlgorithmHeaderValue("RSA1_5");
+            jwe1.setEncryptionMethodHeaderParameter(ContentEncryptionAlgorithmIdentifiers.AES_256_GCM);
+            jwe1.setCertificateChainHeaderValue(certJWE);
+            jwe1.setHeader("kid", PreferenceHelper.getInstance(context).getAppSecurityObject().getNICEASEndPoint().getAppEndPoint().getEndPointID());
+            jwe1.setKey(certJWE.getPublicKey());
+            jwe1.setPayload(payLoadToEncrypt);
+            String serializedJwe = jwe1.getCompactSerialization();
 
-            return sign(privateKeyRSA, x5cList, jsonObjectCMFHeader.toString());
+            jsonObjectCMFHeader.put(Constants.CMF.Payload.ACCESSTOKEN_PAYLOAD , serializedJwe );
+
+            return sign(context, privateKey, x5cList, jsonObjectCMFHeader.toString());
 
         }catch (Exception e){
             e.printStackTrace();
@@ -296,7 +306,7 @@ public class Utils {
     public static AppConrolObjectResponse decryptAndValidateCMF(Context context, String jws){
         AppConrolObjectResponse appConrolObjectResponse = null;
         try {
-            String privateKey = PreferenceHelper.getInstance(context).getPrivateKeyRSA();
+            String privateKey = PreferenceHelper.getInstance(context).getPrivateKey();
 
             jws = jws.replace("\"", "");
             AppControlHeader appControlHeader = SplitAndDecrypt(jws);
@@ -318,7 +328,7 @@ public class Utils {
     public static GetPrivaceObjectResponse decryptAndValidateCMF2(Context context, String jws){
         GetPrivaceObjectResponse getPrivaceObjectResponse = null;
         try {
-            String privateKey = PreferenceHelper.getInstance(context).getPrivateKeyRSA();
+            String privateKey = PreferenceHelper.getInstance(context).getPrivateKey();
 
             jws = jws.replace("\"", "");
             AppControlHeader appControlHeader = SplitAndDecrypt(jws);
@@ -378,21 +388,26 @@ public class Utils {
     }
 
 
-    public static String sign(PrivateKey privateKey, List<com.nimbusds.jose.util.Base64> x5cList, String payload) {
+    public static String sign(Context context, PrivateKey privateKey, List<com.nimbusds.jose.util.Base64> x5cList, String payload) {
         try {
 
             AppLog.Log("payload", " ****"+payload);
             final String payloadPortion = java.util.Base64.getUrlEncoder().withoutPadding()
                     .encodeToString(payload.getBytes(StandardCharsets.UTF_8));
 
+            InputStream inputStream = null;
+            final CertificateFactory certFactory = CertificateFactory.getInstance("X.509", "SC");
+            inputStream = new ByteArrayInputStream(java.util.Base64.getDecoder().decode(PreferenceHelper.getInstance(context).getAppSecurityObject().getAppInstanceCertificate()));
 
+            X509Certificate deviceCert = (X509Certificate) certFactory.generateCertificate(inputStream);
 
             JsonWebSignature jws = new JsonWebSignature();
             jws.setPayload(payload);
             jws.setKey(privateKey);
-            jws.setAlgorithmHeaderValue(AlgorithmIdentifiers.RSA_USING_SHA512);
-            jws.setKeyIdHeaderValue(Constants.KID);
-            jws.setHeader(HeaderParameterNames.X509_CERTIFICATE_CHAIN, x5cList);
+            jws.setAlgorithmHeaderValue(AlgorithmIdentifiers.ECDSA_USING_P256_CURVE_AND_SHA256);
+            jws.setKeyIdHeaderValue(PreferenceHelper.getInstance(context).getAppSecurityObject().getNICEASEndPoint().getAppEndPoint().getEndPointID());
+//            jws.setHeader(HeaderParameterNames.X509_CERTIFICATE_CHAIN, x5cList);
+            jws.setCertificateChainHeaderValue(deviceCert);
             String encryptedJws = jws.getCompactSerialization();
 
             String[] parts = encryptedJws.split("//.");
@@ -439,7 +454,7 @@ public class Utils {
     public static PrivateKey getPrivateKey(String encodedPrivateKey) {
         PrivateKey privateKey = null;
         try {
-            final KeyFactory keyFactory = KeyFactory.getInstance("RSA");
+            final KeyFactory keyFactory = KeyFactory.getInstance("ECDSA");
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 privateKey   = keyFactory
                         .generatePrivate(new PKCS8EncodedKeySpec(java.util.Base64.getDecoder().decode(encodedPrivateKey)));
@@ -458,7 +473,7 @@ public class Utils {
     public static PublicKey getPublicKey(String encodedPublicKey) {
         PublicKey publicKey = null;
         try {
-            final KeyFactory keyFactory = KeyFactory.getInstance("RSA");
+            final KeyFactory keyFactory = KeyFactory.getInstance("ECDSA");
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 publicKey   = keyFactory
                         .generatePublic(new X509EncodedKeySpec(java.util.Base64.getDecoder().decode(encodedPublicKey)));
