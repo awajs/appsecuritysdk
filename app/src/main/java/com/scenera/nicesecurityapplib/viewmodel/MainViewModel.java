@@ -1,5 +1,6 @@
 package com.scenera.nicesecurityapplib.viewmodel;
 
+import android.text.TextUtils;
 import android.util.Log;
 import android.widget.Switch;
 import android.widget.Toast;
@@ -872,9 +873,21 @@ public class MainViewModel extends ViewModel {
                             pHelper.putAppControlObject(appConrolObjectResponse);
                             String token = appConrolObjectResponse.getPayload().getDataEndPoints().get(0).
                                     getNetEndPointAppControl().getSchemeAppControlObject().get(0).getAccessToken();
-                            JWT jwt = new JWT(token);
-                            pHelper.putExpiryDate(jwt.getExpiresAt().getTime());
-                            pHelper.putNotBeforeDate(jwt.getNotBefore().getTime());
+                            if(!TextUtils.isEmpty(token)){
+                                String[] strArray = token.split("\\.");
+                                String JWTPayload = new String(org.jose4j.base64url.internal.apache.
+                                        commons.codec.binary.Base64.decodeBase64(strArray[1]));
+
+                                try {
+                                    JSONObject jsonObject = new JSONObject(JWTPayload);
+                                    AppLog.Log("EXPIRY_DATE","****"+jsonObject.getString("exp"));
+                                    AppLog.Log("NOT_BEFORE_DATE","****"+jsonObject.getString("nbf"));
+                                    pHelper.putExpiryDate(jsonObject.getLong("exp"));
+                                    pHelper.putNotBeforeDate(jsonObject.getLong("nbf"));
+                                }catch (Exception e){
+                                    e.printStackTrace();
+                                }
+                            }
                             pHelper.putEmail("test");
                             switch (method){
                                 case Constants.Method.GET_SCENEMARKS_MANIFEST:
