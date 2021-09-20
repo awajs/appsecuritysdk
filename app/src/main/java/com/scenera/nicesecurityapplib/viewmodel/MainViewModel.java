@@ -183,8 +183,8 @@ public class MainViewModel extends ViewModel {
                 Call<GetDevicesResponse> call;
                 Utils.showCustomProgressDialog(activity, "", false);
 
-                String accessToken = pHelper.getAppControlObject().getPayload().getControlEndPoints().get(0).getNetEndPointAppControl().getSchemeAppControlObject().get(0).getAccessToken();
-                String authority = "https://" + pHelper.getAppControlObject().getPayload().getControlEndPoints().get(0).getNetEndPointAppControl().getSchemeAppControlObject().get(0).getAuthority();
+                String accessToken = pHelper.getAppControlObject().getPayload().getDataEndPoints().get(0).getNetEndPointAppControl().getSchemeAppControlObject().get(0).getAccessToken();
+                String authority = "https://" + pHelper.getAppControlObject().getPayload().getDataEndPoints().get(0).getNetEndPointAppControl().getSchemeAppControlObject().get(0).getAuthority();
 
                 ServiceInterfaces.GetAccountNode api = ApiClient.getClientAccount(activity, authority).create(ServiceInterfaces.GetAccountNode.class);
 
@@ -286,7 +286,7 @@ public class MainViewModel extends ViewModel {
             ServiceInterfaces.GetSceneMarkManifest api = ApiClient.getClient(activity, authority).create(ServiceInterfaces.GetSceneMarkManifest.class);
 
             Call<GetSceneMarkManifestResponse> call = api.getSceneMarkManifest("Bearer " + accessToken,
-                    pHelper.getAppControlObject().getPayload().getControlEndPoints().get(0).getNetEndPointAppControl().getAPIVersion(),
+                    pHelper.getAppControlObject().getPayload().getDataEndPoints().get(0).getNetEndPointAppControl().getAPIVersion(),
                     pHelper.getAppInstanceId(), Constants.NODE_ID, Constants.PORT_ID,
                     ApiClient.makeJSONRequestBody(jsonObject));
 
@@ -882,8 +882,8 @@ public class MainViewModel extends ViewModel {
                                     JSONObject jsonObject = new JSONObject(JWTPayload);
                                     AppLog.Log("EXPIRY_DATE","****"+jsonObject.getString("exp"));
                                     AppLog.Log("NOT_BEFORE_DATE","****"+jsonObject.getString("nbf"));
-                                    pHelper.putExpiryDate(jsonObject.getLong("exp"));
-                                    pHelper.putNotBeforeDate(jsonObject.getLong("nbf"));
+                                    pHelper.putExpiryDate(jsonObject.getLong("exp") * 1000);
+                                    pHelper.putNotBeforeDate(jsonObject.getLong("nbf") * 1000);
                                 }catch (Exception e){
                                     e.printStackTrace();
                                 }
