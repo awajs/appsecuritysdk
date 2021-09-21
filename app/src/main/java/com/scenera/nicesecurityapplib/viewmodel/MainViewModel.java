@@ -183,8 +183,8 @@ public class MainViewModel extends ViewModel {
                 Call<GetDevicesResponse> call;
                 Utils.showCustomProgressDialog(activity, "", false);
 
-                String accessToken = pHelper.getAppControlObject().getPayload().getDataEndPoints().get(0).getNetEndPointAppControl().getSchemeAppControlObject().get(0).getAccessToken();
-                String authority = "https://" + pHelper.getAppControlObject().getPayload().getDataEndPoints().get(0).getNetEndPointAppControl().getSchemeAppControlObject().get(0).getAuthority();
+                String accessToken = pHelper.getAppControlObject().getPayload().getControlEndPoints().get(0).getNetEndPointAppControl().getSchemeAppControlObject().get(0).getAccessToken();
+                String authority = "https://" + pHelper.getAppControlObject().getPayload().getControlEndPoints().get(0).getNetEndPointAppControl().getSchemeAppControlObject().get(0).getAuthority();
 
                 ServiceInterfaces.GetAccountNode api = ApiClient.getClientAccount(activity, authority).create(ServiceInterfaces.GetAccountNode.class);
 
