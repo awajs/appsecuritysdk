@@ -344,7 +344,7 @@ public class BSSLoginActivity extends BaseActivity {
                 ServiceInterfaces.GetAppControlObjectEncrypted api = ApiClient.getClientAccount(this, "https://" +
                         pHelper.getAppSecurityObject().getNICEASEndPoint().getNetEndPoint().getScheme().get(0).getAuthority()).create(ServiceInterfaces.GetAppControlObjectEncrypted.class);
 
-                Call<EncryptedCMFResponse> call = api.getAppControlObject(
+                Call<EncryptedCMFResponse> call = api.getAppControlObject("Bearer "+ accessToken,
                         pHelper.getAppSecurityObject().getNICEASEndPoint().getNetEndPoint().getAPIVersion(),
                         pHelper.getAppSecurityObject().getNICEASEndPoint().getNetEndPoint().getEndPointID(),
                         Constants.CODE_GET_APP_CONTROL_REQUEST,

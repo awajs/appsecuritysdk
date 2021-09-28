@@ -60,7 +60,8 @@ public class ServiceInterfaces {
 
         @Headers("Content-Type:application/json")
         @POST("/{Version}/{EndPointID}/management/"+ Constants.ServiceType.GET_APP_CONTROL)
-        Call<EncryptedCMFResponse> getAppControlObject(@Path("Version") String version,
+        Call<EncryptedCMFResponse> getAppControlObject(@Header("Authorization") String auth,
+                                                       @Path("Version") String version,
                                                        @Path("EndPointID") String EndPointID,
                                                        @Query("code") String code,
                                                        @Body RequestBody requestBody);
@@ -81,7 +82,8 @@ public class ServiceInterfaces {
 
         @Headers("Content-Type:application/json")
         @POST("/{Version}/{EndPointID}/management/"+ Constants.ServiceType.GET_PRIVACY_OBJECT)
-        Call<EncryptedCMFResponse> getPrivacyObject(@Path("Version") String version,
+        Call<EncryptedCMFResponse> getPrivacyObject(@Header("Authorization") String auth,
+                                                    @Path("Version") String version,
                                                         @Path("EndPointID") String EndPointID,
                                                         @Body RequestBody requestBody);
 

@@ -637,7 +637,8 @@ public class MainViewModel extends ViewModel {
                     ServiceInterfaces.GetPrivacyObjectEncrypted api = ApiClient.getClientAccount(activity, "https://" +
                             pHelper.getAppSecurityObject().getNICEASEndPoint().getNetEndPoint().getScheme().get(0).getAuthority()).create(ServiceInterfaces.GetPrivacyObjectEncrypted.class);
 
-                    Call<EncryptedCMFResponse> call = api.getPrivacyObject(pHelper.getAppSecurityObject().getNICEASEndPoint().getNetEndPoint().getAPIVersion(),
+                    Call<EncryptedCMFResponse> call = api.getPrivacyObject("Bearer "+ accessToken,
+                            pHelper.getAppSecurityObject().getNICEASEndPoint().getNetEndPoint().getAPIVersion(),
                             pHelper.getAppSecurityObject().getNICEASEndPoint().getNetEndPoint().getEndPointID(),
                             ApiClient.makeJSONRequestBody(jsonObjectRequest));
 
@@ -753,7 +754,8 @@ public class MainViewModel extends ViewModel {
             ServiceInterfaces.GetAppControlObjectEncrypted api = ApiClient.getClientAccount(activity,"https://" +
                     pHelper.getAppSecurityObject().getNICEASEndPoint().getNetEndPoint().getScheme().get(0).getAuthority()).create(ServiceInterfaces.GetAppControlObjectEncrypted.class);
 
-            Call<EncryptedCMFResponse> call = api.getAppControlObject(pHelper.getAppSecurityObject().getNICEASEndPoint().getNetEndPoint().getAPIVersion(),
+            Call<EncryptedCMFResponse> call = api.getAppControlObject("Bearer "+ accessToken,
+                    pHelper.getAppSecurityObject().getNICEASEndPoint().getNetEndPoint().getAPIVersion(),
                     pHelper.getAppSecurityObject().getNICEASEndPoint().getNetEndPoint().getEndPointID(),
                     Constants.CODE_GET_APP_CONTROL_REQUEST,
                     ApiClient.makeJSONRequestBody(jsonObjectRequest));
@@ -849,7 +851,8 @@ public class MainViewModel extends ViewModel {
                 ServiceInterfaces.GetAppControlObjectEncrypted api = ApiClient.getClientAccount(activity,"https://" +
                         pHelper.getAppSecurityObject().getNICEASEndPoint().getNetEndPoint().getScheme().get(0).getAuthority()).create(ServiceInterfaces.GetAppControlObjectEncrypted.class);
 
-                Call<EncryptedCMFResponse> call = api.getAppControlObject(pHelper.getAppSecurityObject().getNICEASEndPoint().getNetEndPoint().getAPIVersion(),
+                Call<EncryptedCMFResponse> call = api.getAppControlObject("Bearer "+ accessToken,
+                        pHelper.getAppSecurityObject().getNICEASEndPoint().getNetEndPoint().getAPIVersion(),
                         pHelper.getAppSecurityObject().getNICEASEndPoint().getNetEndPoint().getEndPointID(),
                         Constants.CODE_GET_APP_CONTROL_REQUEST,
                         ApiClient.makeJSONRequestBody(jsonObjectRequest));
