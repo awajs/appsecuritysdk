@@ -27,7 +27,7 @@ public class DetectedObjectCMF implements Parcelable
     private String customItemType;
     @SerializedName("RelatedSceneData")
     @Expose
-    private List<String> relatedSceneData = null;
+    private String relatedSceneData = null;
 
 
     public DetectedObjectCMF() {
@@ -38,7 +38,7 @@ public class DetectedObjectCMF implements Parcelable
         boundingBox = in.readParcelable(BoundingBox.class.getClassLoader());
         nICEItemType = in.readString();
         customItemType = in.readString();
-        relatedSceneData = in.createStringArrayList();
+        relatedSceneData = in.readString();
     }
 
     @Override
@@ -47,7 +47,7 @@ public class DetectedObjectCMF implements Parcelable
         dest.writeParcelable(boundingBox, flags);
         dest.writeString(nICEItemType);
         dest.writeString(customItemType);
-        dest.writeStringList(relatedSceneData);
+        dest.writeString(relatedSceneData);
     }
 
     @Override
@@ -91,11 +91,11 @@ public class DetectedObjectCMF implements Parcelable
         this.nICEItemType = nICEItemType;
     }
 
-    public List<String> getRelatedSceneData() {
+    public String getRelatedSceneData() {
         return relatedSceneData;
     }
 
-    public void setRelatedSceneData(List<String> relatedSceneData) {
+    public void setRelatedSceneData(String relatedSceneData) {
         this.relatedSceneData = relatedSceneData;
     }
 

@@ -12,6 +12,9 @@ import com.google.gson.annotations.SerializedName;
  */
 public class SceneDataListCMF implements Parcelable
 {
+    @SerializedName("VersionNumber")
+    @Expose
+    private Integer versionNumber;
     @SerializedName("DataType")
     @Expose
     private String dataType;
@@ -60,6 +63,7 @@ public class SceneDataListCMF implements Parcelable
             ;
 
     protected SceneDataListCMF(Parcel in) {
+        this.versionNumber = ((Integer) in.readValue((Integer.class.getClassLoader())));
         this.dataType = ((String) in.readValue((String.class.getClassLoader())));
         this.encryption = ((Encryption) in.readValue((Encryption.class.getClassLoader())));
         this.mediaFormat = ((String) in.readValue((String.class.getClassLoader())));
@@ -155,7 +159,16 @@ public class SceneDataListCMF implements Parcelable
         this.duration = duration;
     }
 
+    public Integer getVersionNumber() {
+        return versionNumber;
+    }
+
+    public void setVersionNumber(Integer versionNumber) {
+        this.versionNumber = versionNumber;
+    }
+
     public void writeToParcel(Parcel dest, int flags) {
+        dest.writeValue(versionNumber);
         dest.writeValue(dataType);
         dest.writeValue(encryption);
         dest.writeValue(mediaFormat);

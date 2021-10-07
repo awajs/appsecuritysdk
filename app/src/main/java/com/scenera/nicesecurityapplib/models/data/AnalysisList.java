@@ -6,6 +6,8 @@ import android.os.Parcelable;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
+import java.util.List;
+
 /**
  * Created by Ekta Bhatt on 5/7/2020.
  */
@@ -27,6 +29,9 @@ public class AnalysisList implements Parcelable
     @SerializedName("VersionNumber")
     @Expose
     private Integer versionNumber;
+    @SerializedName("DetectedObjects")
+    @Expose
+    private List<DetectedObjectCMF> detectedObjects = null;
     public final static Creator<AnalysisList> CREATOR = new Creator<AnalysisList>() {
 
 
@@ -50,6 +55,7 @@ public class AnalysisList implements Parcelable
         this.processingStatus = ((String) in.readValue((String.class.getClassLoader())));
         this.sceneMode = ((String) in.readValue((String.class.getClassLoader())));
         this.versionNumber = ((Integer) in.readValue((Integer.class.getClassLoader())));
+        in.readList(this.detectedObjects, (DetectedObjectCMF.class.getClassLoader()));
     }
 
     /**
@@ -74,6 +80,14 @@ public class AnalysisList implements Parcelable
         this.processingStatus = processingStatus;
         this.sceneMode = sceneMode;
         this.versionNumber = versionNumber;
+    }
+
+    public List<DetectedObjectCMF> getDetectedObjects() {
+        return detectedObjects;
+    }
+
+    public void setDetectedObjects(List<DetectedObjectCMF> detectedObjects) {
+        this.detectedObjects = detectedObjects;
     }
 
     public String getAnalysisDescription() {
@@ -122,6 +136,7 @@ public class AnalysisList implements Parcelable
         dest.writeValue(processingStatus);
         dest.writeValue(sceneMode);
         dest.writeValue(versionNumber);
+        dest.writeList(detectedObjects);
     }
 
     public int describeContents() {

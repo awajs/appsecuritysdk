@@ -29,7 +29,7 @@ public class SceneMarkResponseCMF implements Parcelable {
     private String sceneMarkID;
     @SerializedName("DestinationID")
     @Expose
-    private String destinationID;
+    private List<String> destinationID;
     @SerializedName("SceneMarkStatus")
     @Expose
     private String sceneMarkStatus;
@@ -91,7 +91,7 @@ public class SceneMarkResponseCMF implements Parcelable {
         this.version = ((String) in.readValue((String.class.getClassLoader())));
         this.timeStamp = ((String) in.readValue((String.class.getClassLoader())));
         this.sceneMarkID = ((String) in.readValue((String.class.getClassLoader())));
-        this.destinationID = ((String) in.readValue((String.class.getClassLoader())));
+        this.destinationID = in.createStringArrayList();
         this.sceneMarkStatus = ((String) in.readValue((String.class.getClassLoader())));
         this.nodeID = ((String) in.readValue((String.class.getClassLoader())));
         this.portID = ((String) in.readValue((String.class.getClassLoader())));
@@ -133,11 +133,11 @@ public class SceneMarkResponseCMF implements Parcelable {
         this.sceneMarkID = sceneMarkID;
     }
 
-    public String getDestinationID() {
+    public List<String> getDestinationID() {
         return destinationID;
     }
 
-    public void setDestinationID(String destinationID) {
+    public void setDestinationID(List<String> destinationID) {
         this.destinationID = destinationID;
     }
 
@@ -246,7 +246,7 @@ public class SceneMarkResponseCMF implements Parcelable {
         dest.writeValue(version);
         dest.writeValue(timeStamp);
         dest.writeValue(sceneMarkID);
-        dest.writeValue(destinationID);
+        dest.writeStringList(destinationID);
         dest.writeValue(sceneMarkStatus);
         dest.writeValue(nodeID);
         dest.writeValue(portID);

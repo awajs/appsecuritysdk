@@ -287,7 +287,7 @@ public class MainViewModel extends ViewModel {
 
             Call<GetSceneMarkManifestResponse> call = api.getSceneMarkManifest("Bearer " + accessToken,
                     pHelper.getAppControlObject().getPayload().getDataEndPoints().get(0).getNetEndPointAppControl().getAPIVersion(),
-                    pHelper.getAppInstanceId(), Constants.NODE_ID, Constants.PORT_ID,
+                    pHelper.getAppInstanceId(),
                     ApiClient.makeJSONRequestBody(jsonObject));
 
             call.enqueue(new Callback<GetSceneMarkManifestResponse>() {
@@ -383,7 +383,7 @@ public class MainViewModel extends ViewModel {
 
             Call<GetSceneMarkManifestResponse> call = api.getEventDates("Bearer " + accessToken,
                     pHelper.getAppControlObject().getPayload().getControlEndPoints().get(0).getNetEndPointAppControl().getAPIVersion(),
-                    pHelper.getAppInstanceId(), Constants.NODE_ID, Constants.PORT_ID, ApiClient.makeJSONRequestBody(jsonObject));
+                    pHelper.getAppInstanceId(), ApiClient.makeJSONRequestBody(jsonObject));
             call.enqueue(new Callback<GetSceneMarkManifestResponse>() {
                 @Override
                 public void onResponse(Call<GetSceneMarkManifestResponse> call, retrofit2.Response<GetSceneMarkManifestResponse> response) {
