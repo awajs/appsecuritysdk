@@ -439,7 +439,7 @@ public class MainViewModel extends ViewModel {
                 public void onResponse(Call<SceneMarkResponseCMF> call, retrofit2.Response<SceneMarkResponseCMF> response) {
                     Log.i("url", "---->>> getSceneMarks" + response.raw().request().url());
 
-                    if (response.body() != null && response.body().getDetectedObjects().size() > 0) {
+                    if (response.body() != null && response.body().getAnalysisList().size() > 0) {
 
                         Log.i("response body", "---->>>> " + response.body());
                         response.body().setDeviceName(deviceName);
@@ -557,7 +557,7 @@ public class MainViewModel extends ViewModel {
                 public void onResponse(Call<SceneMarkResponseCMF> call, retrofit2.Response<SceneMarkResponseCMF> response) {
                     Log.i("url", "---->>> getSceneMarks" + response.raw().request().url());
 
-                    if (response.body() != null && response.body().getDetectedObjects().size() > 0) {
+                    if (response.body() != null && response.body().getAnalysisList().size() > 0) {
 
                         Log.i("response body", "---->>>> " + response.body());
 
