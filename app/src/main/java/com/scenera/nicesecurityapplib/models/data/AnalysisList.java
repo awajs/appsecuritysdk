@@ -32,31 +32,8 @@ public class AnalysisList implements Parcelable
     @SerializedName("DetectedObjects")
     @Expose
     private List<DetectedObjectCMF> detectedObjects = null;
-    public final static Creator<AnalysisList> CREATOR = new Creator<AnalysisList>() {
 
 
-        @SuppressWarnings({
-                "unchecked"
-        })
-        public AnalysisList createFromParcel(Parcel in) {
-            return new AnalysisList(in);
-        }
-
-        public AnalysisList[] newArray(int size) {
-            return (new AnalysisList[size]);
-        }
-
-    }
-            ;
-
-    protected AnalysisList(Parcel in) {
-        this.analysisDescription = ((String) in.readValue((String.class.getClassLoader())));
-        this.customAnalysisID = ((String) in.readValue((String.class.getClassLoader())));
-        this.processingStatus = ((String) in.readValue((String.class.getClassLoader())));
-        this.sceneMode = ((String) in.readValue((String.class.getClassLoader())));
-        this.versionNumber = ((Integer) in.readValue((Integer.class.getClassLoader())));
-        in.readList(this.detectedObjects, (DetectedObjectCMF.class.getClassLoader()));
-    }
 
     /**
      * No args constructor for use in serialization
@@ -81,6 +58,46 @@ public class AnalysisList implements Parcelable
         this.sceneMode = sceneMode;
         this.versionNumber = versionNumber;
     }
+
+    protected AnalysisList(Parcel in) {
+        analysisDescription = in.readString();
+        customAnalysisID = in.readString();
+        processingStatus = in.readString();
+        sceneMode = in.readString();
+        if (in.readByte() == 0) {
+            versionNumber = null;
+        } else {
+            versionNumber = in.readInt();
+        }
+        detectedObjects = in.createTypedArrayList(DetectedObjectCMF.CREATOR);
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(analysisDescription);
+        dest.writeString(customAnalysisID);
+        dest.writeString(processingStatus);
+        dest.writeString(sceneMode);
+        if (versionNumber == null) {
+            dest.writeByte((byte) 0);
+        } else {
+            dest.writeByte((byte) 1);
+            dest.writeInt(versionNumber);
+        }
+        dest.writeTypedList(detectedObjects);
+    }
+
+    public static final Creator<AnalysisList> CREATOR = new Creator<AnalysisList>() {
+        @Override
+        public AnalysisList createFromParcel(Parcel in) {
+            return new AnalysisList(in);
+        }
+
+        @Override
+        public AnalysisList[] newArray(int size) {
+            return new AnalysisList[size];
+        }
+    };
 
     public List<DetectedObjectCMF> getDetectedObjects() {
         return detectedObjects;
@@ -130,14 +147,6 @@ public class AnalysisList implements Parcelable
         this.versionNumber = versionNumber;
     }
 
-    public void writeToParcel(Parcel dest, int flags) {
-        dest.writeValue(analysisDescription);
-        dest.writeValue(customAnalysisID);
-        dest.writeValue(processingStatus);
-        dest.writeValue(sceneMode);
-        dest.writeValue(versionNumber);
-        dest.writeList(detectedObjects);
-    }
 
     public int describeContents() {
         return 0;
