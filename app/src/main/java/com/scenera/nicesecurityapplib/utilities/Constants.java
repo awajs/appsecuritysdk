@@ -89,6 +89,7 @@ public class Constants {
         public static final String DELETE_DEVICE_TOKEN = "deletedevicetoken";
         public static final String GET_PRIVACY_OBJECT = "GetPrivacyObject";
         public static final String GET_NICE_ITEM_TYPES_LIST = "GetNICEItemTypes";
+        public static final String GET_ALL_TYPES_LIST = "getalltypes";
 
         /*********** SceneMarks CMF Version 1.02*********/
        // public static final String GET_SCENEMARK_MANIFEST_CMF = "GetSceneMarkManifestCMF";
@@ -187,6 +188,7 @@ public class Constants {
         public static final String START_TIME = "StartTime";
         public static final String END_TIME = "EndTime";
         public static final String NICE_ITEM_TYPES = "ListNICEItemTypes";
+        public static final String EVENT_TYPES = "ListEventTypes";
         public static final String CONTINUATION_TOKEN = "ContinuationToken";
 
         public static final String NICE_LINK_APP = "niceLinkApp";
@@ -283,6 +285,7 @@ public class Constants {
         public static final int GET_SCENEMARKS_MANIFEST = 1;
         public static final int GET_EVENT_DATES = 2;
         public static final int GET_NICEITEMTYPES_LIST = 3;
+        public static final int GET_ALLTYPES_LIST = 12;
         public static final int GET_LIVE_SCENEMARKS = 4;
         public static final int GET_CURATION_LIVE = 5;
         public static final int ADD_TOKEN_TO_SERVER = 6;

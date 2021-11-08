@@ -2,6 +2,7 @@ package com.scenera.nicesecurityapplib.interfaces;
 
 
 import com.scenera.nicesecurityapplib.models.response.AddFaceResponse;
+import com.scenera.nicesecurityapplib.models.response.AllItemTypesResponse;
 import com.scenera.nicesecurityapplib.models.response.AppConrolObjectResponse;
 import com.scenera.nicesecurityapplib.models.response.EncryptedCMFResponse;
 import com.scenera.nicesecurityapplib.models.response.GetDevicesResponse;
@@ -41,6 +42,15 @@ public class ServiceInterfaces {
         @GET("/{Version}/"+ Constants.ServiceType.GET_NICE_ITEM_TYPES_LIST)
         Call<ArrayList<String>> getNiceItemTypes(@Header("Authorization") String auth,
                                                  @Path("Version") String version);
+
+    }
+
+    public interface GetAllTypeList {
+
+        @Headers("Content-Type:application/json")
+        @GET("/{Version}/"+ Constants.ServiceType.GET_ALL_TYPES_LIST)
+        Call<AllItemTypesResponse> getAllTypes(@Header("Authorization") String auth,
+                                               @Path("Version") String version);
 
     }
 

@@ -15,6 +15,7 @@ import com.scenera.nicesecurityapplib.interfaces.ServiceInterfaces;
 import com.scenera.nicesecurityapplib.models.data.NodeList;
 import com.scenera.nicesecurityapplib.models.data.PersonFace;
 import com.scenera.nicesecurityapplib.models.response.AddFaceResponse;
+import com.scenera.nicesecurityapplib.models.response.AllItemTypesResponse;
 import com.scenera.nicesecurityapplib.models.response.AppConrolObjectResponse;
 import com.scenera.nicesecurityapplib.models.response.AppSecurityObjectResponse;
 import com.scenera.nicesecurityapplib.models.response.EncryptedCMFResponse;
@@ -36,6 +37,7 @@ import org.json.JSONObject;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Base64;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 
@@ -73,7 +75,9 @@ public class MainViewModel extends ViewModel {
     private MutableLiveData<SceneMarkResponseCMF> sceneMarkResponseLive;
 
     private MutableLiveData<ArrayList<String>> niceItemTypesLiveData;
+    private MutableLiveData<AllItemTypesResponse> allTypesLiveData;
     private ArrayList<String> niceItemTypes;
+    private ArrayList<String> eventTypes;
 
     private MutableLiveData<ArrayList<NodeList>> nodeListLiveData;
     private ArrayList<NodeList> nodeList;
@@ -100,9 +104,11 @@ public class MainViewModel extends ViewModel {
         sceneMarkResponseLive = new MutableLiveData<>();
 
         sceneMarkResponse = new SceneMarkResponseCMF();
+        allTypesLiveData = new MutableLiveData();
 
         niceItemTypesLiveData = new MutableLiveData<>();
         niceItemTypes = new ArrayList<String>();
+        eventTypes = new ArrayList<String>();
 
         nodeListLiveData = new MutableLiveData<>();
         nodeList = new ArrayList<>();
@@ -132,6 +138,11 @@ public class MainViewModel extends ViewModel {
     public MutableLiveData<ArrayList<String>> getNiceItemTypes() {
         Log.d(TAG,"getNiceItemTypesMutableLiveData: " + niceItemTypesLiveData);
         return niceItemTypesLiveData;
+    }
+    /** get AllTypes List **/
+    public MutableLiveData<AllItemTypesResponse> getAllTypes() {
+        Log.d(TAG,"getNiceItemTypesMutableLiveData: " + allTypesLiveData);
+        return allTypesLiveData;
     }
 
     /** get SceneMarksManifest **/
@@ -231,7 +242,7 @@ public class MainViewModel extends ViewModel {
                 getAppControlObject(pHelper.getAppSecurityObject(),activity,
                         Constants.Method.GET_NODE_LIST, new ArrayList<String>(),"","",
                 0, false, false,
-                false, new ArrayList<String>(), "", "","", "","", "");
+                false, new ArrayList<String>(),new ArrayList<String>(), "", "","", "","", "");
             }
         }catch (Exception et){
             et.printStackTrace();
@@ -242,7 +253,7 @@ public class MainViewModel extends ViewModel {
     /** get SceneMarksManifest **/
     public MutableLiveData<GetSceneMarkManifestResponse> getSceneMarksManifest(AppCompatActivity activity, ArrayList<String> nodeIds,String startTime, String endTime,
                                                                                int pageLength, boolean returnNiceItemTypes, boolean returnSceneMarksDates,
-                                                                               boolean returnPage, ArrayList<String> niceItemList, String continuationToken) {
+                                                                               boolean returnPage, ArrayList<String> niceItemList, ArrayList<String> eventList,String continuationToken) {
         pHelper = PreferenceHelper.getInstance(activity);
         if(isTokenNotExpired()) {
             JSONObject jsonObject = new JSONObject();
@@ -269,6 +280,17 @@ public class MainViewModel extends ViewModel {
                 } else {
                     JSONArray niceItemArray = new JSONArray();
                     jsonObject.put(Constants.Params.NICE_ITEM_TYPES, niceItemArray);
+                }
+                /*Filter by EVENT_TYPES*/
+                if (eventList.size() > 0) {
+                    JSONArray eventItemArray = new JSONArray();
+                    for (int i = 0; i < eventList.size(); i++) {
+                        eventItemArray.put(eventList.get(i));
+                    }
+                    jsonObject.put(Constants.Params.EVENT_TYPES, eventItemArray);
+                } else {
+                    JSONArray eventItemArray = new JSONArray();
+                    jsonObject.put(Constants.Params.EVENT_TYPES, eventItemArray);
                 }
                 AppLog.Log("continuationTokenMain=> ", continuationToken);
                 jsonObject.put(Constants.Params.CONTINUATION_TOKEN, continuationToken);
@@ -330,7 +352,7 @@ public class MainViewModel extends ViewModel {
             getAppControlObject(pHelper.getAppSecurityObject(),activity,
                     Constants.Method.GET_SCENEMARKS_MANIFEST, nodeIds,startTime,endTime,
                     pageLength, returnNiceItemTypes, returnSceneMarksDates,
-                    returnPage, niceItemList, continuationToken, "","", "", "", "");
+                    returnPage, niceItemList, eventList, continuationToken, "","", "", "", "");
         }
         return sceneMarkManifestLiveData;
     }
@@ -338,7 +360,7 @@ public class MainViewModel extends ViewModel {
     /** Get Event Dates For SceneMarks for selected month..**/
     public MutableLiveData<ArrayList<String>> getEventDates(AppCompatActivity activity, ArrayList<String> nodeIds,String startTime, String endTime,
                                                             int pageLength, boolean returnNiceItemTypes, boolean returnSceneMarksDates,
-                                                            boolean returnPage, ArrayList<String> niceItemList, String continuationToken) {
+                                                            boolean returnPage, ArrayList<String> niceItemList, ArrayList<String> eventList, String continuationToken) {
         pHelper = PreferenceHelper.getInstance(activity);
         if (isTokenNotExpired()) {
             JSONObject jsonObject = new JSONObject();
@@ -365,6 +387,18 @@ public class MainViewModel extends ViewModel {
                 } else {
                     JSONArray niceItemArray = new JSONArray();
                     jsonObject.put(Constants.Params.NICE_ITEM_TYPES, niceItemArray);
+                }
+
+                /*Filter by EVENT_TYPES*/
+                if (eventList.size() > 0) {
+                    JSONArray eventItemArray = new JSONArray();
+                    for (int i = 0; i < eventList.size(); i++) {
+                        eventItemArray.put(eventList.get(i));
+                    }
+                    jsonObject.put(Constants.Params.EVENT_TYPES, eventItemArray);
+                } else {
+                    JSONArray eventItemArray = new JSONArray();
+                    jsonObject.put(Constants.Params.EVENT_TYPES, eventItemArray);
                 }
                 AppLog.Log("continuationTokenMain=> ", continuationToken);
                 jsonObject.put(Constants.Params.CONTINUATION_TOKEN, continuationToken);
@@ -418,7 +452,7 @@ public class MainViewModel extends ViewModel {
             getAppControlObject(pHelper.getAppSecurityObject(),activity,
                     Constants.Method.GET_SCENEMARKS_MANIFEST, nodeIds,startTime,endTime,
                     pageLength, returnNiceItemTypes, returnSceneMarksDates,
-                    returnPage, niceItemList, continuationToken, "","", "", "", "");
+                    returnPage, niceItemList, eventList, continuationToken, "","", "", "", "");
             return null;
         }
     }
@@ -481,7 +515,7 @@ public class MainViewModel extends ViewModel {
             getAppControlObject(pHelper.getAppSecurityObject(),activity,
                     Constants.Method.GET_CURATION_LIVE, new ArrayList<String>(),"","",
                     0, false, false,
-                    false, new ArrayList<String>(), "",
+                    false, new ArrayList<String>(),new ArrayList<String>(), "",
                     sceneMarkURI, "", "", deviceName, deviceTimeZone);
         }
         return null;
@@ -537,10 +571,65 @@ public class MainViewModel extends ViewModel {
             getAppControlObject(pHelper.getAppSecurityObject(),activity,
                     Constants.Method.GET_NICEITEMTYPES_LIST, new ArrayList<String>(),"","",
                     0, false, false,
-                    false, new ArrayList<String>(), "", "","", "","", "");
+                    false, new ArrayList<String>(),new ArrayList<String>(), "", "","", "","", "");
         }
         return niceItemTypesLiveData;
     }
+
+    /** Get NiceItemTypes List **/
+    public MutableLiveData<AllItemTypesResponse> getAllTypesList(AppCompatActivity activity) {
+
+        pHelper = PreferenceHelper.getInstance(activity);
+
+        if(isTokenNotExpired()) {
+            String accessToken = pHelper.getAppControlObject().getPayload().getDataEndPoints().get(0).getNetEndPointAppControl().getSchemeAppControlObject().get(0).getAccessToken();
+            String authority = "https://" + pHelper.getAppControlObject().getPayload().getDataEndPoints().get(0).getNetEndPointAppControl().getSchemeAppControlObject().get(0).getAuthority();
+
+            niceItemTypes.clear();
+
+            ServiceInterfaces.GetAllTypeList api = ApiClient.getClient(activity, authority).create(ServiceInterfaces.GetAllTypeList.class);
+
+            Call<AllItemTypesResponse> call = api.getAllTypes("Bearer " + accessToken,
+                    pHelper.getAppControlObject().getPayload().getControlEndPoints().get(0).getNetEndPointAppControl().getAPIVersion());
+
+            call.enqueue(new Callback<AllItemTypesResponse>() {
+                @Override
+                public void onResponse(Call<AllItemTypesResponse> call, retrofit2.Response<AllItemTypesResponse> response) {
+
+                    Log.i("url", "AllItemTypes URL------->>>> " + response.raw().request().url());
+                    if (!response.equals("{}") && response != null && response.body() != null) {
+                        if (response.body() != null) {
+
+                            Log.d("AllItemTypesList==> ", response.body() + "");
+
+                            niceItemTypes.addAll(response.body().getnICEItemTypes());
+                            eventTypes.addAll(response.body().getEventTypes());
+                            allTypesLiveData.setValue(response.body());
+
+                        }
+                    } else {
+                        Utils.removeCustomProgressDialog();
+
+                    }
+                }
+
+                @Override
+                public void onFailure(Call<AllItemTypesResponse> call, Throwable t) {
+                    t.printStackTrace();
+                    Utils.removeCustomProgressDialog();
+                    Log.i("onFailure", "EventDatesResponse ---->>>> " + t.toString());
+
+                }
+            });
+        }else {
+            getAppControlObject(pHelper.getAppSecurityObject(),activity,
+                    Constants.Method.GET_ALLTYPES_LIST, new ArrayList<String>(),"","",
+                    0, false, false,
+                    false, new ArrayList<String>(),new ArrayList<String>(), "", "","", "","", "");
+        }
+        return allTypesLiveData;
+    }
+
 
     /** get LiveSceneMarks from SceneMarksManifest **/
     public MutableLiveData<SceneMarkResponseCMF> getLiveSceneMarks(AppCompatActivity activity, String sceneMarkURI) {
@@ -579,7 +668,7 @@ public class MainViewModel extends ViewModel {
             getAppControlObject(pHelper.getAppSecurityObject(),activity,
                     Constants.Method.GET_LIVE_SCENEMARKS, new ArrayList<String>(),"","",
                     0, false, false,
-                    false, new ArrayList<String>(), "",
+                    false, new ArrayList<String>(),new ArrayList<String>(), "",
                     sceneMarkURI, "", "","", "");
         }
         return sceneMarkResponseLive;
@@ -713,7 +802,7 @@ public class MainViewModel extends ViewModel {
             getAppControlObject(pHelper.getAppSecurityObject(),activity,
                     Constants.Method.GET_PRIVACY_OBJECT, new ArrayList<String>(),"","",
                     0, false, false,
-                    false, new ArrayList<String>(), "",
+                    false, new ArrayList<String>(),new ArrayList<String>(), "",
                     "", currentDate, sceneEncryptionKeyID,"", "");
         }
     }
@@ -804,7 +893,7 @@ public class MainViewModel extends ViewModel {
     private void getAppControlObject(AppSecurityObjectResponse appSecurityObject,
                                      AppCompatActivity activity, int method, ArrayList<String> nodeIds,String startTime, String endTime,
                                      int pageLength, boolean returnNiceItemTypes, boolean returnSceneMarksDates,
-                                     boolean returnPage, ArrayList<String> niceItemList, String continuationToken,
+                                     boolean returnPage, ArrayList<String> niceItemList, ArrayList<String> eventList,String continuationToken,
                                      String sceneMarkURI, String currentDateString, String sceneEncryptionKeyID,
                                      String deviceName, String deviceTimeZone) {
         Utils.showCustomProgressDialog(activity, "", false);
@@ -896,15 +985,18 @@ public class MainViewModel extends ViewModel {
                                 case Constants.Method.GET_SCENEMARKS_MANIFEST:
                                     getSceneMarksManifest(activity, nodeIds, startTime, endTime,
                                             pageLength, returnNiceItemTypes, returnSceneMarksDates,
-                                            returnPage, niceItemList, continuationToken);
+                                            returnPage, niceItemList,eventList, continuationToken);
                                     break;
                                 case Constants.Method.GET_EVENT_DATES:
                                     getEventDates(activity, nodeIds, startTime, endTime,
                                             pageLength, returnNiceItemTypes, returnSceneMarksDates,
-                                            returnPage, niceItemList, continuationToken);
+                                            returnPage, niceItemList, eventList, continuationToken);
                                     break;
                                 case Constants.Method.GET_NICEITEMTYPES_LIST:
                                     getNiceItemTypesList(activity);
+                                    break;
+                                case Constants.Method.GET_ALLTYPES_LIST:
+                                    getAllTypesList(activity);
                                     break;
                                 case Constants.Method.GET_LIVE_SCENEMARKS:
                                     getLiveSceneMarks(activity, sceneMarkURI);
