@@ -156,24 +156,6 @@ public class MainViewModel extends ViewModel {
         nodeListLiveData = new MutableLiveData<>();
         nodeList = new ArrayList<>();
         format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss:" + "000000");
-
-        if(pHelper.getAppControlObject() != null) {
-            appControlEndPoint = pHelper.getAppControlObject().getPayload().getControlEndPoints().get(0);
-            for (ControlEndPoint endPoint : pHelper.getAppControlObject().getPayload().getControlEndPoints()) {
-                if (TextUtils.equals(endPoint.getEndPointType(), "Account Service")) {
-                    appControlEndPoint = endPoint;
-                } else if (TextUtils.equals(endPoint.getEndPointType(), "SceneMode Source")) {
-                    sceneModeControlEndPoint = endPoint;
-                    strSceneModeToken = sceneModeControlEndPoint.getNetEndPointAppControl()
-                            .getSchemeAppControlObject().get(0).getAccessToken();
-                    strSceneModeEndPoint = sceneModeControlEndPoint.getNetEndPointAppControl()
-                            .getEndPointID();
-                    strSceneModeAuthority = sceneModeControlEndPoint.getNetEndPointAppControl()
-                            .getSchemeAppControlObject().get(0).getAuthority();
-                }
-            }
-
-        }
     }
     /** get NodeList **/
     public MutableLiveData<ArrayList<NodeList>> getDeviceList() {
@@ -250,6 +232,23 @@ public class MainViewModel extends ViewModel {
 
         try {
             pHelper = PreferenceHelper.getInstance(activity);
+            if(pHelper.getAppControlObject() != null && appControlEndPoint == null) {
+                appControlEndPoint = pHelper.getAppControlObject().getPayload().getControlEndPoints().get(0);
+                for (ControlEndPoint endPoint : pHelper.getAppControlObject().getPayload().getControlEndPoints()) {
+                    if (TextUtils.equals(endPoint.getEndPointType(), "Account Service")) {
+                        appControlEndPoint = endPoint;
+                    } else if (TextUtils.equals(endPoint.getEndPointType(), "SceneMode Source")) {
+                        sceneModeControlEndPoint = endPoint;
+                        strSceneModeToken = sceneModeControlEndPoint.getNetEndPointAppControl()
+                                .getSchemeAppControlObject().get(0).getAccessToken();
+                        strSceneModeEndPoint = sceneModeControlEndPoint.getNetEndPointAppControl()
+                                .getEndPointID();
+                        strSceneModeAuthority = sceneModeControlEndPoint.getNetEndPointAppControl()
+                                .getSchemeAppControlObject().get(0).getAuthority();
+                    }
+                }
+
+            }
             if(isTokenNotExpired()) {
                 Call<GetDevicesResponse> call;
                 Utils.showCustomProgressDialog(activity, "", false);
