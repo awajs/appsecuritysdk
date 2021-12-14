@@ -6,7 +6,9 @@ import android.content.DialogInterface;
 import android.graphics.drawable.ColorDrawable;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.os.AsyncTask;
 import android.os.Build;
+import android.os.Environment;
 import android.util.Log;
 import android.view.View;
 import android.view.animation.Animation;
@@ -19,6 +21,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
+import com.nimbusds.jose.jwk.ECKey;
 import com.nimbusds.jose.util.X509CertUtils;
 import com.scenera.nicesecurityapplib.Encryption.EcdhDecrypt;
 import com.scenera.nicesecurityapplib.R;
@@ -38,8 +41,11 @@ import org.json.JSONObject;
 import org.spongycastle.util.encoders.Base64;
 
 import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
@@ -55,6 +61,7 @@ import java.security.Security;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
+import java.security.spec.AlgorithmParameterSpec;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.MGF1ParameterSpec;
 import java.security.spec.PKCS8EncodedKeySpec;
@@ -65,6 +72,8 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.StringJoiner;
+import java.util.TimeZone;
+import java.util.concurrent.ExecutionException;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
@@ -73,8 +82,10 @@ import javax.crypto.KeyGenerator;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.GCMParameterSpec;
+import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.OAEPParameterSpec;
 import javax.crypto.spec.PSource;
+import javax.crypto.spec.SecretKeySpec;
 
 /**
  * Created by Ekta Bhatt on 21-11-2019.
@@ -327,6 +338,31 @@ public class Utils {
 
     }
 
+    public static JSONObject decryptAndValidateCMFGetSceneMode(Context context, String jws) {
+        JSONObject getSceneModeResponse = null;
+        try {
+            String privateKey = PreferenceHelper.getInstance(context).getPrivateKey();
+//            ECKey jwk = ECKey.parse(Constants.PRIVATE_KEY);
+//            PrivateKey privateKey1 = jwk.toPrivateKey();
+
+            jws = jws.replace("\"", "");
+            AppControlHeader appControlHeader = SplitAndDecrypt(jws);
+
+            /*********** Decrypt Encrypted Payload **************/
+            EcdhDecrypt ecdhDecrypt = new EcdhDecrypt();
+
+            getSceneModeResponse = ecdhDecrypt.getSceneMode(jws, context, privateKey, appControlHeader);
+//            AppLog.Log("appConrolObjectResponse","****"+new Gson().toJson(appConrolObjectResponse));
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return getSceneModeResponse;
+
+    }
+
+
     public static GetPrivaceObjectResponse decryptAndValidateCMF2(Context context, String jws){
         GetPrivaceObjectResponse getPrivaceObjectResponse = null;
         try {
@@ -488,6 +524,128 @@ public class Utils {
         } catch (InvalidKeySpecException | NoSuchAlgorithmException e) {
             e.printStackTrace();
             return null;
+        }
+    }
+
+    public static int createRandomNumber() {
+        return (int) (Math.random() * 2147483647);
+    }
+
+    public static String getDeviceNodeID(String strUUID, int nodeID){
+
+        String hexInstance = Integer.toHexString(nodeID);
+        String subString = hexInstance.length() > 3 ? hexInstance.substring(2) : hexInstance;
+        String hexNodeIDPadded = ("0000" + subString).substring(subString.length());
+        String DeviceNodeID = strUUID + "_" + hexNodeIDPadded;
+        return DeviceNodeID;
+    }
+
+
+    public static String GetDateTime(){
+        Date dateNow = new Date();
+        Constants.sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
+        return Constants.sdf.format(dateNow);
+    }
+
+    public static byte[] EncryptImageData(Context context,byte[] binImage){
+        EncryptData encryptData = new EncryptData(context);
+        byte[] binEncryptedData = null;
+        try {
+            binEncryptedData = encryptData.execute(binImage).get();
+        } catch (InterruptedException | ExecutionException e) {
+            e.printStackTrace();
+        }
+        return binEncryptedData;
+    }
+
+    private static byte[] EncryptVideoData(Context context, byte[] binVideo){
+        EncryptData encryptData = new EncryptData(context);
+        byte[] binEncryptedData = null;
+        try {
+            binEncryptedData = encryptData.execute(binVideo).get();
+        } catch (InterruptedException | ExecutionException e) {
+            e.printStackTrace();
+        }
+        return binEncryptedData;
+    }
+
+    public static class EncryptData extends AsyncTask<byte[], Void, byte[]> {
+        Context context;
+        public EncryptData(Context context){
+            this.context = context;
+        }
+
+        @Override
+        protected byte[] doInBackground(byte[]... binImage) {
+            // This is done in a background thread
+            AppLog.Log("doInBackground => ", "doInBackground");
+            try {
+                /*************************************/
+                Cipher cipher = null;
+                //   keyEncrypted = pHelper.getSceneEncryptionID();
+
+                byte[] sessionKey = org.jose4j.base64url.internal.apache.commons.codec.binary.Base64.
+                        decodeBase64(PreferenceHelper.getInstance(context).getSceneEncryptionID().getBytes("UTF-8"));
+                AppLog.Log("sessionKey => ", sessionKey + "");
+                //    ivEncrypted = pHelper.getIvBytes();
+                byte[] ivBytes = org.jose4j.base64url.internal.apache.commons.codec.binary.Base64.
+                        decodeBase64(PreferenceHelper.getInstance(context).getIvBytes().getBytes("UTF-8"));
+                AppLog.Log("ivBytes => ", ivBytes + "");
+
+                AlgorithmParameterSpec ivSpec = new IvParameterSpec(ivBytes);
+                SecretKeySpec newKey = new SecretKeySpec(sessionKey, "AES");
+
+                cipher = Cipher.getInstance("AES/CTR/NoPadding");
+                cipher.init(Cipher.ENCRYPT_MODE, newKey, ivSpec);
+                return cipher.doFinal(binImage[0]);
+
+
+            } catch (Exception e) {
+                Log.e("Error reading file", e.toString());
+            }
+
+            return null;
+        }
+
+        protected void onPostExecute(byte[] image) {
+            //   setImage(image);
+        }
+
+
+    }
+
+    public static void writeToFile(Context context,String filename, String data) {
+        try {
+
+            File storageDir = null;
+            if (Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState())) {
+                storageDir = context.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS);
+                if (!storageDir.mkdirs() && !storageDir.exists()) {
+                    Utils.showAlert(context, "failed to create directory");
+
+                }
+                File imageF = new File(storageDir, filename + ".txt");
+                OutputStream stream1 = new FileOutputStream(imageF);
+                stream1.write(data.getBytes());
+                stream1.close();
+            }
+        }
+        catch (IOException e) {
+            Log.e("Exception", "File write failed: " + e.toString());
+        }
+    }
+
+    public static void printLongLog(String Lable, String encryptedJws) {
+        try {
+            int maxLogSize = 2000;
+            for (int i = 0; i <= encryptedJws.length() / maxLogSize; i++) {
+                int start = i * maxLogSize;
+                int end = (i + 1) * maxLogSize;
+                end = end > encryptedJws.length() ? encryptedJws.length() : end;
+                android.util.Log.d(Lable + i + "  ", encryptedJws.substring(start, end));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 

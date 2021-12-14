@@ -6,6 +6,8 @@ import android.os.Parcelable;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
+import org.json.JSONObject;
+
 /**
  * Created by Ekta Bhatt on 15-11-2019.
  */
@@ -21,6 +23,7 @@ public class Encryption implements Parcelable
     @SerializedName("PrivacyServerEndPoint")
     @Expose
     private PrivacyServerEndPoint privacyServerEndPoint;
+    private JSONObject dictEncryption;
     public final static Creator<Encryption> CREATOR = new Creator<Encryption>() {
 
 
@@ -42,9 +45,19 @@ public class Encryption implements Parcelable
         this.encryptionOn = ((Boolean) in.readValue((Boolean.class.getClassLoader())));
         this.sceneEncryptionKeyID = ((String) in.readValue((String.class.getClassLoader())));
         this.privacyServerEndPoint = ((PrivacyServerEndPoint) in.readValue((PrivacyServerEndPoint.class.getClassLoader())));
+        this.dictEncryption = ((JSONObject) in.readValue((JSONObject.class.getClassLoader())));
     }
 
     public Encryption() {
+    }
+
+    public Encryption(boolean EncryptionOn, String SceneEncryptionKeyID,
+                      PrivacyServerEndPoint PrivacyServerEndPoint, JSONObject dictEncryption) {
+        this.encryptionOn = EncryptionOn;
+        this.sceneEncryptionKeyID = SceneEncryptionKeyID;
+        this.privacyServerEndPoint = PrivacyServerEndPoint;
+        this.dictEncryption = dictEncryption;
+
     }
 
     public Boolean getEncryptionOn() {
@@ -71,10 +84,19 @@ public class Encryption implements Parcelable
         this.privacyServerEndPoint = privacyServerEndPoint;
     }
 
+    public JSONObject getDictEncryption() {
+        return dictEncryption;
+    }
+
+    public void setDictEncryption(JSONObject dictEncryption) {
+        this.dictEncryption = dictEncryption;
+    }
+
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeValue(encryptionOn);
         dest.writeValue(sceneEncryptionKeyID);
         dest.writeValue(privacyServerEndPoint);
+        dest.writeValue(dictEncryption);
     }
 
     public int describeContents() {

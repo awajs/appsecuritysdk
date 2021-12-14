@@ -33,6 +33,22 @@ public class Payload implements Parcelable
     @SerializedName("NotificationEndPoints")
     @Expose
     private List<NotificationEndPoint> notificationEndPoints = null;
+    @SerializedName("SceneModeID")
+    @Expose
+    private String sceneModeID;
+    @SerializedName("NodeID")
+    @Expose
+    private String nodeID;
+    @SerializedName("Inputs")
+    @Expose
+    private List<Object> inputs = null;
+    @SerializedName("Outputs")
+    @Expose
+    private List<Output> outputs = null;
+    @SerializedName("Mode")
+    @Expose
+    private Mode mode;
+
 
     public final static Creator<Payload> CREATOR = new Creator<Payload>() {
 
@@ -58,7 +74,11 @@ public class Payload implements Parcelable
         in.readList(this.controlEndPoints, (ControlEndPoint.class.getClassLoader()));
         in.readList(this.dataEndPoints, (DataEndPoint.class.getClassLoader()));
         in.readList(this.notificationEndPoints, (NotificationEndPoint.class.getClassLoader()));
-
+        this.sceneModeID = ((String) in.readValue((String.class.getClassLoader())));
+        this.nodeID = ((String) in.readValue((String.class.getClassLoader())));
+        in.readList(this.inputs, (Object.class.getClassLoader()));
+        in.readList(this.outputs, (Output.class.getClassLoader()));
+        this.mode = ((Mode) in.readValue((Mode.class.getClassLoader())));
     }
 
     public Payload() {
@@ -110,6 +130,47 @@ public class Payload implements Parcelable
     public void setNotificationEndPoints(List<NotificationEndPoint> notificationEndPoints) {
         this.notificationEndPoints = notificationEndPoints;
     }
+
+    public String getSceneModeID() {
+        return sceneModeID;
+    }
+
+    public void setSceneModeID(String sceneModeID) {
+        this.sceneModeID = sceneModeID;
+    }
+
+    public String getNodeID() {
+        return nodeID;
+    }
+
+    public void setNodeID(String nodeID) {
+        this.nodeID = nodeID;
+    }
+
+    public List<Object> getInputs() {
+        return inputs;
+    }
+
+    public void setInputs(List<Object> inputs) {
+        this.inputs = inputs;
+    }
+
+    public List<Output> getOutputs() {
+        return outputs;
+    }
+
+    public void setOutputs(List<Output> outputs) {
+        this.outputs = outputs;
+    }
+
+    public Mode getMode() {
+        return mode;
+    }
+
+    public void setMode(Mode mode) {
+        this.mode = mode;
+    }
+
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeValue(version);
         dest.writeValue(appID);
@@ -117,6 +178,11 @@ public class Payload implements Parcelable
         dest.writeList(controlEndPoints);
         dest.writeList(dataEndPoints);
         dest.writeList(notificationEndPoints);
+        dest.writeValue(sceneModeID);
+        dest.writeValue(nodeID);
+        dest.writeList(inputs);
+        dest.writeList(outputs);
+        dest.writeValue(mode);
     }
 
     public int describeContents() {

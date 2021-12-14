@@ -9,11 +9,23 @@ public class EncryptedCMFResponse {
     @Expose
     private String encryptedPayload;
 
+    @SerializedName("EncryptedPayload")
+    @Expose
+    private String encryptedPayloadSceneMode;
+
     public String getEncryptedPayload() {
         return encryptedPayload;
     }
 
     public void setEncryptedPayload(String encryptedPayload) {
         this.encryptedPayload = encryptedPayload;
+    }
+
+    public String getEncryptedPayloadSceneMode() {
+        return encryptedPayloadSceneMode;
+    }
+
+    public void setEncryptedPayloadSceneMode(String encryptedPayloadSceneMode) {
+        this.encryptedPayloadSceneMode = encryptedPayloadSceneMode;
     }
 }

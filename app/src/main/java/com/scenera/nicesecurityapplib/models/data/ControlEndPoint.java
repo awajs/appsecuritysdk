@@ -12,6 +12,9 @@ import com.google.gson.annotations.SerializedName;
 public class ControlEndPoint implements Parcelable
 {
 
+    @SerializedName("EndPointType")
+    @Expose
+    private String endPointType;
     @SerializedName("AppEndPoint")
     @Expose
     private AppEndPointAppControl appEndPointAppControl;
@@ -38,6 +41,7 @@ public class ControlEndPoint implements Parcelable
     protected ControlEndPoint(Parcel in) {
         this.appEndPointAppControl = ((AppEndPointAppControl) in.readValue((AppEndPointAppControl.class.getClassLoader())));
         this.netEndPointAppControl = ((NetEndPointAppControl) in.readValue((NetEndPointAppControl.class.getClassLoader())));
+        this.endPointType = in.readString();
     }
 
     public ControlEndPoint() {
@@ -59,9 +63,18 @@ public class ControlEndPoint implements Parcelable
         this.netEndPointAppControl = netEndPointAppControl;
     }
 
+    public String getEndPointType() {
+        return endPointType;
+    }
+
+    public void setEndPointType(String endPointType) {
+        this.endPointType = endPointType;
+    }
+
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeValue(appEndPointAppControl);
         dest.writeValue(netEndPointAppControl);
+        dest.writeString(endPointType);
     }
 
     public int describeContents() {

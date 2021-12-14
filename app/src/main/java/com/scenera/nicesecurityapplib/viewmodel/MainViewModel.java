@@ -1,5 +1,6 @@
 package com.scenera.nicesecurityapplib.viewmodel;
 
+import android.content.Context;
 import android.text.TextUtils;
 import android.util.Log;
 import android.widget.Switch;
@@ -11,9 +12,21 @@ import androidx.lifecycle.ViewModel;
 
 import com.auth0.android.jwt.JWT;
 import com.google.gson.Gson;
+import com.scenera.nicesecurityapplib.BaseActivity;
 import com.scenera.nicesecurityapplib.interfaces.ServiceInterfaces;
+import com.scenera.nicesecurityapplib.models.data.ControlEndPoint;
+import com.scenera.nicesecurityapplib.models.data.DetectedObjectsClass;
+import com.scenera.nicesecurityapplib.models.data.Encryption;
+import com.scenera.nicesecurityapplib.models.data.NetEndPointPrivacy;
 import com.scenera.nicesecurityapplib.models.data.NodeList;
+import com.scenera.nicesecurityapplib.models.data.Output;
 import com.scenera.nicesecurityapplib.models.data.PersonFace;
+import com.scenera.nicesecurityapplib.models.data.PrivacyServerEndPoint;
+import com.scenera.nicesecurityapplib.models.data.SceneDataClass;
+import com.scenera.nicesecurityapplib.models.data.SceneDataValues;
+import com.scenera.nicesecurityapplib.models.data.SceneMarkValues;
+import com.scenera.nicesecurityapplib.models.data.SchemeAppControlObject;
+import com.scenera.nicesecurityapplib.models.data.SchemePrivacy;
 import com.scenera.nicesecurityapplib.models.response.AddFaceResponse;
 import com.scenera.nicesecurityapplib.models.response.AllItemTypesResponse;
 import com.scenera.nicesecurityapplib.models.response.AppConrolObjectResponse;
@@ -23,6 +36,7 @@ import com.scenera.nicesecurityapplib.models.response.GetDevicesResponse;
 import com.scenera.nicesecurityapplib.models.response.GetFaceDataResponse;
 import com.scenera.nicesecurityapplib.models.response.GetPrivaceObjectResponse;
 import com.scenera.nicesecurityapplib.models.response.GetSceneMarkManifestResponse;
+import com.scenera.nicesecurityapplib.models.response.GetSceneModeResponse;
 import com.scenera.nicesecurityapplib.models.response.SceneMarkResponseCMF;
 import com.scenera.nicesecurityapplib.retrofit.ApiClient;
 import com.scenera.nicesecurityapplib.utilities.AppLog;
@@ -40,6 +54,7 @@ import java.util.Base64;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 
 import okhttp3.RequestBody;
 import okhttp3.ResponseBody;
@@ -83,6 +98,34 @@ public class MainViewModel extends ViewModel {
     private ArrayList<NodeList> nodeList;
     private String currentDate = "";
     private SimpleDateFormat format;
+    private ControlEndPoint appControlEndPoint;
+    private ControlEndPoint sceneModeControlEndPoint;
+
+    private static String strGlobalDeviceNodeID = "", strGlobalDevicePortID = "";
+    private static List<DetectedObjectsClass> listDetectedObjects;
+    private static SceneDataClass objThumbnailSceneData;
+    private static int iVideoRecordingDurationSec;
+    private static int iGlobalImageWidth, iGlobalImageHeight, iGlobalVideoWidth, iGlobalVideoHeight;
+    private static String strGlobalBrigdeUUID = "00000005-6116-005b-8002-00000000002b",
+            strGlobalVideoSceneDataID = "";
+    private static String strSceneMarkID = "", strFullImageSceneDataID = "";
+    private static String accessTokenSceneMode = "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsIng1dCI6Imwzc1EtNTBjQ0g0eEJWWkxIVEd3blNSNzY4MCIsImtpZCI6Imwzc1EtNTBjQ0g0eEJWWkxIVEd3blNSNzY4MCJ9.eyJhdWQiOiJhcGk6Ly85ZmExNGI5NC0wMmFkLTRhNDMtOTU1MC04MzA1NDM0OGRkZGMiLCJpc3MiOiJodHRwczovL3N0cy53aW5kb3dzLm5ldC8xMzEwMzFkNy1iOThjLTQzNWQtOGM1YS1mYTc0MDk1N2Q2MmIvIiwiaWF0IjoxNjM1NDAwOTM3LCJuYmYiOjE2MzU0MDA5MzcsImV4cCI6MTYzNTQ4NDAzNywiYWlvIjoiRTJaZ1lIZzgrZi9PZktHM1NhZldlVEE3SFZ1YUFBQT0iLCJhcHBpZCI6ImEzY2I0Mzc2LThkYWUtNDc2NC1iMGNhLWRjNzc3ZmNiODE1MCIsImFwcGlkYWNyIjoiMSIsImlkcCI6Imh0dHBzOi8vc3RzLndpbmRvd3MubmV0LzEzMTAzMWQ3LWI5OGMtNDM1ZC04YzVhLWZhNzQwOTU3ZDYyYi8iLCJvaWQiOiIzZmU4OTc3Zi1hZjg0LTQ4MTktYjRjZi05OTRkMTk2ODc4MDEiLCJyaCI6IjAuQVZnQTF6RVFFNHk1WFVPTVd2cDBDVmZXSzNaRHk2T3VqV1JIc01yY2QzX0xnVkJZQUFBLiIsInJvbGVzIjpbIkFwcFJvbGUiXSwic3ViIjoiM2ZlODk3N2YtYWY4NC00ODE5LWI0Y2YtOTk0ZDE5Njg3ODAxIiwidGlkIjoiMTMxMDMxZDctYjk4Yy00MzVkLThjNWEtZmE3NDA5NTdkNjJiIiwidXRpIjoiNDdTWEM3VGxta3VsYUJ3V05OTmNBQSIsInZlciI6IjEuMCJ9.JKQv0_FWnGoD3LlVV2aSyk6EsI9QMTKzX--0cx5qnNKXBeIRwtLnIiGH73www8bjWrvHzVFZsdTjJB_tBueYChxwEcpoFlq2iRlVSXcfMJboxLStcaCbNYX6797g6js15_1GNzwyA2cAe13pq-Wn4sMHAwj0D143fHFX60msgPmZ3bQa-lrNIOzZV0c65St1vAuHgYvY7sNdQvL-SHXJxoX2oyRJwp20G0g940Zp-Ba5AJLkoK3PlhedJPTJz3arTuW92JLPD547QVlk2Py-3NCDAm_FXtN7hP7MvFBPJrSxenwHDz_RYD9JLvL9muyFZBogwMN5L2QRgUw76iNGjw";
+    private static String strSceneModeEndPoint, strSceneModeAuthority, strSceneModeToken;
+    private static String strGlobalSceneMarkEndPoint
+            , strGlobalSceneMarkToken = accessTokenSceneMode
+            , strGlobalSceneMarkAuthority = "ingress-dev.scenera.live"
+            , strGlobalSceneDataImageEndPoint = "00000001-5cdd-280b-8003-00020000ffff"
+            , strGlobalSceneDataImageToken = accessTokenSceneMode
+            , strGlobalSceneDataImageAuthority = "ingress-dev.scenera.live"
+            , strGlobalSceneDataVideoEndPoint = "00000001-5cdd-280b-8003-00020000ffff"
+            , strGlobalSceneDataVideoToken = accessTokenSceneMode
+            , strGlobalSceneDataVideoAuthority = "ingress-dev.scenera.live";
+    private static boolean fIsImageEncrypted = false;
+    private static Encryption EncryptionImage, EncryptionVideo;
+    private static int NodeID = 1,PortID = 1;
+    private static List<String> listRelatedSceneMarksToVideo = new ArrayList<>();
+    private static BaseActivity context;
+    private static String strBase64OfSceneDataImage;
 
     public MainViewModel() {
 
@@ -194,8 +237,8 @@ public class MainViewModel extends ViewModel {
                 Call<GetDevicesResponse> call;
                 Utils.showCustomProgressDialog(activity, "", false);
 
-                String accessToken = pHelper.getAppControlObject().getPayload().getControlEndPoints().get(0).getNetEndPointAppControl().getSchemeAppControlObject().get(0).getAccessToken();
-                String authority = "https://" + pHelper.getAppControlObject().getPayload().getControlEndPoints().get(0).getNetEndPointAppControl().getSchemeAppControlObject().get(0).getAuthority();
+                String accessToken = appControlEndPoint.getNetEndPointAppControl().getSchemeAppControlObject().get(0).getAccessToken();
+                String authority = "https://" + appControlEndPoint.getNetEndPointAppControl().getSchemeAppControlObject().get(0).getAuthority();
 
                 ServiceInterfaces.GetAccountNode api = ApiClient.getClientAccount(activity, authority).create(ServiceInterfaces.GetAccountNode.class);
 
@@ -416,7 +459,7 @@ public class MainViewModel extends ViewModel {
             ServiceInterfaces.GetEventDates api = ApiClient.getClient(activity, authority).create(ServiceInterfaces.GetEventDates.class);
 
             Call<GetSceneMarkManifestResponse> call = api.getEventDates("Bearer " + accessToken,
-                    pHelper.getAppControlObject().getPayload().getControlEndPoints().get(0).getNetEndPointAppControl().getAPIVersion(),
+                    appControlEndPoint.getNetEndPointAppControl().getAPIVersion(),
                     pHelper.getAppInstanceId(), ApiClient.makeJSONRequestBody(jsonObject));
             call.enqueue(new Callback<GetSceneMarkManifestResponse>() {
                 @Override
@@ -535,7 +578,7 @@ public class MainViewModel extends ViewModel {
             ServiceInterfaces.GetNiceItemTypeList api = ApiClient.getClient(activity, authority).create(ServiceInterfaces.GetNiceItemTypeList.class);
 
             Call<ArrayList<String>> call = api.getNiceItemTypes("Bearer " + accessToken,
-                    pHelper.getAppControlObject().getPayload().getControlEndPoints().get(0).getNetEndPointAppControl().getAPIVersion());
+                    appControlEndPoint.getNetEndPointAppControl().getAPIVersion());
 
             call.enqueue(new Callback<ArrayList<String>>() {
                 @Override
@@ -590,7 +633,7 @@ public class MainViewModel extends ViewModel {
             ServiceInterfaces.GetAllTypeList api = ApiClient.getClient(activity, authority).create(ServiceInterfaces.GetAllTypeList.class);
 
             Call<AllItemTypesResponse> call = api.getAllTypes("Bearer " + accessToken,
-                    pHelper.getAppControlObject().getPayload().getControlEndPoints().get(0).getNetEndPointAppControl().getAPIVersion());
+                    appControlEndPoint.getNetEndPointAppControl().getAPIVersion());
 
             call.enqueue(new Callback<AllItemTypesResponse>() {
                 @Override
@@ -963,6 +1006,20 @@ public class MainViewModel extends ViewModel {
                             AppConrolObjectResponse appConrolObjectResponse = Utils.decryptAndValidateCMF(activity, encryptedPayload);
                             AppLog.Log("appConrolObjectResponse","****"+new Gson().toJson(appConrolObjectResponse));
                             pHelper.putAppControlObject(appConrolObjectResponse);
+                            appControlEndPoint = appConrolObjectResponse.getPayload().getControlEndPoints().get(0);
+                            for (ControlEndPoint endPoint : appConrolObjectResponse.getPayload().getControlEndPoints()){
+                                if(TextUtils.equals(endPoint.getEndPointType(),"Account Service")){
+                                    appControlEndPoint = endPoint;
+                                }else if(TextUtils.equals(endPoint.getEndPointType(),"SceneMode Source")){
+                                    sceneModeControlEndPoint = endPoint;
+                                    strSceneModeToken = sceneModeControlEndPoint.getNetEndPointAppControl()
+                                            .getSchemeAppControlObject().get(0).getAccessToken();
+                                    strSceneModeEndPoint = sceneModeControlEndPoint.getNetEndPointAppControl()
+                                            .getEndPointID();
+                                    strSceneModeAuthority = sceneModeControlEndPoint.getNetEndPointAppControl()
+                                            .getSchemeAppControlObject().get(0).getAuthority();
+                                }
+                            }
                             String token = appConrolObjectResponse.getPayload().getDataEndPoints().get(0).
                                     getNetEndPointAppControl().getSchemeAppControlObject().get(0).getAccessToken();
                             if(!TextUtils.isEmpty(token)){
@@ -1021,79 +1078,147 @@ public class MainViewModel extends ViewModel {
                         Log.i("onFailure", "---->>>> " + t.toString());
                     }
                 });
-//            }else {
-//                ServiceInterfaces.GetAppControlObject api = ApiClient.getClientAccount(activity,"https://" +
-//                        pHelper.getAppSecurityObject().getNICEASEndPoint().getNetEndPoint().getScheme().get(0).getAuthority()).create(ServiceInterfaces.GetAppControlObject.class);
-//
-//                Call<AppConrolObjectResponse> call = api.getAppControlObject("Bearer "+ accessToken, pHelper.getAppSecurityObject().getNICEASEndPoint().getNetEndPoint().getAPIVersion(),
-//                        pHelper.getAppSecurityObject().getNICEASEndPoint().getNetEndPoint().getEndPointID(),
-//                        Constants.CODE_GET_APP_CONTROL_REQUEST,
-//                        ApiClient.makeJSONRequestBody(jsonObject));
-//
-//                call.enqueue(new Callback<AppConrolObjectResponse>() {
-//                    @Override
-//                    public void onResponse(Call<AppConrolObjectResponse> call, Response<AppConrolObjectResponse> response) {
-//                        Log.i(TAG, "---->>> AppControl " + response.raw().request().url());
-//                        Gson gson = new Gson();
-//                        Log.i(TAG, "---->>> AppControl-RESPONSE " + gson.toJson(response.body()));
-//
-//                        Utils.removeCustomProgressDialog();
-//
-//                        if (!response.equals("{}") && response != null && response.body() != null) {
-//                            AppConrolObjectResponse appConrolObjectResponse = response.body();
-//                            AppLog.Log("appConrolObjectResponse","****"+new Gson().toJson(appConrolObjectResponse));
-//                            pHelper.putAppControlObject(appConrolObjectResponse);
-//                            String token = appConrolObjectResponse.getPayload().getDataEndPoints().get(0).
-//                                    getNetEndPointAppControl().getSchemeAppControlObject().get(0).getAccessToken();
-//                            JWT jwt = new JWT(token);
-//                            pHelper.putExpiryDate(jwt.getExpiresAt().getTime());
-//                            pHelper.putNotBeforeDate(jwt.getNotBefore().getTime());
-//                            pHelper.putEmail("test");
-//                            switch (method){
-//                                case Constants.Method.GET_SCENEMARKS_MANIFEST:
-//                                    getSceneMarksManifest(activity, nodeIds, startTime, endTime,
-//                                            pageLength, returnNiceItemTypes, returnSceneMarksDates,
-//                                            returnPage, niceItemList, continuationToken);
-//                                    break;
-//                                case Constants.Method.GET_EVENT_DATES:
-//                                    getEventDates(activity, nodeIds, startTime, endTime,
-//                                            pageLength, returnNiceItemTypes, returnSceneMarksDates,
-//                                            returnPage, niceItemList, continuationToken);
-//                                    break;
-//                                case Constants.Method.GET_NICEITEMTYPES_LIST:
-//                                    getNiceItemTypesList(activity);
-//                                    break;
-//                                case Constants.Method.GET_LIVE_SCENEMARKS:
-//                                    getLiveSceneMarks(activity, sceneMarkURI);
-//                                    break;
-//                                case Constants.Method.GET_NODE_LIST:
-//                                    getNodeList(activity);
-//                                    break;
-//                                case Constants.Method.GET_PRIVACY_OBJECT:
-//                                    getPrivacyObject(activity, currentDateString, sceneEncryptionKeyID);
-//                                    break;
-//                                case Constants.Method.GET_CURATION_LIVE:
-//                                    getCurationLive(activity, sceneMarkURI, deviceName, deviceTimeZone);
-//                                    break;
-//                            }
-//
-//                        }
-//                    }
-//
-//                    @Override
-//                    public void onFailure(Call<AppConrolObjectResponse> call, Throwable t) {
-//
-//                    }
-//                });
-//
-//
-//            }
-
 
         } catch (JSONException e) {
             e.printStackTrace();
         }
 
+    }
+
+    private void getSceneMode(AppSecurityObjectResponse appSecurityObject, AppCompatActivity activity) {
+        Utils.showCustomProgressDialog(activity, "", false);
+        Date today = new Date();
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss:" + "000000");
+        currentDate =  format.format(today);
+
+        JSONObject jsonObject = new JSONObject();
+        JSONObject jsonObjectAccessTokenPayload = new JSONObject();
+        JSONObject CMFHeaderObject = new JSONObject();
+
+        try {
+            CMFHeaderObject.put(Constants.CMF.Header.VERSION, sceneModeControlEndPoint.getNetEndPointAppControl().getAPIVersion());
+            CMFHeaderObject.put(Constants.CMF.Header.MESSAGE_TYPE, Constants.CMF.HeaderValue.MESSAGE_TYPE);
+            CMFHeaderObject.put(Constants.CMF.Header.SOURCE_END_POINT_ID, appSecurityObject.getAppInstanceID() + "_0001");
+            CMFHeaderObject.put(Constants.CMF.Header.DESTINATION_END_POINT_ID, strSceneModeEndPoint);
+            CMFHeaderObject.put(Constants.CMF.Header.DATE_TIME_STAMP, currentDate);
+            CMFHeaderObject.put(Constants.CMF.Header.COMMAND_ID, Constants.CMF.HeaderValue.COMMAND_ID);
+            CMFHeaderObject.put(Constants.CMF.Header.COMMAND_TYPE, "/1.0/" + strSceneModeEndPoint + "/management/GetSceneMode");
+
+            JSONObject jsonPayLoad = new JSONObject();
+            String appInstanceID = appSecurityObject.getAppInstanceID();
+
+            jsonPayLoad.put(Constants.Params.NODE_ID, appInstanceID + "_0001");
+
+            jsonObjectAccessTokenPayload.put(com.scenera.nicesecurityapplib.utilities.Constants.CMF.Payload.PAYLOAD_OBJECT, jsonPayLoad);
+            jsonObjectAccessTokenPayload.put(com.scenera.nicesecurityapplib.utilities.Constants.CMF.Header.ACCESS_TOKEN, strSceneModeToken);
+
+            jsonObject.put(com.scenera.nicesecurityapplib.utilities.Constants.CMF.Payload.EndPointX509Certificate,appSecurityObject.getNICEASEndPoint().getAppEndPoint().getX509Certificate());
+            jsonObject.put(com.scenera.nicesecurityapplib.utilities.Constants.CMF.Payload.CMF_HEADER,CMFHeaderObject.toString());
+            jsonObject.put(com.scenera.nicesecurityapplib.utilities.Constants.CMF.Payload.ACCESSTOKEN_PAYLOAD,jsonObjectAccessTokenPayload);
+            AppLog.Log("jsonObjectMain => ", jsonObject.toString());
+
+
+
+            String encryptedPayload = Utils.encryptAndSignCMF(activity, jsonObject,
+                    jsonObjectAccessTokenPayload.toString());
+
+            JSONObject jsonObjectRequest = new JSONObject();
+            jsonObjectRequest.put("EncryptionKey", PreferenceHelper.getInstance(activity).getPublicKeyRSA());
+            jsonObjectRequest.put("EncryptedPayload",encryptedPayload);
+            ServiceInterfaces.GetSceneMode api = ApiClient.getClientAccount(activity,strSceneModeAuthority).create(ServiceInterfaces.GetSceneMode.class);
+
+            Call<EncryptedCMFResponse> call = api.getSceneMode("Bearer " + strSceneModeToken,
+                    pHelper.getAppSecurityObject().getNICEASEndPoint().getNetEndPoint().getAPIVersion(),
+                    strSceneModeEndPoint,
+                    ApiClient.makeJSONRequestBody(jsonObjectRequest));
+
+
+            call.enqueue(new Callback<EncryptedCMFResponse>() {
+                @Override
+                public void onResponse(Call<EncryptedCMFResponse> call, retrofit2.Response<EncryptedCMFResponse> response) {
+                    Log.i(TAG, "---->>> AppControl " + response.raw().request().url());
+                    Gson gson = new Gson();
+                    Log.i(TAG, "---->>> AppControl-RESPONSE " + gson.toJson(response.body()));
+
+                    Utils.removeCustomProgressDialog();
+
+                    if (!response.equals("{}") && response != null && response.body() != null) {
+
+
+                        String encryptedPayload = response.body().getEncryptedPayload();
+                        JSONObject appConrolObjectResponse = Utils.decryptAndValidateCMFGetSceneMode(activity, encryptedPayload);
+                        AppLog.Log("GET_SCENEMODE", "****" + new Gson().toJson(appConrolObjectResponse));
+                        GetSceneModeResponse getSceneModeResponse = new Gson().fromJson(appConrolObjectResponse.toString(),
+                                GetSceneModeResponse.class);
+                        for (ControlEndPoint controlEndPoint : getSceneModeResponse.getPayload().getMode().getSceneMarkOutputList()) {
+                            strGlobalSceneMarkEndPoint = controlEndPoint.getNetEndPointAppControl().getEndPointID();
+                            for (SchemeAppControlObject schemeAppControlObject : controlEndPoint.getNetEndPointAppControl().getSchemeAppControlObject()) {
+                                strGlobalSceneMarkToken = schemeAppControlObject.getAccessToken();
+                                strGlobalSceneMarkAuthority = schemeAppControlObject.getAuthority();
+                                break;
+                            }
+                            break;
+                        }
+                        PrivacyServerEndPoint privacyServerEndPoint = new PrivacyServerEndPoint();
+                        NetEndPointPrivacy netEndPointPrivacy = new NetEndPointPrivacy();
+                        List<SchemePrivacy> schemePrivacy = new ArrayList<>();
+                        netEndPointPrivacy.setScheme(schemePrivacy);
+                        privacyServerEndPoint.setNetEndPoint(netEndPointPrivacy);
+
+                        JSONObject encryptionDictDefualt = new JSONObject();
+                        try {
+                            encryptionDictDefualt.put("EncryptionOn", false);
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+
+                        EncryptionImage = new Encryption(false, "",
+                                privacyServerEndPoint, encryptionDictDefualt);
+                        EncryptionVideo = new Encryption(false, "",
+                                privacyServerEndPoint, encryptionDictDefualt);
+
+                        for (Output output : getSceneModeResponse.getPayload().getOutputs()) {
+                            if (output.getType().equals("Video")) {
+//                                Utils.EncryptionVideo = output.getEncryption();
+                                for (ControlEndPoint controlEndPoint : output.getDestinationEndPointList()) {
+                                    strGlobalSceneDataVideoEndPoint = controlEndPoint.getNetEndPointAppControl().getEndPointID();
+                                    for (SchemeAppControlObject schemeAppControlObject : controlEndPoint.getNetEndPointAppControl().getSchemeAppControlObject()) {
+                                        strGlobalSceneDataVideoToken = schemeAppControlObject.getAccessToken();
+                                        strGlobalSceneDataVideoAuthority = schemeAppControlObject.getAuthority();
+                                        break;
+                                    }
+                                    break;
+                                }
+                            }
+                            if (output.getType().equals("Image")) {
+//                                Utils.EncryptionImage = output.getEncryption();
+                                for (ControlEndPoint controlEndPoint : output.getDestinationEndPointList()) {
+                                    strGlobalSceneDataImageEndPoint = controlEndPoint.getNetEndPointAppControl().getEndPointID();
+                                    for (SchemeAppControlObject schemeAppControlObject : controlEndPoint.getNetEndPointAppControl().getSchemeAppControlObject()) {
+                                        strGlobalSceneDataImageToken = schemeAppControlObject.getAccessToken();
+                                        strGlobalSceneDataImageAuthority = schemeAppControlObject.getAuthority();
+                                        break;
+                                    }
+                                    break;
+                                }
+
+                            }
+
+
+                        }
+
+                    }
+                }
+
+                @Override
+                public void onFailure(Call<EncryptedCMFResponse> call, Throwable t) {
+                    Utils.removeCustomProgressDialog();
+                    Log.i("onFailure", "---->>>> " + t.toString());
+                }
+            });
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
     }
 
 
@@ -1116,7 +1241,7 @@ public class MainViewModel extends ViewModel {
         }
 
         Call<ResponseBody> call = api.addDeviceToken(Constants.API,
-                pHelper.getAppControlObject().getPayload().getControlEndPoints().get(0).getNetEndPointAppControl().getAPIVersion(),
+                appControlEndPoint.getNetEndPointAppControl().getAPIVersion(),
                 nodeID, ApiClient.makeJSONRequestBody(jsonObject));
         call.enqueue(new Callback<ResponseBody>() {
             @Override
@@ -1163,7 +1288,7 @@ public class MainViewModel extends ViewModel {
         }
 
         Call<ResponseBody> call = api.deleteDeviceToken(Constants.API,
-                pHelper.getAppControlObject().getPayload().getControlEndPoints().get(0).getNetEndPointAppControl().getAPIVersion(),
+                appControlEndPoint.getNetEndPointAppControl().getAPIVersion(),
                 nodeID, ApiClient.makeJSONRequestBody(jsonObject));
         call.enqueue(new Callback<ResponseBody>() {
             @Override
@@ -1325,6 +1450,585 @@ public class MainViewModel extends ViewModel {
 
     }
 
+    public void clearDetectedObjectList(Context activityContext){
+        Utils.showCustomProgressDialog(activityContext,"",false);
+        if(listDetectedObjects != null)
+            listDetectedObjects.clear();
+        Utils.removeCustomProgressDialog();
+    }
 
+//    public static List<DetectedObjectsClass> getDetectedObjectList(){
+//        return listDetectedObjects;
+//    }
+
+    public void updateDetectedObjectList(Context activityContext,String strBase64OfSceneData,
+                                                String label, double probability, int xmin,
+                                                int ymin, int xmax, int ymax,
+                                                int width, int height){
+        Utils.showCustomProgressDialog(activityContext,"",false);
+        if(listDetectedObjects == null)
+            listDetectedObjects = new ArrayList<>();
+        strBase64OfSceneDataImage = strBase64OfSceneData;
+
+        iGlobalImageWidth = width;
+        iGlobalImageHeight = height;
+
+        int iSceneDataInstance = Utils.createRandomNumber();
+        String strDetectedObjectSceneDataID = createSceneDataID(iSceneDataInstance);
+        DetectedObjectsClass detectedObjectsClass = new DetectedObjectsClass();
+        detectedObjectsClass.setStrSceneDataID(strDetectedObjectSceneDataID);
+        detectedObjectsClass.setStrBase64OfSceneData(strBase64OfSceneData);
+        detectedObjectsClass.setLabel(label);
+        detectedObjectsClass.setProbability(probability);
+        detectedObjectsClass.setXmin(xmin);
+        detectedObjectsClass.setYmin(ymin);
+        detectedObjectsClass.setXmax(xmax);
+        detectedObjectsClass.setYmax(ymax);
+        detectedObjectsClass.setWidth(xmax - xmin);
+        detectedObjectsClass.setHeight(ymax - ymin);
+
+        listDetectedObjects.add(detectedObjectsClass);
+        Utils.removeCustomProgressDialog();
+    }
+
+    public static String createSceneMarkID(int instance){
+
+        String hexInstance = Integer.toHexString(instance);
+        String subString = hexInstance;
+        subString = subString.substring(2);
+        String hexInstancePadded = ("00000000" + subString).substring(subString.length());
+        strGlobalDeviceNodeID = Utils.getDeviceNodeID(strGlobalBrigdeUUID,NodeID);
+        String sceneMarkID = "SMK_" + strGlobalDeviceNodeID + "_" + hexInstancePadded;
+        return sceneMarkID;
+    }
+
+    public static String createSceneDataID(int instance){
+
+        String hexInstance = Integer.toHexString(instance);
+        String subString = hexInstance;
+        subString = subString.substring(2);
+        String hexInstancePadded = ("00000000" + subString).substring(subString.length());
+        strGlobalDeviceNodeID = Utils.getDeviceNodeID(strGlobalBrigdeUUID,NodeID);
+        String sceneDataID = "SDT_" + strGlobalDeviceNodeID + "_" + hexInstancePadded;
+        return sceneDataID;
+    }
+
+    public void createVideoSceneDataID(Context activityContext,
+                                       int iVideoDurationSec, int iVideoWidth, int iVideoHeight){
+        Utils.showCustomProgressDialog(activityContext,"",false);
+        iVideoRecordingDurationSec = iVideoDurationSec;
+        iGlobalVideoWidth = iVideoWidth;
+        iGlobalVideoHeight = iVideoHeight;
+
+        int iSceneDataInstance = Utils.createRandomNumber();
+        strGlobalVideoSceneDataID = createSceneDataID(iSceneDataInstance);
+        listRelatedSceneMarksToVideo = new ArrayList<>();
+        Utils.removeCustomProgressDialog();
+    }
+
+
+    public static void sendSceneMark(Context activityContext){
+        Utils.showCustomProgressDialog(activityContext,"",false);
+        context = (BaseActivity)activityContext;
+        int iSceneDataInstance = Utils.createRandomNumber();
+        strSceneMarkID = createSceneMarkID(iSceneDataInstance);
+
+        iSceneDataInstance = Utils.createRandomNumber();
+        strFullImageSceneDataID = createSceneDataID(iSceneDataInstance);
+
+        CreateAndSendSceneMark(strSceneMarkID,  strFullImageSceneDataID,
+                iGlobalImageWidth, iGlobalImageHeight, listDetectedObjects,
+                strGlobalVideoSceneDataID, iVideoRecordingDurationSec,
+                iGlobalVideoWidth, iGlobalVideoHeight );
+        listRelatedSceneMarksToVideo.add(strSceneMarkID);
+    }
+
+    private static void CreateAndSendSceneMark(String strSceneMarkID,  String strFullImageSceneDataID,
+                                               int iImageWidth, int iImageHeight,
+                                               List<DetectedObjectsClass> listDetectedObjects ,
+                                               String strVideoSceneDataID, int iVideoDurationSec,
+                                               int iVideoWidth, int iVideoHeight){
+        PrivacyServerEndPoint privacyServerEndPoint = new PrivacyServerEndPoint();
+        NetEndPointPrivacy netEndPointPrivacy = new NetEndPointPrivacy();
+        List<SchemePrivacy> schemePrivacy = new ArrayList<>();
+        netEndPointPrivacy.setScheme(schemePrivacy);
+        privacyServerEndPoint.setNetEndPoint(netEndPointPrivacy);
+
+        JSONObject encryptionDictDefualt = new JSONObject();
+        try {
+            encryptionDictDefualt.put("EncryptionOn",false);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        EncryptionImage = new Encryption(false,"",
+                privacyServerEndPoint,encryptionDictDefualt);
+        EncryptionVideo = new Encryption(false,"",
+                privacyServerEndPoint,encryptionDictDefualt);
+
+
+        SceneMarkValues sceneMarkValues = new SceneMarkValues();
+        sceneMarkValues.setSceneMarkID(strSceneMarkID);
+        sceneMarkValues.setNodeID(strGlobalDeviceNodeID);
+        sceneMarkValues.setPortID(strGlobalDevicePortID);
+        sceneMarkValues.setVersion("1.0");
+        sceneMarkValues.setDestinationID(strGlobalSceneMarkEndPoint);
+        sceneMarkValues.setSceneMarkStatus("Active");
+//        sceneMarkValues.setSceneMode(objGlobalGetSceneMode.Mode.SceneMode);
+        sceneMarkValues.setSceneMode("Label");
+        sceneMarkValues.setEventType("ItemPresence");
+        sceneMarkValues.setStatus("Upload in Progress");
+        sceneMarkValues.setCustomAnalysisID("");
+        sceneMarkValues.setAnalysisDescription("Yolo v3 configured to detect Human");
+        sceneMarkValues.setProcessingStatus("Detected");
+        sceneMarkValues.setAlgorithmID("12345678-1234-1234-1234-123456789abc");
+
+        objThumbnailSceneData = new SceneDataClass();
+
+        sceneMarkValues.setCustomItemType("");
+
+        for(DetectedObjectsClass detectedObjectsClass : listDetectedObjects){
+            if(TextUtils.equals(detectedObjectsClass.getLabel(), "person"))
+                sceneMarkValues.setNICEItemType("Human");
+            else if(TextUtils.equals(detectedObjectsClass.getLabel(), "car") ||
+                    TextUtils.equals(detectedObjectsClass.getLabel(), "truck"))
+                sceneMarkValues.setNICEItemType("Vehicle");
+            else{
+                sceneMarkValues.setNICEItemType("Custom");
+                sceneMarkValues.setCustomItemType(detectedObjectsClass.getLabel());
+            }
+            sceneMarkValues.setResolution_Height(detectedObjectsClass.getYmax()
+                    - detectedObjectsClass.getYmin());
+            sceneMarkValues.setResolution_Width(detectedObjectsClass.getXmax()
+                    - detectedObjectsClass.getXmin());
+            sceneMarkValues.setXCoordinate(detectedObjectsClass.getXmin());
+            sceneMarkValues.setYCoordinate(detectedObjectsClass.getYmin());
+            sceneMarkValues.setProbability(detectedObjectsClass.getProbability());
+
+            sceneMarkValues.setThumbnail_SceneDataID(detectedObjectsClass.getStrSceneDataID());
+            sceneMarkValues.setDetectedObjects_ThumbnailSceneDataID(detectedObjectsClass.getStrSceneDataID());
+            sceneMarkValues.setDetectedObjects_Thumbnail_dictEncryption(EncryptionImage);
+            break;
+        }
+
+        sceneMarkValues.setDetectedObjects_Image_SceneDataID(strFullImageSceneDataID);
+        sceneMarkValues.setDetectedObjects_Video_SceneDataID(strVideoSceneDataID);
+        sceneMarkValues.setSceneDataList_SourceNodeID(strGlobalDeviceNodeID);
+        sceneMarkValues.setSceneDataList_Duration(String.valueOf(iVideoDurationSec));
+        sceneMarkValues.setTimeStamp(Utils.GetDateTime());
+        sceneMarkValues.setSourceNodeID(strGlobalDeviceNodeID);
+        sceneMarkValues.setSourceNodeDescription("Scenera Bridge");
+        sceneMarkValues.setVideo_Duration(String.valueOf(iVideoDurationSec));
+        sceneMarkValues.setThumbnail_DataType("Thumbnail");
+
+        sceneMarkValues.setDetectedObjects_Image_DataType("RGBStill");
+        sceneMarkValues.setDetectedObjects_Image_dictEncryption(EncryptionImage);
+        sceneMarkValues.setImage_Resolution_Height(iImageHeight);
+        sceneMarkValues.setImage_Resolution_Width(iImageWidth);
+
+        sceneMarkValues.setDetectedObjects_Video_DataType("RGBVideo");
+        sceneMarkValues.setDetectedObjects_Video_dictEncryption(EncryptionVideo);
+        sceneMarkValues.setVideo_Resolution_Height(iVideoHeight);
+        sceneMarkValues.setVideo_Resolution_Width(iVideoWidth);
+
+        sceneMarkValues.setThumbnail_MediaFormat("JPEG");
+        sceneMarkValues.setDetectedObjects_Image_MediaFormat("JPEG");
+        sceneMarkValues.setDetectedObjects_Video_MediaFormat("H.264");
+        sceneMarkValues.setThumbnail_SceneDataURI("");
+        sceneMarkValues.setDetectedObjects_Image_SceneDataURI("");
+        sceneMarkValues.setDetectedObjects_Video_SceneDataURI("");
+
+        JSONObject dictionary = new JSONObject();
+        dictionary = CreateSceneMark(sceneMarkValues);
+        NICESendScenemarkThread(dictionary,
+                strGlobalSceneMarkEndPoint,strGlobalSceneMarkToken, strGlobalSceneMarkAuthority);
+
+    }
+
+    private static JSONObject CreateSceneMark(SceneMarkValues sceneMarkValues){
+        JSONObject dictSceneMark = new JSONObject();
+        try {
+            dictSceneMark.put("Version",sceneMarkValues.getVersion());
+            dictSceneMark.put("TimeStamp",sceneMarkValues.getTimeStamp());
+            dictSceneMark.put("SceneMarkID",sceneMarkValues.getSceneMarkID());
+//            dictSceneMark.put("DestinationID",sceneMarkValues.getDestinationID());
+            dictSceneMark.put("SceneMarkStatus",sceneMarkValues.getSceneMarkStatus());
+            dictSceneMark.put("NotificationMessage","");
+            dictSceneMark.put("NodeID",sceneMarkValues.getNodeID());
+//            dictSceneMark.put("PortID",sceneMarkValues.getPortID());
+
+            JSONObject jsonVersionList = new JSONObject();
+            JSONArray jsonArrayVersionList = new JSONArray();
+            JSONObject jsonVersionListData = new JSONObject();
+            jsonVersionListData.put("VersionNumber",sceneMarkValues.getVersion());
+            jsonVersionListData.put("DateTimeStamp",sceneMarkValues.getTimeStamp());
+            jsonVersionListData.put("NodeID",sceneMarkValues.getNodeID());
+            jsonArrayVersionList.put(jsonVersionListData);
+            jsonVersionList.put("VersionList",jsonArrayVersionList);
+            dictSceneMark.put("VersionControl",jsonVersionList);
+
+            JSONArray jsonArrayThumbnailList = new JSONArray();
+            JSONObject jsonThumbnailData = new JSONObject();
+            jsonThumbnailData.put("VersionNumber",sceneMarkValues.getVersion());
+            jsonThumbnailData.put("SceneDataID",sceneMarkValues.getThumbnail_SceneDataID());
+            jsonArrayThumbnailList.put(jsonThumbnailData);
+            dictSceneMark.put("ThumbnailList",jsonArrayThumbnailList);
+
+            JSONArray jsonArrayAnalysisList = new JSONArray();
+            JSONObject jsonAnalysisData = new JSONObject();
+            jsonAnalysisData.put("VersionNumber",sceneMarkValues.getVersion());
+            jsonAnalysisData.put("SceneMode",sceneMarkValues.getSceneMode());
+            jsonAnalysisData.put("EventType",sceneMarkValues.getEventType());
+            jsonAnalysisData.put("CustomEventType","");
+//            jsonAnalysisData.put("CustomAnalysisID",sceneMarkValues.getCustomAnalysisID());
+            jsonAnalysisData.put("AnalysisID","0001-0002-AI2");
+            jsonAnalysisData.put("AnalysisDescription",sceneMarkValues.getAnalysisDescription());
+            jsonAnalysisData.put("ProcessingStatus",sceneMarkValues.getProcessingStatus());
+            jsonAnalysisData.put("ErrorMessage","");
+            jsonAnalysisData.put("TotalItemCount",1);
+
+            JSONArray jsonArrayDetectedObjects = new JSONArray();
+            JSONObject jsonDetectedObjects = new JSONObject();
+            jsonDetectedObjects.put("NICEItemType",sceneMarkValues.getNICEItemType());
+            jsonDetectedObjects.put("AlgorithmID",sceneMarkValues.getAlgorithmID());
+            jsonDetectedObjects.put("CustomItemType",sceneMarkValues.getCustomItemType());
+            jsonDetectedObjects.put("ItemID","_123_");
+            jsonDetectedObjects.put("ItemTypeCount",1);
+            jsonDetectedObjects.put("Probability",sceneMarkValues.getProbability());
+
+            JSONArray jsonArrayAttributes = new JSONArray();
+            JSONObject jsonAttributes = new JSONObject();
+            jsonArrayAttributes.put(jsonAttributes);
+            jsonDetectedObjects.put("Attributes",jsonArrayAttributes);
+
+            JSONObject jsonBoundingBox = new JSONObject();
+            jsonBoundingBox.put("XCoordinate",sceneMarkValues.getXCoordinate());
+            jsonBoundingBox.put("YCoordinate",sceneMarkValues.getYCoordinate());
+            jsonBoundingBox.put("Height",sceneMarkValues.getResolution_Height());
+            jsonBoundingBox.put("Width",sceneMarkValues.getResolution_Width());
+
+            jsonDetectedObjects.put("BoundingBox",jsonBoundingBox);
+            jsonDetectedObjects.put("RelatedSceneData",sceneMarkValues.getDetectedObjects_Image_SceneDataID());
+
+            jsonArrayDetectedObjects.put(jsonDetectedObjects);
+            jsonAnalysisData.put("DetectedObjects",jsonArrayDetectedObjects);
+
+            jsonArrayAnalysisList.put(jsonAnalysisData);
+            dictSceneMark.put("AnalysisList",jsonArrayAnalysisList);
+
+            JSONArray jsonArraySceneDataList = new JSONArray();
+
+            JSONObject jsonSceneDataThumbnail = new JSONObject();
+            jsonSceneDataThumbnail.put("VersionNumber",1.0);
+            jsonSceneDataThumbnail.put("SceneDataID",sceneMarkValues.getThumbnail_SceneDataID());
+            jsonSceneDataThumbnail.put("TimeStamp",sceneMarkValues.getTimeStamp());
+            jsonSceneDataThumbnail.put("SourceNodeID",sceneMarkValues.getSourceNodeID());
+            jsonSceneDataThumbnail.put("SourceNodeDescription",sceneMarkValues.getSourceNodeDescription());
+            jsonSceneDataThumbnail.put("DataType",sceneMarkValues.getThumbnail_DataType());
+            jsonSceneDataThumbnail.put("Status",sceneMarkValues.getStatus());
+            jsonSceneDataThumbnail.put("Encryption",sceneMarkValues.getDetectedObjects_Thumbnail_dictEncryption().getDictEncryption());
+            jsonSceneDataThumbnail.put("MediaFormat",sceneMarkValues.getThumbnail_MediaFormat());
+            JSONObject jsonResolutionImage = new JSONObject();
+            jsonResolutionImage.put("Height",sceneMarkValues.getImage_Resolution_Height());
+            jsonResolutionImage.put("Width",sceneMarkValues.getImage_Resolution_Width());
+            jsonSceneDataThumbnail.put("Resolution",jsonResolutionImage);
+            jsonSceneDataThumbnail.put("SceneDataURI",sceneMarkValues.getThumbnail_SceneDataURI());
+
+
+            JSONObject jsonSceneDataImage = new JSONObject();
+            jsonSceneDataImage.put("VersionNumber",1.0);
+            jsonSceneDataImage.put("SceneDataID",sceneMarkValues.getDetectedObjects_Image_SceneDataID());
+            jsonSceneDataImage.put("TimeStamp",sceneMarkValues.getTimeStamp());
+            jsonSceneDataImage.put("SourceNodeID",sceneMarkValues.getSourceNodeID());
+            jsonSceneDataImage.put("SourceNodeDescription",sceneMarkValues.getSourceNodeDescription());
+            jsonSceneDataImage.put("DataType",sceneMarkValues.getDetectedObjects_Image_DataType());
+            jsonSceneDataImage.put("Status",sceneMarkValues.getStatus());
+            jsonSceneDataImage.put("Encryption",sceneMarkValues.getDetectedObjects_Image_dictEncryption().getDictEncryption());
+            jsonSceneDataImage.put("MediaFormat",sceneMarkValues.getDetectedObjects_Image_MediaFormat());
+            jsonSceneDataImage.put("Resolution",jsonResolutionImage);
+            jsonSceneDataImage.put("SceneDataURI",sceneMarkValues.getDetectedObjects_Image_SceneDataURI());
+
+            JSONObject jsonSceneDataVideo = new JSONObject();
+            jsonSceneDataVideo.put("VersionNumber",1.0);
+            jsonSceneDataVideo.put("SceneDataID",sceneMarkValues.getDetectedObjects_Video_SceneDataID());
+            jsonSceneDataVideo.put("TimeStamp",sceneMarkValues.getTimeStamp());
+            jsonSceneDataVideo.put("SourceNodeID",sceneMarkValues.getSourceNodeID());
+            jsonSceneDataVideo.put("SourceNodeDescription",sceneMarkValues.getSourceNodeDescription());
+            jsonSceneDataVideo.put("DataType",sceneMarkValues.getDetectedObjects_Video_DataType());
+            jsonSceneDataVideo.put("Status",sceneMarkValues.getStatus());
+            jsonSceneDataVideo.put("Encryption",sceneMarkValues.getDetectedObjects_Video_dictEncryption().getDictEncryption());
+            jsonSceneDataVideo.put("MediaFormat",sceneMarkValues.getDetectedObjects_Video_MediaFormat());
+            JSONObject jsonResolutionVideo = new JSONObject();
+            jsonResolutionVideo.put("Height",sceneMarkValues.getVideo_Resolution_Height());
+            jsonResolutionVideo.put("Width",sceneMarkValues.getVideo_Resolution_Width());
+            jsonSceneDataVideo.put("Resolution",jsonResolutionVideo);
+            jsonSceneDataVideo.put("SceneDataURI",sceneMarkValues.getDetectedObjects_Video_SceneDataURI());
+
+            jsonArraySceneDataList.put(jsonSceneDataThumbnail);
+            jsonArraySceneDataList.put(jsonSceneDataImage);
+            jsonArraySceneDataList.put(jsonSceneDataVideo);
+
+            dictSceneMark.put("SceneDataList",jsonArraySceneDataList);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+
+        return dictSceneMark;
+    }
+
+    private static void NICESendScenemarkThread(JSONObject dictNiceSceneMark,
+                                                String strGlobalSceneMarkEndPoint,
+                                                String strGlobalSceneMarkToken,
+                                                String strGlobalSceneMarkAuthority){
+        NICERestAPISendSceneMarkToCloud(dictNiceSceneMark,
+                strGlobalSceneMarkEndPoint,strGlobalSceneMarkToken,
+                strGlobalSceneMarkAuthority);
+
+    }
+
+    private static void NICERestAPISendSceneMarkToCloud(JSONObject dictNiceSceneMark,
+                                                        String strGlobalSceneMarkEndPoint,
+                                                        String strGlobalSceneMarkToken,
+                                                        String strGlobalSceneMarkAuthority){
+        SendSceneMarkToMSPipeLine(dictNiceSceneMark,
+                strGlobalSceneMarkEndPoint,strGlobalSceneMarkToken,
+                strGlobalSceneMarkAuthority);
+    }
+
+    private static void SendSceneMarkToMSPipeLine(JSONObject dictNiceSceneMark,
+                                                  String strGlobalSceneMarkEndPoint,
+                                                  String strSceneMarkToken,
+                                                  String strSceneMarkAuthority) {
+        String authority = "https://" + strSceneMarkAuthority;
+        ServiceInterfaces.SetSceneMark api = ApiClient.getClient(context, authority).create(ServiceInterfaces.SetSceneMark.class);
+        Utils.showCustomProgressDialog(context, "", false);
+        Call<ResponseBody> call = api.setSceneMark("Bearer " + strSceneMarkToken,
+                ApiClient.makeJSONRequestBody(dictNiceSceneMark));
+
+        call.enqueue(new Callback<ResponseBody>() {
+            @Override
+            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                Log.i("url", "SetSceneMarkURL------->>>> " + response.raw().request().url());
+                Utils.removeCustomProgressDialog();
+                if (!response.equals("{}") && response != null && response.body() != null) {
+                    Log.i("SetSceneMark_RESPONSE", "Success");
+                    SendDetectedObjectsSceneData();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ResponseBody> call, Throwable t) {
+                Utils.removeCustomProgressDialog();
+            }
+        });
+    }
+
+    public static void SendDetectedObjectsSceneData(){
+        SendObjectSceneData(strSceneMarkID, listDetectedObjects);
+    }
+
+    private static void SendObjectSceneData(String strSceneMarkID,
+                                            List<DetectedObjectsClass> listDetectedObjects){
+        objThumbnailSceneData = new SceneDataClass();
+        for (DetectedObjectsClass detectedObjectsClass : listDetectedObjects){
+            objThumbnailSceneData.setStrSceneDataID(detectedObjectsClass.getStrSceneDataID());
+            objThumbnailSceneData.setStrSceneMarkID(strSceneMarkID);
+            objThumbnailSceneData.setiChunkNumber(1);
+            objThumbnailSceneData.setiNumberOfChunks(1);
+            objThumbnailSceneData.setStrBase64OfSceneData(detectedObjectsClass.getStrBase64OfSceneData());
+            NiceRestAPISendImagesToCloud(objThumbnailSceneData, strGlobalBrigdeUUID,
+                    strGlobalSceneDataImageEndPoint,strGlobalSceneDataImageToken,
+                    strGlobalSceneDataImageAuthority,true);
+            break;
+        }
+    }
+
+    private static void NiceRestAPISendImagesToCloud(SceneDataClass objDetectedObject
+            ,String strGlobalBrigdeUUID, String strGlobalSceneDataImageEndPoint
+            ,String strGlobalSceneDataImageToken,String strGlobalSceneDataImageAuthority, boolean isSendFullImage){
+        Utils.showCustomProgressDialog(context, "", false);
+        JSONObject jsonResponse = new JSONObject();
+        String base64Image = objDetectedObject.getStrBase64OfSceneData();
+        if(fIsImageEncrypted){
+            boolean fVideo = false;
+            byte[] binImage = android.util.Base64.decode(base64Image,android.util.Base64.DEFAULT);
+            byte[] binEncryptedData = Utils.EncryptImageData(context, binImage);
+            String binbase64Image = android.util.Base64.encodeToString(binEncryptedData,android.util.Base64.DEFAULT);
+            base64Image = binbase64Image;
+        }
+        String strPathID = objDetectedObject.getStrSceneDataID();
+        String fileName = objDetectedObject.getStrSceneDataID() + ".jpg";
+        SceneDataValues objSD = new SceneDataValues();
+        objSD.setVersion("1.0");
+        objSD.setDataID(objDetectedObject.getStrSceneDataID());
+        objSD.setFileType("Image");
+        objSD.setFileName(fileName);
+        objSD.setPathURI(strPathID);
+        objSD.setSection(1);
+        objSD.setLastSection(1);
+        objSD.setHashMethod("SHA256");
+        objSD.setOriginalFileHash("ABCDEFGHIJKLMNO");
+        objSD.setSectionBase64(base64Image);
+        List<String> relatedSceneMarks = new ArrayList<>();
+        relatedSceneMarks.add(objDetectedObject.getStrSceneMarkID());
+        objSD.setRelatedSceneMarks(relatedSceneMarks);
+
+        JSONObject dictDataSectionObject = CreateSceneData(objSD);
+
+        Utils.writeToFile(context,"SceneDataImageBase64_"+strFullImageSceneDataID ,
+                dictDataSectionObject.toString());
+
+        SendSceneDataImageToMSPipeLine(strGlobalSceneDataImageEndPoint,strGlobalSceneDataImageToken
+                ,strGlobalSceneDataImageAuthority, dictDataSectionObject,base64Image, isSendFullImage);
+    }
+
+    private static void SendSceneDataImageToMSPipeLine(
+            String strGlobalSceneDataImageEndPoint,
+            String strGlobalSceneDataImageToken,
+            String strGlobalSceneDataImageAuthority, JSONObject jsonCMP,String base64Image,
+            boolean isSendFullImage){
+
+        String authority = "https://" + strGlobalSceneDataImageAuthority;
+        ServiceInterfaces.SetSceneData api = ApiClient.getClient(context, authority).create(ServiceInterfaces.SetSceneData.class);
+
+        Call<ResponseBody> call = api.setSceneData("Bearer " + strGlobalSceneDataImageToken,
+                ApiClient.makeJSONRequestBody(jsonCMP));
+
+        call.enqueue(new Callback<ResponseBody>() {
+            @Override
+            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                if (!response.equals("{}") && response != null && response.body() != null) {
+                    Log.i("SetSceneDATA_RESPONSE", "Success");
+                    Utils.removeCustomProgressDialog();
+//                    if (isSendFullImage)
+//                        SendFullImageSceneData(strBase64OfSceneDataImage);
+                }else {
+                    Log.i("SetSceneDATA_RESPONSE", "Fail");
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ResponseBody> call, Throwable t) {
+                AppLog.Log("SetSceneDATA_RESPONSE", "failed >>>>"+t.toString());
+            }
+        });
+
+    }
+
+    private static JSONObject CreateSceneData(SceneDataValues objSD){
+        JSONObject dictSceneData = new JSONObject();
+        try {
+            dictSceneData.put("Version",objSD.getVersion());
+            dictSceneData.put("DataID",objSD.getDataID());
+            dictSceneData.put("FileType",objSD.getFileType());
+            dictSceneData.put("FileName",objSD.getFileName());
+            dictSceneData.put("PathURI",objSD.getPathURI());
+            dictSceneData.put("Section",objSD.getSection());
+            dictSceneData.put("LastSection",objSD.getLastSection());
+            dictSceneData.put("HashMethod",objSD.getHashMethod());
+            dictSceneData.put("OriginalFileHash",objSD.getOriginalFileHash());
+            dictSceneData.put("SectionBase64",objSD.getSectionBase64());
+            JSONArray jsonArrayRelatedSceneMarks = new JSONArray();
+            for (String relatedSceneMarkId : objSD.getRelatedSceneMarks())
+                jsonArrayRelatedSceneMarks.put(relatedSceneMarkId);
+            dictSceneData.put("RelatedSceneMarks",jsonArrayRelatedSceneMarks);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return dictSceneData;
+
+    }
+
+    public static void SendFullImageSceneData(Context context,String strFullImageBase64){
+        Utils.showCustomProgressDialog(context, "", false);
+        SceneDataClass objFullImageSceneData = new SceneDataClass();
+        objFullImageSceneData.setStrSceneMarkID(strSceneMarkID);
+        objFullImageSceneData.setStrSceneDataID(strFullImageSceneDataID);
+        objFullImageSceneData.setStrBase64OfSceneData(strFullImageBase64);
+        objFullImageSceneData.setiChunkNumber(1);
+        objFullImageSceneData.setiNumberOfChunks(1);
+
+
+        SendFullImageceneData(strSceneMarkID, objFullImageSceneData);
+    }
+
+    private static void SendFullImageceneData(String strSceneMarkID, SceneDataClass objFullImageSceneData){
+        NiceRestAPISendImagesToCloud(objFullImageSceneData, strGlobalBrigdeUUID,
+                strGlobalSceneDataImageEndPoint,strGlobalSceneDataImageToken,
+                strGlobalSceneDataImageAuthority, false);
+    }
+
+    public static void SendVideoSection(Context context,String strBase64Video, int iChunkNumber, int iNumberOfChunksToUse){
+        Utils.showCustomProgressDialog(context, "", false);
+        SceneDataClass objVideoSceneData = new SceneDataClass();
+        objVideoSceneData.setStrSceneMarkID(strSceneMarkID);
+        objVideoSceneData.setStrSceneDataID(strGlobalVideoSceneDataID);
+        objVideoSceneData.setStrBase64OfSceneData(strBase64Video);
+        objVideoSceneData.setiChunkNumber(iChunkNumber);
+        objVideoSceneData.setiNumberOfChunks(iNumberOfChunksToUse);
+
+        NiceRestAPISendVideoToCloud(objVideoSceneData, listRelatedSceneMarksToVideo);
+    }
+
+    private static void NiceRestAPISendVideoToCloud(SceneDataClass objVideo
+            ,List<String> listRelatedSceneMarksToVideo){
+
+        String strCreateSceneDataID = objVideo.getStrSceneDataID();
+        String base64MP4 = objVideo.getStrBase64OfSceneData();
+        String strPathID = strCreateSceneDataID;
+        String fileName = strCreateSceneDataID + ".jpg";
+
+        SceneDataValues objSD = new SceneDataValues();
+        objSD.setVersion("1.0");
+        objSD.setDataID(strCreateSceneDataID);
+        objSD.setFileType("Video");
+        objSD.setFileName(fileName);
+        objSD.setPathURI(strPathID);
+        objSD.setSection(objVideo.getiChunkNumber());
+        objSD.setLastSection(objVideo.getiNumberOfChunks());
+        objSD.setHashMethod("SHA256");
+        objSD.setOriginalFileHash("ABCDEFGHIJKLMNO");
+        objSD.setSectionBase64(base64MP4);
+        objSD.setRelatedSceneMarks(listRelatedSceneMarksToVideo);
+
+        JSONObject dictDataSectionObject = CreateSceneData(objSD);
+
+        Utils.writeToFile(context,"SceneDataVideo_"+strGlobalVideoSceneDataID ,
+                dictDataSectionObject.toString());
+
+        SendSceneDataVideoToMSPipeLine(strGlobalSceneDataVideoEndPoint,strGlobalSceneDataVideoToken
+                ,strGlobalSceneDataVideoAuthority, dictDataSectionObject);
+    }
+
+    private static void SendSceneDataVideoToMSPipeLine(
+            String strGlobalSceneDataVideoEndPoint,
+            String strGlobalSceneDataVideoToken,
+            String strGlobalSceneDataVideoAuthority, JSONObject dictDataSectionObject){
+
+        String authority = "https://" + strGlobalSceneDataVideoAuthority;
+        ServiceInterfaces.SetSceneData api = ApiClient.getClient(context, authority).create(ServiceInterfaces.SetSceneData.class);
+
+        Call<ResponseBody> call = api.setSceneData("Bearer " + strGlobalSceneDataVideoToken,
+                ApiClient.makeJSONRequestBody(dictDataSectionObject));
+
+        call.enqueue(new Callback<ResponseBody>() {
+            @Override
+            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                Log.i("url", "SetSceneMarkURL------->>>> " + response.raw().request().url());
+                Utils.removeCustomProgressDialog();
+                if (!response.equals("{}") && response != null && response.body() != null) {
+                    Log.i("SetSceneMark_RESPONSE", "Success");
+
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ResponseBody> call, Throwable t) {
+                Utils.removeCustomProgressDialog();
+            }
+        });
+
+    }
 
 }
+

@@ -12,6 +12,7 @@ import com.scenera.nicesecurityapplib.models.data.PrivacyPayload;
 import com.scenera.nicesecurityapplib.models.response.AppConrolObjectResponse;
 import com.scenera.nicesecurityapplib.models.response.AppSecurityObjectResponse;
 import com.scenera.nicesecurityapplib.models.response.GetPrivaceObjectResponse;
+import com.scenera.nicesecurityapplib.utilities.AppLog;
 import com.scenera.nicesecurityapplib.utilities.PreferenceHelper;
 import com.scenera.nicesecurityapplib.utilities.Utils;
 
@@ -19,6 +20,7 @@ import org.jose4j.jca.ProviderContext;
 import org.jose4j.jwe.JsonWebEncryption;
 import org.jose4j.jws.JsonWebSignature;
 import org.jose4j.lang.JoseException;
+import org.json.JSONObject;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -221,6 +223,47 @@ public class EcdhDecrypt {
 
             appConrolObjectResponse.setPayload(new Gson().fromJson(jsonWebEncryption.getPayload(), Payload.class));
 
+        }
+        catch(JoseException e)
+        {
+            e.printStackTrace();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return appConrolObjectResponse;
+    }
+
+    public JSONObject getSceneMode(String encryptedPayload, Context context,
+                                          String privateKeyToDecrypt, AppControlHeader appControlHeader)
+    {
+        JSONObject appConrolObjectResponse = null;
+
+        try {
+
+            Security.insertProviderAt(new org.spongycastle.jce.provider.BouncyCastleProvider(), 1);
+
+            String jwsPayload = parseCertificate(context, encryptedPayload, appControlHeader.getX5c());
+            Utils.printLongLog("GET_SCENEMODE", jwsPayload);
+            appConrolObjectResponse = new Gson().fromJson(jwsPayload, JSONObject.class);
+            appConrolObjectResponse = new JSONObject(jwsPayload);
+
+            System.out.println("Before ::" + jwsPayload);
+            final PrivateKey privateKey = getPrivateKey(privateKeyToDecrypt, "ECDSA");
+            final JsonWebEncryption jsonWebEncryption = new JsonWebEncryption();
+            final ProviderContext provideContext = new ProviderContext();
+            provideContext.getGeneralProviderContext().setGeneralProvider("SC");
+            jsonWebEncryption.setProviderContext(provideContext);
+            jsonWebEncryption.setKey(privateKey);
+            jsonWebEncryption.setCompactSerialization(appConrolObjectResponse.getString("Payload"));
+            String response = jsonWebEncryption.getPayload();
+            AppLog.LogMaxSize("jwsObject encryptedJws ",jsonWebEncryption.getPayload());
+            System.out.println("JsonWebEncryption: " +jsonWebEncryption.getPayload()); // JWE
+            System.out.println("Payload: " +new Gson().fromJson(jsonWebEncryption.getPayload(), Payload.class).toString()); // JWE
+            appConrolObjectResponse.put("Payload",new JSONObject(jsonWebEncryption.getPayload()));
+//            appConrolObjectResponse.setPayload(new Gson().fromJson(jsonWebEncryption.getPayload(), Payload.class));
+
+            Utils.printLongLog("GET_SCENEMODE_RESPONSE", "****"+new Gson().toJson(appConrolObjectResponse));
         }
         catch(JoseException e)
         {

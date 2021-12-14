@@ -85,6 +85,7 @@ public class Constants {
 
         public static final String LINK_APP_TO_BSS_ACCOUNT = HOST_URL_BSS;
         public static final String GET_APP_CONTROL = "GetAppControlObject";
+        public static final String GET_SCENEMODE = "GetSceneMode";
         public static final String ADD_DEVICE_TOKEN = "adddevicetoken";
         public static final String DELETE_DEVICE_TOKEN = "deletedevicetoken";
         public static final String GET_PRIVACY_OBJECT = "GetPrivacyObject";
@@ -199,6 +200,7 @@ public class Constants {
         public static final String PERSON_ID = "personId";
         public static final String STATUS = "status";
         public static final String IMAGE_URL = "Image";
+        public static final String NODE_ID = "NodeID";
 
     }
 

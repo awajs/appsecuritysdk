@@ -77,6 +77,15 @@ public class ServiceInterfaces {
                                                        @Body RequestBody requestBody);
 
     }
+
+    public interface GetSceneMode {
+        @Headers("Content-Type:application/json")
+        @POST("/{Version}/{EndPointID}/management/"+ Constants.ServiceType.GET_SCENEMODE)
+        Call<EncryptedCMFResponse> getSceneMode(@Header("Authorization") String auth,
+                                                @Path("Version") String version,
+                                                @Path("EndPointID") String EndPointID,
+                                                @Body RequestBody requestBody);
+    }
     public interface GetPrivacyObject {
 
         @Headers("Content-Type:application/json")
@@ -176,6 +185,22 @@ public class ServiceInterfaces {
         @POST("https://scenera-faceapp.azurewebsites.net/Change_status")
 //        @POST("https://scenera-faceapp.azurewebsites.net/Change_status")
         Call<AddFaceResponse> changeFaceDatabaseApi(@Body RequestBody requestBody);
+    }
+
+    public interface SetSceneMark{
+
+        @Headers("Content-Type:application/json")
+        @POST("/scenemark/1.0/setscenemark")
+        Call<ResponseBody> setSceneMark( @Header("Authorization") String auth,
+                                         @Body RequestBody requestBody);
+    }
+
+    public interface SetSceneData{
+
+        @Headers("Content-Type:application/json")
+        @POST("/scenedata/1.0/setscenedata")
+        Call<ResponseBody> setSceneData( @Header("Authorization") String auth,
+                                         @Body RequestBody requestBody);
     }
 
 
