@@ -10,6 +10,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.security.keystore.KeyProperties;
+import android.text.TextUtils;
 import android.util.Log;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebChromeClient;
@@ -369,7 +370,23 @@ public class BSSLoginActivity extends BaseActivity {
                             Toast.makeText(getApplicationContext(), getResources().getString(R.string.text_error_app_link_success), Toast.LENGTH_LONG).show();
                             //((HomeActivity) getActivity()).changeButtonUI(R.id.tvCameras);
 
+                            String token = appConrolObjectResponse.getPayload().getDataEndPoints().get(0).
+                                    getNetEndPointAppControl().getSchemeAppControlObject().get(0).getAccessToken();
+                            if(!TextUtils.isEmpty(token)){
+                                String[] strArray = token.split("\\.");
+                                String JWTPayload = new String(org.jose4j.base64url.internal.apache.
+                                        commons.codec.binary.Base64.decodeBase64(strArray[1]));
 
+                                try {
+                                    JSONObject jsonObject = new JSONObject(JWTPayload);
+                                    AppLog.Log("EXPIRY_DATE","****"+jsonObject.getString("exp"));
+                                    AppLog.Log("NOT_BEFORE_DATE","****"+jsonObject.getString("nbf"));
+                                    pHelper.putExpiryDate(jsonObject.getLong("exp") * 1000);
+                                    pHelper.putNotBeforeDate(jsonObject.getLong("nbf") * 1000);
+                                }catch (Exception e){
+                                    e.printStackTrace();
+                                }
+                            }
                             Intent intent = new Intent();
                             intent.putExtra("TestData", "TestData");
                             setResult(RESULT_OK, intent);
