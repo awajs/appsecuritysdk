@@ -1158,7 +1158,7 @@ public class MainViewModel extends ViewModel {
             JSONObject jsonObjectRequest = new JSONObject();
             jsonObjectRequest.put("EncryptionKey", PreferenceHelper.getInstance(activity).getPublicKeyRSA());
             jsonObjectRequest.put("EncryptedPayload",encryptedPayload);
-            ServiceInterfaces.GetSceneMode api = ApiClient.getClientAccount(activity,strSceneModeAuthority).create(ServiceInterfaces.GetSceneMode.class);
+            ServiceInterfaces.GetSceneMode api = ApiClient.getClientAccount(activity,"https://" + strSceneModeAuthority).create(ServiceInterfaces.GetSceneMode.class);
 
             Call<EncryptedCMFResponse> call = api.getSceneMode("Bearer " + strSceneModeToken,
                     pHelper.getAppSecurityObject().getNICEASEndPoint().getNetEndPoint().getAPIVersion(),
