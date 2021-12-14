@@ -112,14 +112,14 @@ public class MainViewModel extends ViewModel {
     private static String accessTokenSceneMode = "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsIng1dCI6Imwzc1EtNTBjQ0g0eEJWWkxIVEd3blNSNzY4MCIsImtpZCI6Imwzc1EtNTBjQ0g0eEJWWkxIVEd3blNSNzY4MCJ9.eyJhdWQiOiJhcGk6Ly85ZmExNGI5NC0wMmFkLTRhNDMtOTU1MC04MzA1NDM0OGRkZGMiLCJpc3MiOiJodHRwczovL3N0cy53aW5kb3dzLm5ldC8xMzEwMzFkNy1iOThjLTQzNWQtOGM1YS1mYTc0MDk1N2Q2MmIvIiwiaWF0IjoxNjM1NDAwOTM3LCJuYmYiOjE2MzU0MDA5MzcsImV4cCI6MTYzNTQ4NDAzNywiYWlvIjoiRTJaZ1lIZzgrZi9PZktHM1NhZldlVEE3SFZ1YUFBQT0iLCJhcHBpZCI6ImEzY2I0Mzc2LThkYWUtNDc2NC1iMGNhLWRjNzc3ZmNiODE1MCIsImFwcGlkYWNyIjoiMSIsImlkcCI6Imh0dHBzOi8vc3RzLndpbmRvd3MubmV0LzEzMTAzMWQ3LWI5OGMtNDM1ZC04YzVhLWZhNzQwOTU3ZDYyYi8iLCJvaWQiOiIzZmU4OTc3Zi1hZjg0LTQ4MTktYjRjZi05OTRkMTk2ODc4MDEiLCJyaCI6IjAuQVZnQTF6RVFFNHk1WFVPTVd2cDBDVmZXSzNaRHk2T3VqV1JIc01yY2QzX0xnVkJZQUFBLiIsInJvbGVzIjpbIkFwcFJvbGUiXSwic3ViIjoiM2ZlODk3N2YtYWY4NC00ODE5LWI0Y2YtOTk0ZDE5Njg3ODAxIiwidGlkIjoiMTMxMDMxZDctYjk4Yy00MzVkLThjNWEtZmE3NDA5NTdkNjJiIiwidXRpIjoiNDdTWEM3VGxta3VsYUJ3V05OTmNBQSIsInZlciI6IjEuMCJ9.JKQv0_FWnGoD3LlVV2aSyk6EsI9QMTKzX--0cx5qnNKXBeIRwtLnIiGH73www8bjWrvHzVFZsdTjJB_tBueYChxwEcpoFlq2iRlVSXcfMJboxLStcaCbNYX6797g6js15_1GNzwyA2cAe13pq-Wn4sMHAwj0D143fHFX60msgPmZ3bQa-lrNIOzZV0c65St1vAuHgYvY7sNdQvL-SHXJxoX2oyRJwp20G0g940Zp-Ba5AJLkoK3PlhedJPTJz3arTuW92JLPD547QVlk2Py-3NCDAm_FXtN7hP7MvFBPJrSxenwHDz_RYD9JLvL9muyFZBogwMN5L2QRgUw76iNGjw";
     private static String strSceneModeEndPoint, strSceneModeAuthority, strSceneModeToken;
     private static String strGlobalSceneMarkEndPoint
-            , strGlobalSceneMarkToken = accessTokenSceneMode
-            , strGlobalSceneMarkAuthority = "ingress-dev.scenera.live"
-            , strGlobalSceneDataImageEndPoint = "00000001-5cdd-280b-8003-00020000ffff"
-            , strGlobalSceneDataImageToken = accessTokenSceneMode
-            , strGlobalSceneDataImageAuthority = "ingress-dev.scenera.live"
-            , strGlobalSceneDataVideoEndPoint = "00000001-5cdd-280b-8003-00020000ffff"
-            , strGlobalSceneDataVideoToken = accessTokenSceneMode
-            , strGlobalSceneDataVideoAuthority = "ingress-dev.scenera.live";
+            , strGlobalSceneMarkToken
+            , strGlobalSceneMarkAuthority
+            , strGlobalSceneDataImageEndPoint
+            , strGlobalSceneDataImageToken
+            , strGlobalSceneDataImageAuthority
+            , strGlobalSceneDataVideoEndPoint
+            , strGlobalSceneDataVideoToken
+            , strGlobalSceneDataVideoAuthority;
     private static boolean fIsImageEncrypted = false;
     private static Encryption EncryptionImage, EncryptionVideo;
     private static int NodeID = 1,PortID = 1;
@@ -1122,6 +1122,7 @@ public class MainViewModel extends ViewModel {
                             .getSchemeAppControlObject().get(0).getAuthority();
                 }
             }
+            strGlobalBrigdeUUID = pHelper.getAppInstanceId();
 
         }
         JSONObject jsonObject = new JSONObject();
