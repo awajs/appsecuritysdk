@@ -1101,7 +1101,7 @@ public class MainViewModel extends ViewModel {
 
     }
 
-    private void getSceneMode(AppSecurityObjectResponse appSecurityObject, AppCompatActivity activity) {
+    public void getSceneMode(AppSecurityObjectResponse appSecurityObject, AppCompatActivity activity) {
         Utils.showCustomProgressDialog(activity, "", false);
         Date today = new Date();
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss:" + "000000");
