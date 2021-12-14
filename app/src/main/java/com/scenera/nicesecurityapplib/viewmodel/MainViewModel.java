@@ -1178,7 +1178,7 @@ public class MainViewModel extends ViewModel {
                     if (!response.equals("{}") && response != null && response.body() != null) {
 
 
-                        String encryptedPayload = response.body().getEncryptedPayload();
+                        String encryptedPayload = response.body().getEncryptedPayloadSceneMode();
                         JSONObject appConrolObjectResponse = Utils.decryptAndValidateCMFGetSceneMode(activity, encryptedPayload);
                         AppLog.Log("GET_SCENEMODE", "****" + new Gson().toJson(appConrolObjectResponse));
                         GetSceneModeResponse getSceneModeResponse = new Gson().fromJson(appConrolObjectResponse.toString(),
