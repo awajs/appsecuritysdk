@@ -124,7 +124,7 @@ public class MainViewModel extends ViewModel {
     private static Encryption EncryptionImage, EncryptionVideo;
     private static int NodeID = 1,PortID = 1;
     private static List<String> listRelatedSceneMarksToVideo = new ArrayList<>();
-    private static BaseActivity context;
+    private static AppCompatActivity context;
     private static String strBase64OfSceneDataImage;
 
     public MainViewModel() {
@@ -1562,7 +1562,7 @@ public class MainViewModel extends ViewModel {
 
     public static void sendSceneMark(Context activityContext){
         Utils.showCustomProgressDialog(activityContext,"",false);
-        context = (BaseActivity)activityContext;
+        context = (AppCompatActivity)activityContext;
         int iSceneDataInstance = Utils.createRandomNumber();
         strSceneMarkID = createSceneMarkID(iSceneDataInstance);
 
