@@ -232,23 +232,6 @@ public class MainViewModel extends ViewModel {
 
         try {
             pHelper = PreferenceHelper.getInstance(activity);
-            if(pHelper.getAppControlObject() != null && appControlEndPoint == null) {
-                appControlEndPoint = pHelper.getAppControlObject().getPayload().getControlEndPoints().get(0);
-                for (ControlEndPoint endPoint : pHelper.getAppControlObject().getPayload().getControlEndPoints()) {
-                    if (TextUtils.equals(endPoint.getEndPointType(), "Account Service")) {
-                        appControlEndPoint = endPoint;
-                    } else if (TextUtils.equals(endPoint.getEndPointType(), "SceneMode Source")) {
-                        sceneModeControlEndPoint = endPoint;
-                        strSceneModeToken = sceneModeControlEndPoint.getNetEndPointAppControl()
-                                .getSchemeAppControlObject().get(0).getAccessToken();
-                        strSceneModeEndPoint = sceneModeControlEndPoint.getNetEndPointAppControl()
-                                .getEndPointID();
-                        strSceneModeAuthority = sceneModeControlEndPoint.getNetEndPointAppControl()
-                                .getSchemeAppControlObject().get(0).getAuthority();
-                    }
-                }
-
-            }
             if(isTokenNotExpired()) {
                 Call<GetDevicesResponse> call;
                 Utils.showCustomProgressDialog(activity, "", false);
@@ -945,6 +928,23 @@ public class MainViewModel extends ViewModel {
 
 
     private boolean isTokenNotExpired(){
+        if(pHelper.getAppControlObject() != null && appControlEndPoint == null) {
+            appControlEndPoint = pHelper.getAppControlObject().getPayload().getControlEndPoints().get(0);
+            for (ControlEndPoint endPoint : pHelper.getAppControlObject().getPayload().getControlEndPoints()) {
+                if (TextUtils.equals(endPoint.getEndPointType(), "Account Service")) {
+                    appControlEndPoint = endPoint;
+                } else if (TextUtils.equals(endPoint.getEndPointType(), "SceneMode Source")) {
+                    sceneModeControlEndPoint = endPoint;
+                    strSceneModeToken = sceneModeControlEndPoint.getNetEndPointAppControl()
+                            .getSchemeAppControlObject().get(0).getAccessToken();
+                    strSceneModeEndPoint = sceneModeControlEndPoint.getNetEndPointAppControl()
+                            .getEndPointID();
+                    strSceneModeAuthority = sceneModeControlEndPoint.getNetEndPointAppControl()
+                            .getSchemeAppControlObject().get(0).getAuthority();
+                }
+            }
+
+        }
         Date currentDate = new Date();
         return (currentDate.getTime() > pHelper.getNotBeforeDate() && currentDate.getTime() < pHelper.getExpiryDate());
     }
