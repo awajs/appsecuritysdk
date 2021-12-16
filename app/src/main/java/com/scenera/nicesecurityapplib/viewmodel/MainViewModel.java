@@ -79,6 +79,7 @@ public class MainViewModel extends ViewModel {
     private MutableLiveData<Boolean> isTokenRemoved;
     private MutableLiveData<Boolean> isFaceAdded;
     private MutableLiveData<Boolean> isFaceChanged;
+    private MutableLiveData<GetSceneModeResponse> sceneModeResponseLiveData;
     private MutableLiveData<Boolean> isSceneMarkCreated;
     private MutableLiveData<Boolean> isSceneDataImageUpdated;
     private MutableLiveData<Boolean> isSceneDataFullImageUpdated;
@@ -152,6 +153,7 @@ public class MainViewModel extends ViewModel {
         getSceneMarkManifestResponse = new GetSceneMarkManifestResponse();
 
         sceneMarkResponseLive = new MutableLiveData<>();
+        sceneModeResponseLiveData = new MutableLiveData<>();
 
         sceneMarkResponse = new SceneMarkResponseCMF();
         allTypesLiveData = new MutableLiveData();
@@ -177,6 +179,11 @@ public class MainViewModel extends ViewModel {
     public MutableLiveData<SceneMarkResponseCMF> getAlertLiveData() {
         Log.d(TAG,"getAlertMutableLiveData: " + sceneMarkResponseLive);
         return sceneMarkResponseLive;
+    }
+
+    public MutableLiveData<GetSceneModeResponse> getSceneModeLiveData() {
+        Log.d(TAG,"getSceneModeResponseLiveData: " + sceneModeResponseLiveData);
+        return sceneModeResponseLiveData;
     }
     /** get Event Dates **/
     public MutableLiveData<ArrayList<String>> getEventDatesData() {
@@ -1240,9 +1247,20 @@ public class MainViewModel extends ViewModel {
                                 privacyServerEndPoint, encryptionDictDefualt);
 
                         for (Output output : getSceneModeResponse.getPayload().getOutputs()) {
+                            if(output.getEncryption() != null){
+                                try {
+                                    encryptionDictDefualt.put("EncryptionOn",
+                                            output.getEncryption().getEncryptionOn());
+                                    encryptionDictDefualt.put("SceneEncryptionKeyID",
+                                            output.getEncryption().getSceneEncryptionKeyID());
+                                } catch (JSONException e) {
+                                    e.printStackTrace();
+                                }
+                            }
                             if (output.getType().equals("Video")) {
-                                if(output.getEncryption() != null){
+                                if(output.getEncryption() != null) {
                                     EncryptionVideo = output.getEncryption();
+                                    EncryptionVideo.setDictEncryption(encryptionDictDefualt);
                                 }
                                 for (ControlEndPoint controlEndPoint : output.getDestinationEndPointList()) {
                                     strGlobalSceneDataVideoEndPoint = controlEndPoint.getNetEndPointAppControl().getEndPointID();
@@ -1257,6 +1275,7 @@ public class MainViewModel extends ViewModel {
                             if (output.getType().equals("Image")) {
                                 if(output.getEncryption() != null){
                                     EncryptionImage = output.getEncryption();
+                                    EncryptionImage.setDictEncryption(encryptionDictDefualt);
                                 }
                                 for (ControlEndPoint controlEndPoint : output.getDestinationEndPointList()) {
                                     strGlobalSceneDataImageEndPoint = controlEndPoint.getNetEndPointAppControl().getEndPointID();
@@ -1272,6 +1291,7 @@ public class MainViewModel extends ViewModel {
 
 
                         }
+                        sceneModeResponseLiveData.setValue(getSceneModeResponse);
 
                     }
                 }
