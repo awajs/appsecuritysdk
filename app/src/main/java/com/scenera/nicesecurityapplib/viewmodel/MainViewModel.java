@@ -79,6 +79,10 @@ public class MainViewModel extends ViewModel {
     private MutableLiveData<Boolean> isTokenRemoved;
     private MutableLiveData<Boolean> isFaceAdded;
     private MutableLiveData<Boolean> isFaceChanged;
+    private MutableLiveData<Boolean> isSceneMarkCreated;
+    private MutableLiveData<Boolean> isSceneDataImageUpdated;
+    private MutableLiveData<Boolean> isSceneDataFullImageUpdated;
+    private MutableLiveData<Boolean> isSceneDataVideoUpdated;
     private MutableLiveData<ArrayList<PersonFace>> facesLiveData;
 
     private ArrayList<String> eventDatesList;
@@ -106,10 +110,9 @@ public class MainViewModel extends ViewModel {
     private static SceneDataClass objThumbnailSceneData;
     private static int iVideoRecordingDurationSec;
     private static int iGlobalImageWidth, iGlobalImageHeight, iGlobalVideoWidth, iGlobalVideoHeight;
-    private static String strGlobalBrigdeUUID = "00000005-6116-005b-8002-00000000002b",
+    private static String strGlobalBrigdeUUID = "",
             strGlobalVideoSceneDataID = "";
     private static String strSceneMarkID = "", strFullImageSceneDataID = "";
-    private static String accessTokenSceneMode = "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsIng1dCI6Imwzc1EtNTBjQ0g0eEJWWkxIVEd3blNSNzY4MCIsImtpZCI6Imwzc1EtNTBjQ0g0eEJWWkxIVEd3blNSNzY4MCJ9.eyJhdWQiOiJhcGk6Ly85ZmExNGI5NC0wMmFkLTRhNDMtOTU1MC04MzA1NDM0OGRkZGMiLCJpc3MiOiJodHRwczovL3N0cy53aW5kb3dzLm5ldC8xMzEwMzFkNy1iOThjLTQzNWQtOGM1YS1mYTc0MDk1N2Q2MmIvIiwiaWF0IjoxNjM1NDAwOTM3LCJuYmYiOjE2MzU0MDA5MzcsImV4cCI6MTYzNTQ4NDAzNywiYWlvIjoiRTJaZ1lIZzgrZi9PZktHM1NhZldlVEE3SFZ1YUFBQT0iLCJhcHBpZCI6ImEzY2I0Mzc2LThkYWUtNDc2NC1iMGNhLWRjNzc3ZmNiODE1MCIsImFwcGlkYWNyIjoiMSIsImlkcCI6Imh0dHBzOi8vc3RzLndpbmRvd3MubmV0LzEzMTAzMWQ3LWI5OGMtNDM1ZC04YzVhLWZhNzQwOTU3ZDYyYi8iLCJvaWQiOiIzZmU4OTc3Zi1hZjg0LTQ4MTktYjRjZi05OTRkMTk2ODc4MDEiLCJyaCI6IjAuQVZnQTF6RVFFNHk1WFVPTVd2cDBDVmZXSzNaRHk2T3VqV1JIc01yY2QzX0xnVkJZQUFBLiIsInJvbGVzIjpbIkFwcFJvbGUiXSwic3ViIjoiM2ZlODk3N2YtYWY4NC00ODE5LWI0Y2YtOTk0ZDE5Njg3ODAxIiwidGlkIjoiMTMxMDMxZDctYjk4Yy00MzVkLThjNWEtZmE3NDA5NTdkNjJiIiwidXRpIjoiNDdTWEM3VGxta3VsYUJ3V05OTmNBQSIsInZlciI6IjEuMCJ9.JKQv0_FWnGoD3LlVV2aSyk6EsI9QMTKzX--0cx5qnNKXBeIRwtLnIiGH73www8bjWrvHzVFZsdTjJB_tBueYChxwEcpoFlq2iRlVSXcfMJboxLStcaCbNYX6797g6js15_1GNzwyA2cAe13pq-Wn4sMHAwj0D143fHFX60msgPmZ3bQa-lrNIOzZV0c65St1vAuHgYvY7sNdQvL-SHXJxoX2oyRJwp20G0g940Zp-Ba5AJLkoK3PlhedJPTJz3arTuW92JLPD547QVlk2Py-3NCDAm_FXtN7hP7MvFBPJrSxenwHDz_RYD9JLvL9muyFZBogwMN5L2QRgUw76iNGjw";
     private static String strSceneModeEndPoint, strSceneModeAuthority, strSceneModeToken;
     private static String strGlobalSceneMarkEndPoint
             , strGlobalSceneMarkToken
@@ -135,6 +138,10 @@ public class MainViewModel extends ViewModel {
         isTokenRemoved = new MutableLiveData<>();
         isFaceAdded = new MutableLiveData<>();
         isFaceChanged = new MutableLiveData<>();
+        isSceneMarkCreated = new MutableLiveData<>();
+        isSceneDataImageUpdated = new MutableLiveData<>();
+        isSceneDataFullImageUpdated = new MutableLiveData<>();
+        isSceneDataVideoUpdated = new MutableLiveData<>();
         facesLiveData = new MutableLiveData<>();
         alertLiveData = new MutableLiveData<>();
         alertArrayList = new ArrayList<>();
@@ -220,6 +227,26 @@ public class MainViewModel extends ViewModel {
     public MutableLiveData<Boolean> getIsFaceChanged() {
 
         return isFaceChanged;
+    }
+
+    public MutableLiveData<Boolean> getIsSceneMarkCreated() {
+
+        return isSceneMarkCreated;
+    }
+
+    public MutableLiveData<Boolean> getIsSceneDataImageUpdated() {
+
+        return isSceneDataImageUpdated;
+    }
+
+    public MutableLiveData<Boolean> getIsSceneDataFullImageUpdated() {
+
+        return isSceneDataFullImageUpdated;
+    }
+
+    public MutableLiveData<Boolean> getIsSceneDataVideoUpdated() {
+
+        return isSceneDataVideoUpdated;
     }
 
     public MutableLiveData<ArrayList<PersonFace>> getFacesLiveData(){
@@ -1193,6 +1220,7 @@ public class MainViewModel extends ViewModel {
                             }
                             break;
                         }
+
                         PrivacyServerEndPoint privacyServerEndPoint = new PrivacyServerEndPoint();
                         NetEndPointPrivacy netEndPointPrivacy = new NetEndPointPrivacy();
                         List<SchemePrivacy> schemePrivacy = new ArrayList<>();
@@ -1213,7 +1241,9 @@ public class MainViewModel extends ViewModel {
 
                         for (Output output : getSceneModeResponse.getPayload().getOutputs()) {
                             if (output.getType().equals("Video")) {
-//                                Utils.EncryptionVideo = output.getEncryption();
+                                if(output.getEncryption() != null){
+                                    EncryptionVideo = output.getEncryption();
+                                }
                                 for (ControlEndPoint controlEndPoint : output.getDestinationEndPointList()) {
                                     strGlobalSceneDataVideoEndPoint = controlEndPoint.getNetEndPointAppControl().getEndPointID();
                                     for (SchemeAppControlObject schemeAppControlObject : controlEndPoint.getNetEndPointAppControl().getSchemeAppControlObject()) {
@@ -1225,7 +1255,9 @@ public class MainViewModel extends ViewModel {
                                 }
                             }
                             if (output.getType().equals("Image")) {
-//                                Utils.EncryptionImage = output.getEncryption();
+                                if(output.getEncryption() != null){
+                                    EncryptionImage = output.getEncryption();
+                                }
                                 for (ControlEndPoint controlEndPoint : output.getDestinationEndPointList()) {
                                     strGlobalSceneDataImageEndPoint = controlEndPoint.getNetEndPointAppControl().getEndPointID();
                                     for (SchemeAppControlObject schemeAppControlObject : controlEndPoint.getNetEndPointAppControl().getSchemeAppControlObject()) {
@@ -1529,7 +1561,7 @@ public class MainViewModel extends ViewModel {
 
         String hexInstance = Integer.toHexString(instance);
         String subString = hexInstance;
-        subString = subString.substring(2);
+//        subString = subString.substring(2);
         String hexInstancePadded = ("00000000" + subString).substring(subString.length());
         strGlobalDeviceNodeID = Utils.getDeviceNodeID(strGlobalBrigdeUUID,NodeID);
         String sceneMarkID = "SMK_" + strGlobalDeviceNodeID + "_" + hexInstancePadded;
@@ -1540,7 +1572,7 @@ public class MainViewModel extends ViewModel {
 
         String hexInstance = Integer.toHexString(instance);
         String subString = hexInstance;
-        subString = subString.substring(2);
+//        subString = subString.substring(2);
         String hexInstancePadded = ("00000000" + subString).substring(subString.length());
         strGlobalDeviceNodeID = Utils.getDeviceNodeID(strGlobalBrigdeUUID,NodeID);
         String sceneDataID = "SDT_" + strGlobalDeviceNodeID + "_" + hexInstancePadded;
@@ -1561,7 +1593,7 @@ public class MainViewModel extends ViewModel {
     }
 
 
-    public static void sendSceneMark(Context activityContext){
+    public void sendSceneMark(Context activityContext){
         Utils.showCustomProgressDialog(activityContext,"",false);
         context = (AppCompatActivity)activityContext;
         int iSceneDataInstance = Utils.createRandomNumber();
@@ -1577,7 +1609,7 @@ public class MainViewModel extends ViewModel {
         listRelatedSceneMarksToVideo.add(strSceneMarkID);
     }
 
-    private static void CreateAndSendSceneMark(String strSceneMarkID,  String strFullImageSceneDataID,
+    private void CreateAndSendSceneMark(String strSceneMarkID,  String strFullImageSceneDataID,
                                                int iImageWidth, int iImageHeight,
                                                List<DetectedObjectsClass> listDetectedObjects ,
                                                String strVideoSceneDataID, int iVideoDurationSec,
@@ -1679,7 +1711,7 @@ public class MainViewModel extends ViewModel {
 
     }
 
-    private static JSONObject CreateSceneMark(SceneMarkValues sceneMarkValues){
+    private JSONObject CreateSceneMark(SceneMarkValues sceneMarkValues){
         JSONObject dictSceneMark = new JSONObject();
         try {
             dictSceneMark.put("Version",sceneMarkValues.getVersion());
@@ -1810,7 +1842,7 @@ public class MainViewModel extends ViewModel {
         return dictSceneMark;
     }
 
-    private static void NICESendScenemarkThread(JSONObject dictNiceSceneMark,
+    private void NICESendScenemarkThread(JSONObject dictNiceSceneMark,
                                                 String strGlobalSceneMarkEndPoint,
                                                 String strGlobalSceneMarkToken,
                                                 String strGlobalSceneMarkAuthority){
@@ -1820,7 +1852,7 @@ public class MainViewModel extends ViewModel {
 
     }
 
-    private static void NICERestAPISendSceneMarkToCloud(JSONObject dictNiceSceneMark,
+    private void NICERestAPISendSceneMarkToCloud(JSONObject dictNiceSceneMark,
                                                         String strGlobalSceneMarkEndPoint,
                                                         String strGlobalSceneMarkToken,
                                                         String strGlobalSceneMarkAuthority){
@@ -1829,7 +1861,7 @@ public class MainViewModel extends ViewModel {
                 strGlobalSceneMarkAuthority);
     }
 
-    private static void SendSceneMarkToMSPipeLine(JSONObject dictNiceSceneMark,
+    private void SendSceneMarkToMSPipeLine(JSONObject dictNiceSceneMark,
                                                   String strGlobalSceneMarkEndPoint,
                                                   String strSceneMarkToken,
                                                   String strSceneMarkAuthority) {
@@ -1846,7 +1878,7 @@ public class MainViewModel extends ViewModel {
                 Utils.removeCustomProgressDialog();
                 if (!response.equals("{}") && response != null && response.body() != null) {
                     Log.i("SetSceneMark_RESPONSE", "Success");
-                    SendDetectedObjectsSceneData();
+                    isSceneMarkCreated.setValue(true);
                 }
             }
 
@@ -1857,11 +1889,11 @@ public class MainViewModel extends ViewModel {
         });
     }
 
-    public static void SendDetectedObjectsSceneData(){
+    public void SendDetectedObjectsSceneData(){
         SendObjectSceneData(strSceneMarkID, listDetectedObjects);
     }
 
-    private static void SendObjectSceneData(String strSceneMarkID,
+    private void SendObjectSceneData(String strSceneMarkID,
                                             List<DetectedObjectsClass> listDetectedObjects){
         objThumbnailSceneData = new SceneDataClass();
         for (DetectedObjectsClass detectedObjectsClass : listDetectedObjects){
@@ -1872,12 +1904,12 @@ public class MainViewModel extends ViewModel {
             objThumbnailSceneData.setStrBase64OfSceneData(detectedObjectsClass.getStrBase64OfSceneData());
             NiceRestAPISendImagesToCloud(objThumbnailSceneData, strGlobalBrigdeUUID,
                     strGlobalSceneDataImageEndPoint,strGlobalSceneDataImageToken,
-                    strGlobalSceneDataImageAuthority,true);
+                    strGlobalSceneDataImageAuthority,false);
             break;
         }
     }
 
-    private static void NiceRestAPISendImagesToCloud(SceneDataClass objDetectedObject
+    private void NiceRestAPISendImagesToCloud(SceneDataClass objDetectedObject
             ,String strGlobalBrigdeUUID, String strGlobalSceneDataImageEndPoint
             ,String strGlobalSceneDataImageToken,String strGlobalSceneDataImageAuthority, boolean isSendFullImage){
         Utils.showCustomProgressDialog(context, "", false);
@@ -1916,7 +1948,7 @@ public class MainViewModel extends ViewModel {
                 ,strGlobalSceneDataImageAuthority, dictDataSectionObject,base64Image, isSendFullImage);
     }
 
-    private static void SendSceneDataImageToMSPipeLine(
+    private void SendSceneDataImageToMSPipeLine(
             String strGlobalSceneDataImageEndPoint,
             String strGlobalSceneDataImageToken,
             String strGlobalSceneDataImageAuthority, JSONObject jsonCMP,String base64Image,
@@ -1934,6 +1966,10 @@ public class MainViewModel extends ViewModel {
                 if (!response.equals("{}") && response != null && response.body() != null) {
                     Log.i("SetSceneDATA_RESPONSE", "Success");
                     Utils.removeCustomProgressDialog();
+                    if(isSendFullImage)
+                        isSceneDataFullImageUpdated.setValue(true);
+                    else
+                        isSceneDataImageUpdated.setValue(true);
 //                    if (isSendFullImage)
 //                        SendFullImageSceneData(strBase64OfSceneDataImage);
                 }else {
@@ -1949,7 +1985,7 @@ public class MainViewModel extends ViewModel {
 
     }
 
-    private static JSONObject CreateSceneData(SceneDataValues objSD){
+    private JSONObject CreateSceneData(SceneDataValues objSD){
         JSONObject dictSceneData = new JSONObject();
         try {
             dictSceneData.put("Version",objSD.getVersion());
@@ -1973,7 +2009,7 @@ public class MainViewModel extends ViewModel {
 
     }
 
-    public static void SendFullImageSceneData(Context context,String strFullImageBase64){
+    public void SendFullImageSceneData(Context context,String strFullImageBase64){
         Utils.showCustomProgressDialog(context, "", false);
         SceneDataClass objFullImageSceneData = new SceneDataClass();
         objFullImageSceneData.setStrSceneMarkID(strSceneMarkID);
@@ -1986,13 +2022,13 @@ public class MainViewModel extends ViewModel {
         SendFullImageceneData(strSceneMarkID, objFullImageSceneData);
     }
 
-    private static void SendFullImageceneData(String strSceneMarkID, SceneDataClass objFullImageSceneData){
+    private void SendFullImageceneData(String strSceneMarkID, SceneDataClass objFullImageSceneData){
         NiceRestAPISendImagesToCloud(objFullImageSceneData, strGlobalBrigdeUUID,
                 strGlobalSceneDataImageEndPoint,strGlobalSceneDataImageToken,
-                strGlobalSceneDataImageAuthority, false);
+                strGlobalSceneDataImageAuthority, true);
     }
 
-    public static void SendVideoSection(Context context,String strBase64Video, int iChunkNumber, int iNumberOfChunksToUse){
+    public void SendVideoSection(Context context,String strBase64Video, int iChunkNumber, int iNumberOfChunksToUse){
         Utils.showCustomProgressDialog(context, "", false);
         SceneDataClass objVideoSceneData = new SceneDataClass();
         objVideoSceneData.setStrSceneMarkID(strSceneMarkID);
@@ -2004,7 +2040,7 @@ public class MainViewModel extends ViewModel {
         NiceRestAPISendVideoToCloud(objVideoSceneData, listRelatedSceneMarksToVideo);
     }
 
-    private static void NiceRestAPISendVideoToCloud(SceneDataClass objVideo
+    private void NiceRestAPISendVideoToCloud(SceneDataClass objVideo
             ,List<String> listRelatedSceneMarksToVideo){
 
         String strCreateSceneDataID = objVideo.getStrSceneDataID();
@@ -2034,7 +2070,7 @@ public class MainViewModel extends ViewModel {
                 ,strGlobalSceneDataVideoAuthority, dictDataSectionObject);
     }
 
-    private static void SendSceneDataVideoToMSPipeLine(
+    private void SendSceneDataVideoToMSPipeLine(
             String strGlobalSceneDataVideoEndPoint,
             String strGlobalSceneDataVideoToken,
             String strGlobalSceneDataVideoAuthority, JSONObject dictDataSectionObject){
@@ -2052,6 +2088,7 @@ public class MainViewModel extends ViewModel {
                 Utils.removeCustomProgressDialog();
                 if (!response.equals("{}") && response != null && response.body() != null) {
                     Log.i("SetSceneMark_RESPONSE", "Success");
+                    isSceneDataVideoUpdated.setValue(true);
 
                 }
             }

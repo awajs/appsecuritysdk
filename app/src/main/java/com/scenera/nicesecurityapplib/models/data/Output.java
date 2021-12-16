@@ -18,11 +18,15 @@ public class Output implements Parcelable {
     @SerializedName("DestinationEndPointList")
     @Expose
     private List<ControlEndPoint> destinationEndPointList = null;
+    @SerializedName("Encryption")
+    @Expose
+    private Encryption encryption;
 
     protected Output(Parcel in) {
         type = in.readString();
         portID = in.readString();
         destinationEndPointList = in.createTypedArrayList(ControlEndPoint.CREATOR);
+        this.encryption = ((Encryption) in.readValue((Encryption.class.getClassLoader())));
     }
 
     public static final Creator<Output> CREATOR = new Creator<Output>() {
@@ -61,6 +65,14 @@ public class Output implements Parcelable {
         this.destinationEndPointList = destinationEndPointList;
     }
 
+    public Encryption getEncryption() {
+        return encryption;
+    }
+
+    public void setEncryption(Encryption encryption) {
+        this.encryption = encryption;
+    }
+
     @Override
     public int describeContents() {
         return 0;
@@ -71,5 +83,6 @@ public class Output implements Parcelable {
         dest.writeString(type);
         dest.writeString(portID);
         dest.writeTypedList(destinationEndPointList);
+        dest.writeValue(encryption);
     }
 }
