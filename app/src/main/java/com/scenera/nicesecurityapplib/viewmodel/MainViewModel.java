@@ -124,7 +124,7 @@ public class MainViewModel extends ViewModel {
             , strGlobalSceneDataVideoEndPoint
             , strGlobalSceneDataVideoToken
             , strGlobalSceneDataVideoAuthority;
-    private static boolean fIsImageEncrypted = false;
+    private static boolean fIsImageEncrypted = false, fIsVideoEncrypted = false;
     private static Encryption EncryptionImage, EncryptionVideo;
     private static int NodeID = 1,PortID = 1;
     private static List<String> listRelatedSceneMarksToVideo = new ArrayList<>();
@@ -1135,7 +1135,7 @@ public class MainViewModel extends ViewModel {
 
     }
 
-    public void getSceneMode(AppSecurityObjectResponse appSecurityObject, AppCompatActivity activity) {
+    public void getSceneMode(AppCompatActivity activity) {
         Utils.showCustomProgressDialog(activity, "", false);
         Date today = new Date();
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss:" + "000000");
@@ -1166,21 +1166,21 @@ public class MainViewModel extends ViewModel {
         try {
             CMFHeaderObject.put(Constants.CMF.Header.VERSION, sceneModeControlEndPoint.getNetEndPointAppControl().getAPIVersion());
             CMFHeaderObject.put(Constants.CMF.Header.MESSAGE_TYPE, Constants.CMF.HeaderValue.MESSAGE_TYPE);
-            CMFHeaderObject.put(Constants.CMF.Header.SOURCE_END_POINT_ID, appSecurityObject.getAppInstanceID() + "_0001");
+            CMFHeaderObject.put(Constants.CMF.Header.SOURCE_END_POINT_ID, pHelper.getAppSecurityObject().getAppInstanceID() + "_0001");
             CMFHeaderObject.put(Constants.CMF.Header.DESTINATION_END_POINT_ID, strSceneModeEndPoint);
             CMFHeaderObject.put(Constants.CMF.Header.DATE_TIME_STAMP, currentDate);
             CMFHeaderObject.put(Constants.CMF.Header.COMMAND_ID, Constants.CMF.HeaderValue.COMMAND_ID);
             CMFHeaderObject.put(Constants.CMF.Header.COMMAND_TYPE, "/1.0/" + strSceneModeEndPoint + "/management/GetSceneMode");
 
             JSONObject jsonPayLoad = new JSONObject();
-            String appInstanceID = appSecurityObject.getAppInstanceID();
+            String appInstanceID = pHelper.getAppSecurityObject().getAppInstanceID();
 
             jsonPayLoad.put(Constants.Params.NODE_ID, appInstanceID + "_0001");
 
             jsonObjectAccessTokenPayload.put(com.scenera.nicesecurityapplib.utilities.Constants.CMF.Payload.PAYLOAD_OBJECT, jsonPayLoad);
             jsonObjectAccessTokenPayload.put(com.scenera.nicesecurityapplib.utilities.Constants.CMF.Header.ACCESS_TOKEN, strSceneModeToken);
 
-            jsonObject.put(com.scenera.nicesecurityapplib.utilities.Constants.CMF.Payload.EndPointX509Certificate,appSecurityObject.getNICEASEndPoint().getAppEndPoint().getX509Certificate());
+            jsonObject.put(com.scenera.nicesecurityapplib.utilities.Constants.CMF.Payload.EndPointX509Certificate,pHelper.getAppSecurityObject().getNICEASEndPoint().getAppEndPoint().getX509Certificate());
             jsonObject.put(com.scenera.nicesecurityapplib.utilities.Constants.CMF.Payload.CMF_HEADER,CMFHeaderObject.toString());
             jsonObject.put(com.scenera.nicesecurityapplib.utilities.Constants.CMF.Payload.ACCESSTOKEN_PAYLOAD,jsonObjectAccessTokenPayload);
             AppLog.Log("jsonObjectMain => ", jsonObject.toString());
@@ -1261,6 +1261,7 @@ public class MainViewModel extends ViewModel {
                                 if(output.getEncryption() != null) {
                                     EncryptionVideo = output.getEncryption();
                                     EncryptionVideo.setDictEncryption(encryptionDictDefualt);
+                                    fIsVideoEncrypted = output.getEncryption().getEncryptionOn();
                                 }
                                 for (ControlEndPoint controlEndPoint : output.getDestinationEndPointList()) {
                                     strGlobalSceneDataVideoEndPoint = controlEndPoint.getNetEndPointAppControl().getEndPointID();
@@ -1276,6 +1277,7 @@ public class MainViewModel extends ViewModel {
                                 if(output.getEncryption() != null){
                                     EncryptionImage = output.getEncryption();
                                     EncryptionImage.setDictEncryption(encryptionDictDefualt);
+                                    fIsImageEncrypted = output.getEncryption().getEncryptionOn();
                                 }
                                 for (ControlEndPoint controlEndPoint : output.getDestinationEndPointList()) {
                                     strGlobalSceneDataImageEndPoint = controlEndPoint.getNetEndPointAppControl().getEndPointID();
