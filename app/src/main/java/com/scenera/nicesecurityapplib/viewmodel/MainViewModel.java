@@ -14,8 +14,11 @@ import com.auth0.android.jwt.JWT;
 import com.google.gson.Gson;
 import com.scenera.nicesecurityapplib.BaseActivity;
 import com.scenera.nicesecurityapplib.interfaces.ServiceInterfaces;
+import com.scenera.nicesecurityapplib.models.data.Body1;
 import com.scenera.nicesecurityapplib.models.data.ControlEndPoint;
 import com.scenera.nicesecurityapplib.models.data.DetectedObjectsClass;
+import com.scenera.nicesecurityapplib.models.data.DeviceControlObject;
+import com.scenera.nicesecurityapplib.models.data.DeviceManagementObject;
 import com.scenera.nicesecurityapplib.models.data.Encryption;
 import com.scenera.nicesecurityapplib.models.data.NetEndPointPrivacy;
 import com.scenera.nicesecurityapplib.models.data.NodeList;
@@ -114,7 +117,11 @@ public class MainViewModel extends ViewModel {
     private static String strGlobalBrigdeUUID = "",
             strGlobalVideoSceneDataID = "";
     private static String strSceneMarkID = "", strFullImageSceneDataID = "";
-    private static String strSceneModeEndPoint, strSceneModeAuthority, strSceneModeToken;
+    private static String strGlobalNICELAEndPoint, strGlobalNICELAAuthority, deviceCertificate;
+    private static String strNICEASEndPoint, strNICEASAuthority, strNICEASAccessToken,
+            base64NiceASCertificate, strNICEASID;
+    private static String strSceneModeEndPoint, strSceneModeAuthority, strSceneModeToken, AppEndPointID;
+    private static List<String> base64ControllerCertificate;
     private static String strGlobalSceneMarkEndPoint
             , strGlobalSceneMarkToken
             , strGlobalSceneMarkAuthority
@@ -969,12 +976,12 @@ public class MainViewModel extends ViewModel {
                     appControlEndPoint = endPoint;
                 } else if (TextUtils.equals(endPoint.getEndPointType(), "SceneMode Source")) {
                     sceneModeControlEndPoint = endPoint;
-                    strSceneModeToken = sceneModeControlEndPoint.getNetEndPointAppControl()
+                   /* strSceneModeToken = sceneModeControlEndPoint.getNetEndPointAppControl()
                             .getSchemeAppControlObject().get(0).getAccessToken();
                     strSceneModeEndPoint = sceneModeControlEndPoint.getNetEndPointAppControl()
                             .getEndPointID();
                     strSceneModeAuthority = sceneModeControlEndPoint.getNetEndPointAppControl()
-                            .getSchemeAppControlObject().get(0).getAuthority();
+                            .getSchemeAppControlObject().get(0).getAuthority();*/
                 }
             }
 
@@ -1062,12 +1069,12 @@ public class MainViewModel extends ViewModel {
                                     appControlEndPoint = endPoint;
                                 }else if(TextUtils.equals(endPoint.getEndPointType(),"SceneMode Source")){
                                     sceneModeControlEndPoint = endPoint;
-                                    strSceneModeToken = sceneModeControlEndPoint.getNetEndPointAppControl()
+                                 /*   strSceneModeToken = sceneModeControlEndPoint.getNetEndPointAppControl()
                                             .getSchemeAppControlObject().get(0).getAccessToken();
                                     strSceneModeEndPoint = sceneModeControlEndPoint.getNetEndPointAppControl()
                                             .getEndPointID();
                                     strSceneModeAuthority = sceneModeControlEndPoint.getNetEndPointAppControl()
-                                            .getSchemeAppControlObject().get(0).getAuthority();
+                                            .getSchemeAppControlObject().get(0).getAuthority();*/
                                 }
                             }
                             String token = appConrolObjectResponse.getPayload().getDataEndPoints().get(0).
@@ -1135,6 +1142,340 @@ public class MainViewModel extends ViewModel {
 
     }
 
+    public void getDeviceManagementEndpointObject(AppCompatActivity activity) {
+        pHelper = PreferenceHelper.getInstance(activity);
+        strGlobalBrigdeUUID = pHelper.getDeviceSecurityObject().getDeviceID();
+        strGlobalDeviceNodeID = Utils.getDeviceNodeID(strGlobalBrigdeUUID, NodeID);
+//        strGlobalDevicePortID = Utils.getDevicePortID(strGlobalBrigdeUUID, NodeID, PortID);
+        deviceCertificate = pHelper.getDeviceSecurityObject().getDeviceCertificate();
+        String strGlobalNICELAEndPointEndPoint = pHelper.getDeviceSecurityObject().getNICELAEndPoint().getEndPointID();
+        String strGlobalNICELAEndPointAuthority = pHelper.getDeviceSecurityObject().getNICELAEndPoint()
+                .getSchemeAppControlObject().get(0).getAuthority();
+        String strNiceLAAccessToken = pHelper.getDeviceSecurityObject().getNICELAEndPoint()
+                .getSchemeAppControlObject().get(0).getAccessToken();
+        String strNICELARootCertificate = pHelper.getDeviceSecurityObject().getNICELARootCertificate();
+        com.scenera.nicesecurityapplib.utilities.Utils.showCustomProgressDialog(activity, "", false);
+        Date today = new Date();
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss:" + "000000");
+        String currentDate =  format.format(today);
+        PreferenceHelper pHelper = PreferenceHelper.getInstance(activity);
+
+        JSONObject jsonObject = new JSONObject();
+        JSONObject jsonObjectAccessTokenPayload = new JSONObject();
+        JSONObject CMFHeaderObject = new JSONObject();
+
+        try {
+            CMFHeaderObject.put(com.scenera.nicesecurityapplib.utilities.Constants.CMF.Header.VERSION, "1.0");
+            CMFHeaderObject.put(com.scenera.nicesecurityapplib.utilities.Constants.CMF.Header.MESSAGE_TYPE, com.scenera.nicesecurityapplib.utilities.Constants.CMF.HeaderValue.MESSAGE_TYPE);
+            CMFHeaderObject.put(com.scenera.nicesecurityapplib.utilities.Constants.CMF.Header.SOURCE_END_POINT_ID, strGlobalBrigdeUUID);
+            CMFHeaderObject.put(com.scenera.nicesecurityapplib.utilities.Constants.CMF.Header.DESTINATION_END_POINT_ID, strGlobalNICELAEndPointEndPoint);
+            CMFHeaderObject.put(com.scenera.nicesecurityapplib.utilities.Constants.CMF.Header.DATE_TIME_STAMP, currentDate);
+            CMFHeaderObject.put(com.scenera.nicesecurityapplib.utilities.Constants.CMF.Header.COMMAND_ID, com.scenera.nicesecurityapplib.utilities.Constants.CMF.HeaderValue.COMMAND_ID);
+            CMFHeaderObject.put(com.scenera.nicesecurityapplib.utilities.Constants.CMF.Header.COMMAND_TYPE, "/1.0/" + strGlobalNICELAEndPointEndPoint + "/management/" + Constants.ServiceType.GET_DEVICE_MANAGEMENT_ENDPOINT);
+
+            JSONObject jsonBody = new JSONObject();
+            JSONObject jsonPayLoad = new JSONObject();
+            String appInstanceID = pHelper.getAppSecurityObject().getAppInstanceID();
+
+            jsonPayLoad.put(Constants.Params.DEVICE_ID, strGlobalBrigdeUUID);
+
+            jsonBody.put(Constants.Params.BODY, jsonPayLoad);
+
+            jsonObjectAccessTokenPayload.put(com.scenera.nicesecurityapplib.utilities.Constants.CMF.Payload.PAYLOAD_OBJECT, jsonBody);
+            jsonObjectAccessTokenPayload.put(com.scenera.nicesecurityapplib.utilities.Constants.CMF.Header.ACCESS_TOKEN, strNiceLAAccessToken);
+
+            jsonObject.put(com.scenera.nicesecurityapplib.utilities.Constants.CMF.Payload.EndPointX509Certificate,strNICELARootCertificate);
+            jsonObject.put(com.scenera.nicesecurityapplib.utilities.Constants.CMF.Payload.CMF_HEADER,CMFHeaderObject.toString());
+            jsonObject.put(com.scenera.nicesecurityapplib.utilities.Constants.CMF.Payload.ACCESSTOKEN_PAYLOAD,jsonObjectAccessTokenPayload);
+            com.scenera.nicesecurityapplib.utilities.AppLog.Log("jsonObjectMain => ", jsonObject.toString());
+
+            Utils.printLongLog("CMF_HEADER",CMFHeaderObject.toString());
+
+            String encryptedPayload = Utils.encryptAndSignCMF(jsonObject,
+                    jsonObjectAccessTokenPayload.toString(), strNICELARootCertificate, deviceCertificate,
+                    pHelper.getDevicePrivateKey(),
+                    strGlobalNICELAEndPointEndPoint, strGlobalBrigdeUUID);
+
+            JSONObject jsonObjectRequest = new JSONObject();
+//            jsonObjectRequest.put("EncryptionKey", PreferenceHelper.getInstance(activity).getPublicKeyRSA());
+            jsonObjectRequest.put("EncryptedPayload",encryptedPayload);
+            ServiceInterfaces.GetDeviceManagementEndpointObject api = ApiClient.getClientAccount(activity,
+                    "https://" + strGlobalNICELAEndPointAuthority).create(ServiceInterfaces.GetDeviceManagementEndpointObject.class);
+
+            Call<EncryptedCMFResponse> call = api.getDeviceManagementEndpointObject(
+                    "1.0",
+                    strGlobalNICELAEndPointEndPoint,
+                    com.scenera.nicesecurityapplib.retrofit.ApiClient.makeJSONRequestBody(jsonObjectRequest));
+
+
+            call.enqueue(new Callback<EncryptedCMFResponse>() {
+                @Override
+                public void onResponse(Call<EncryptedCMFResponse> call, retrofit2.Response<EncryptedCMFResponse> response) {
+                    Log.i(TAG, "---->>> AppControl " + response.raw().request().url());
+                    Gson gson = new Gson();
+                    Log.i(TAG, "---->>> AppControl-RESPONSE " + gson.toJson(response.body()));
+
+                    com.scenera.nicesecurityapplib.utilities.Utils.removeCustomProgressDialog();
+
+                    if (!response.equals("{}") && response != null && response.body() != null) {
+
+
+                        String encryptedPayload = response.body().getEncryptedPayloadSceneMode();
+                        JSONObject appConrolObjectResponse = Utils.decryptAndValidateCMFGetSceneMode(
+                                activity, encryptedPayload, strNICELARootCertificate, true);
+                        com.scenera.nicesecurityapplib.utilities.AppLog.Log("GET_SCENEMODE",
+                                "****" + new Gson().toJson(appConrolObjectResponse));
+                        if(appConrolObjectResponse.has("Payload")){
+                            try {
+                                JSONObject payload = (JSONObject) appConrolObjectResponse.get("Payload");
+                                JSONObject payload1 = (JSONObject) payload.get("Payload");
+                                JSONObject body = (JSONObject) payload1.get("Body");
+                                Body1 deviceManagementEndpointObject = new Gson().fromJson(body.toString(),
+                                        Body1.class);
+                                strGlobalNICELAEndPoint = deviceManagementEndpointObject.getNetEndPoint().getEndPointID();
+                                strGlobalNICELAAuthority = deviceManagementEndpointObject.getNetEndPoint().getScheme().get(0).getAuthority();
+                                getDeviceManagementObject(activity, strNiceLAAccessToken, strNICELARootCertificate);
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            }
+
+                        }
+                    }
+                }
+
+                @Override
+                public void onFailure(Call<EncryptedCMFResponse> call, Throwable t) {
+                    com.scenera.nicesecurityapplib.utilities.Utils.removeCustomProgressDialog();
+                    Log.i("onFailure", "---->>>> " + t.toString());
+                }
+            });
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void getDeviceManagementObject(AppCompatActivity activity, String AccessToken, String NiceLAEndPointX509Certificate) {
+        pHelper = PreferenceHelper.getInstance(activity);
+        com.scenera.nicesecurityapplib.utilities.Utils.showCustomProgressDialog(activity, "", false);
+        Date today = new Date();
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss:" + "000000");
+        String currentDate =  format.format(today);
+        PreferenceHelper pHelper = PreferenceHelper.getInstance(activity);
+
+        JSONObject jsonObject = new JSONObject();
+        JSONObject jsonObjectAccessTokenPayload = new JSONObject();
+        JSONObject CMFHeaderObject = new JSONObject();
+
+        try {
+            CMFHeaderObject.put(com.scenera.nicesecurityapplib.utilities.Constants.CMF.Header.VERSION, "1.0");
+            CMFHeaderObject.put(com.scenera.nicesecurityapplib.utilities.Constants.CMF.Header.MESSAGE_TYPE, com.scenera.nicesecurityapplib.utilities.Constants.CMF.HeaderValue.MESSAGE_TYPE);
+            CMFHeaderObject.put(com.scenera.nicesecurityapplib.utilities.Constants.CMF.Header.SOURCE_END_POINT_ID, strGlobalBrigdeUUID);
+            CMFHeaderObject.put(com.scenera.nicesecurityapplib.utilities.Constants.CMF.Header.DESTINATION_END_POINT_ID, strGlobalNICELAEndPoint);
+            CMFHeaderObject.put(com.scenera.nicesecurityapplib.utilities.Constants.CMF.Header.DATE_TIME_STAMP, currentDate);
+            CMFHeaderObject.put(com.scenera.nicesecurityapplib.utilities.Constants.CMF.Header.COMMAND_ID, com.scenera.nicesecurityapplib.utilities.Constants.CMF.HeaderValue.COMMAND_ID);
+            CMFHeaderObject.put(com.scenera.nicesecurityapplib.utilities.Constants.CMF.Header.COMMAND_TYPE, "/1.0/" + strGlobalNICELAEndPoint + "/management/" + Constants.ServiceType.GET_DEVICE_MANAGEMENT_OBJECT);
+
+            JSONObject jsonBody = new JSONObject();
+            JSONObject jsonPayLoad = new JSONObject();
+            String appInstanceID = pHelper.getAppSecurityObject().getAppInstanceID();
+
+            jsonPayLoad.put(Constants.Params.DEVICE_ID, strGlobalBrigdeUUID);
+
+            jsonBody.put(Constants.Params.BODY, jsonPayLoad);
+
+            jsonObjectAccessTokenPayload.put(com.scenera.nicesecurityapplib.utilities.Constants.CMF.Payload.PAYLOAD_OBJECT, jsonBody);
+            jsonObjectAccessTokenPayload.put(com.scenera.nicesecurityapplib.utilities.Constants.CMF.Header.ACCESS_TOKEN, AccessToken);
+
+            jsonObject.put(com.scenera.nicesecurityapplib.utilities.Constants.CMF.Payload.EndPointX509Certificate,NiceLAEndPointX509Certificate);
+            jsonObject.put(com.scenera.nicesecurityapplib.utilities.Constants.CMF.Payload.CMF_HEADER,CMFHeaderObject.toString());
+            jsonObject.put(com.scenera.nicesecurityapplib.utilities.Constants.CMF.Payload.ACCESSTOKEN_PAYLOAD,jsonObjectAccessTokenPayload);
+            com.scenera.nicesecurityapplib.utilities.AppLog.Log("jsonObjectMain => ", jsonObject.toString());
+
+            Utils.printLongLog("CMF_HEADER",CMFHeaderObject.toString());
+
+            String encryptedPayload = Utils.encryptAndSignCMF(jsonObject,
+                    jsonObjectAccessTokenPayload.toString(), NiceLAEndPointX509Certificate, deviceCertificate,
+                    pHelper.getDevicePrivateKey(),
+                    strGlobalNICELAEndPoint, strGlobalBrigdeUUID);
+
+            JSONObject jsonObjectRequest = new JSONObject();
+//            jsonObjectRequest.put("EncryptionKey", PreferenceHelper.getInstance(activity).getPublicKeyRSA());
+            jsonObjectRequest.put("EncryptedPayload",encryptedPayload);
+            ServiceInterfaces.GetDeviceManagementObject api = ApiClient.getClientAccount(activity,
+                    "https://" + strGlobalNICELAAuthority).create(ServiceInterfaces.GetDeviceManagementObject.class);
+
+            Call<EncryptedCMFResponse> call = api.getDeviceManagementObject(
+                    "1.0",
+                    strGlobalNICELAEndPoint,
+                    com.scenera.nicesecurityapplib.retrofit.ApiClient.makeJSONRequestBody(jsonObjectRequest));
+
+
+            call.enqueue(new Callback<EncryptedCMFResponse>() {
+                @Override
+                public void onResponse(Call<EncryptedCMFResponse> call, retrofit2.Response<EncryptedCMFResponse> response) {
+                    Log.i(TAG, "---->>> AppControl " + response.raw().request().url());
+                    Gson gson = new Gson();
+                    Log.i(TAG, "---->>> AppControl-RESPONSE " + gson.toJson(response.body()));
+
+                    com.scenera.nicesecurityapplib.utilities.Utils.removeCustomProgressDialog();
+
+                    if (!response.equals("{}") && response != null && response.body() != null) {
+
+
+                        String encryptedPayload = response.body().getEncryptedPayloadSceneMode();
+                        JSONObject appConrolObjectResponse = Utils.decryptAndValidateCMFGetSceneMode
+                                (activity, encryptedPayload, NiceLAEndPointX509Certificate, true);
+                        com.scenera.nicesecurityapplib.utilities.AppLog.Log("GET_DEVICE_MANAGEMENT_OBJECT", "****" + new Gson().toJson(appConrolObjectResponse));
+                        if(appConrolObjectResponse.has("Payload")){
+                            try {
+                                JSONObject payload = (JSONObject) appConrolObjectResponse.get("Payload");
+                                JSONObject payload1 = (JSONObject) payload.get("Payload");
+                                JSONObject body = (JSONObject) payload1.get("Body");
+                                DeviceManagementObject deviceManagementObject = new Gson().fromJson(body.toString(),
+                                        DeviceManagementObject.class);
+                                GetManagementObjectInfo(deviceManagementObject);
+                                getDeviceControlObject(activity,strNICEASAuthority, strGlobalBrigdeUUID,
+                                        strNICEASEndPoint, strNICEASAccessToken, base64NiceASCertificate);
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            }
+
+                        }
+                    }
+                }
+
+                @Override
+                public void onFailure(Call<EncryptedCMFResponse> call, Throwable t) {
+                    com.scenera.nicesecurityapplib.utilities.Utils.removeCustomProgressDialog();
+                    Log.i("onFailure", "---->>>> " + t.toString());
+                }
+            });
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void GetManagementObjectInfo(DeviceManagementObject deviceManagementObject){
+        strNICEASEndPoint = deviceManagementObject.getNiceas().getNICEASEndPoint().getNetEndPoint().getEndPointID();
+        strNICEASAuthority = deviceManagementObject.getNiceas().getNICEASEndPoint().getNetEndPoint()
+                .getScheme().get(0).getAuthority();
+        strNICEASAccessToken = deviceManagementObject.getNiceas().getNICEASEndPoint().getNetEndPoint()
+                .getScheme().get(0).getAccessToken();
+        base64NiceASCertificate = deviceManagementObject.getNiceas().getNICEASEndPoint().getAppEndPoint()
+                .getX509Certificate();
+        strNICEASID = deviceManagementObject.getNiceas().getNiceasid();
+    }
+
+    private void GetDeviceControlObjectInfo(DeviceControlObject deviceControlObject){
+        strSceneModeEndPoint = deviceControlObject.getControlEndPoints().get(0).getNetEndPoint().getEndPointID();
+        strSceneModeAuthority = deviceControlObject.getControlEndPoints().get(0).getNetEndPoint().
+                getSchemeAppControlObject().get(0).getAuthority();
+        strSceneModeToken = deviceControlObject.getControlEndPoints().get(0).getNetEndPoint().
+                getSchemeAppControlObject().get(0).getAccessToken();
+        base64ControllerCertificate = deviceControlObject.getControlEndPoints().get(0).getAppEndPoint().getX509Certificate();
+        AppEndPointID = deviceControlObject.getControlEndPoints().get(0).getAppEndPoint().getEndPointID();
+        strGlobalDeviceNodeID = Utils.getDeviceNodeID(strGlobalBrigdeUUID,NodeID);
+    }
+
+    public void getDeviceControlObject(AppCompatActivity activity, String strNICEASAuthority,
+                                       String strBrigdeUUID, String strNICEASEndPoint, String AccessToken, String NiceASEndPointX509Certificate) {
+        pHelper = PreferenceHelper.getInstance(activity);
+        com.scenera.nicesecurityapplib.utilities.Utils.showCustomProgressDialog(activity, "", false);
+        Date today = new Date();
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss:" + "000000");
+        String currentDate =  format.format(today);
+        PreferenceHelper pHelper = PreferenceHelper.getInstance(activity);
+
+        JSONObject jsonObject = new JSONObject();
+        JSONObject jsonObjectAccessTokenPayload = new JSONObject();
+        JSONObject CMFHeaderObject = new JSONObject();
+
+        try {
+            CMFHeaderObject.put(com.scenera.nicesecurityapplib.utilities.Constants.CMF.Header.VERSION, "1.0");
+            CMFHeaderObject.put(com.scenera.nicesecurityapplib.utilities.Constants.CMF.Header.MESSAGE_TYPE, com.scenera.nicesecurityapplib.utilities.Constants.CMF.HeaderValue.MESSAGE_TYPE);
+            CMFHeaderObject.put(com.scenera.nicesecurityapplib.utilities.Constants.CMF.Header.SOURCE_END_POINT_ID, strGlobalBrigdeUUID);
+            CMFHeaderObject.put(com.scenera.nicesecurityapplib.utilities.Constants.CMF.Header.DESTINATION_END_POINT_ID, strNICEASEndPoint);
+            CMFHeaderObject.put(com.scenera.nicesecurityapplib.utilities.Constants.CMF.Header.DATE_TIME_STAMP, currentDate);
+            CMFHeaderObject.put(com.scenera.nicesecurityapplib.utilities.Constants.CMF.Header.COMMAND_ID, com.scenera.nicesecurityapplib.utilities.Constants.CMF.HeaderValue.COMMAND_ID);
+            CMFHeaderObject.put(com.scenera.nicesecurityapplib.utilities.Constants.CMF.Header.COMMAND_TYPE, "/1.0/" + strNICEASEndPoint + "/management/" + Constants.ServiceType.GET_DEVICE_CONTROL_OBJECT);
+
+            JSONObject jsonPayLoad = new JSONObject();
+
+            jsonPayLoad.put(Constants.Params.DEVICE_ID, strGlobalBrigdeUUID);
+
+
+            jsonObjectAccessTokenPayload.put(com.scenera.nicesecurityapplib.utilities.Constants.CMF.Payload.PAYLOAD_OBJECT, jsonPayLoad);
+            jsonObjectAccessTokenPayload.put(com.scenera.nicesecurityapplib.utilities.Constants.CMF.Header.ACCESS_TOKEN, AccessToken);
+
+            jsonObject.put(com.scenera.nicesecurityapplib.utilities.Constants.CMF.Payload.EndPointX509Certificate,NiceASEndPointX509Certificate);
+            jsonObject.put(com.scenera.nicesecurityapplib.utilities.Constants.CMF.Payload.CMF_HEADER,CMFHeaderObject.toString());
+            jsonObject.put(com.scenera.nicesecurityapplib.utilities.Constants.CMF.Payload.ACCESSTOKEN_PAYLOAD,jsonObjectAccessTokenPayload);
+            com.scenera.nicesecurityapplib.utilities.AppLog.Log("jsonObjectMain => ", jsonObject.toString());
+
+            Utils.printLongLog("CMF_HEADER",CMFHeaderObject.toString());
+
+            String encryptedPayload = Utils.encryptAndSignCMF(jsonObject,
+                    jsonObjectAccessTokenPayload.toString(), NiceASEndPointX509Certificate, deviceCertificate,
+                    pHelper.getDevicePrivateKey(),
+                    strNICEASEndPoint, strGlobalBrigdeUUID);
+
+            JSONObject jsonObjectRequest = new JSONObject();
+//            jsonObjectRequest.put("EncryptionKey", PreferenceHelper.getInstance(activity).getPublicKeyRSA());
+            jsonObjectRequest.put("EncryptedPayload",encryptedPayload);
+            ServiceInterfaces.GetDeviceControlObject api = ApiClient.getClientAccount(activity,
+                    "https://" + strNICEASAuthority).create(ServiceInterfaces.GetDeviceControlObject.class);
+
+            Call<EncryptedCMFResponse> call = api.getDeviceControlObject(
+                    "Bearer " + AccessToken,
+                    "1.0",
+                    strNICEASEndPoint,
+                    com.scenera.nicesecurityapplib.retrofit.ApiClient.makeJSONRequestBody(jsonObjectRequest));
+
+
+            call.enqueue(new Callback<EncryptedCMFResponse>() {
+                @Override
+                public void onResponse(Call<EncryptedCMFResponse> call, retrofit2.Response<EncryptedCMFResponse> response) {
+                    Log.i(TAG, "---->>> AppControl " + response.raw().request().url());
+                    Gson gson = new Gson();
+                    Log.i(TAG, "---->>> AppControl-RESPONSE " + gson.toJson(response.body()));
+
+                    com.scenera.nicesecurityapplib.utilities.Utils.removeCustomProgressDialog();
+
+                    if (!response.equals("{}") && response != null && response.body() != null) {
+
+
+                        String encryptedPayload = response.body().getEncryptedPayloadSceneMode();
+                        JSONObject appConrolObjectResponse = Utils.decryptAndValidateCMFGetSceneMode
+                                (activity, encryptedPayload, NiceASEndPointX509Certificate, true);
+                        com.scenera.nicesecurityapplib.utilities.AppLog.Log("GET_DEVICE_CONTROL_OBJECT", "****" + new Gson().toJson(appConrolObjectResponse));
+                        if(appConrolObjectResponse.has("Payload")){
+                            try {
+                                JSONObject payload = (JSONObject) appConrolObjectResponse.get("Payload");
+                                DeviceControlObject deviceControlObject = new Gson().fromJson(payload.toString(),
+                                        DeviceControlObject.class);
+                                GetDeviceControlObjectInfo(deviceControlObject);
+
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            }
+
+                        }
+
+//
+                    }
+                }
+
+                @Override
+                public void onFailure(Call<EncryptedCMFResponse> call, Throwable t) {
+                    com.scenera.nicesecurityapplib.utilities.Utils.removeCustomProgressDialog();
+                    Log.i("onFailure", "---->>>> " + t.toString());
+                }
+            });
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
     public void getSceneMode(AppCompatActivity activity) {
         Utils.showCustomProgressDialog(activity, "", false);
         Date today = new Date();
@@ -1148,26 +1489,28 @@ public class MainViewModel extends ViewModel {
                     appControlEndPoint = endPoint;
                 } else if (TextUtils.equals(endPoint.getEndPointType(), "SceneMode Source")) {
                     sceneModeControlEndPoint = endPoint;
-                    strSceneModeToken = sceneModeControlEndPoint.getNetEndPointAppControl()
+                    /*strSceneModeToken = sceneModeControlEndPoint.getNetEndPointAppControl()
                             .getSchemeAppControlObject().get(0).getAccessToken();
                     strSceneModeEndPoint = sceneModeControlEndPoint.getNetEndPointAppControl()
                             .getEndPointID();
                     strSceneModeAuthority = sceneModeControlEndPoint.getNetEndPointAppControl()
-                            .getSchemeAppControlObject().get(0).getAuthority();
+                            .getSchemeAppControlObject().get(0).getAuthority();*/
                 }
             }
-            strGlobalBrigdeUUID = pHelper.getAppInstanceId();
+//            strGlobalBrigdeUUID = pHelper.getAppInstanceId();
 
         }
+
         JSONObject jsonObject = new JSONObject();
         JSONObject jsonObjectAccessTokenPayload = new JSONObject();
         JSONObject CMFHeaderObject = new JSONObject();
 
         try {
-            CMFHeaderObject.put(Constants.CMF.Header.VERSION, sceneModeControlEndPoint.getNetEndPointAppControl().getAPIVersion());
+            CMFHeaderObject.put(Constants.CMF.Header.VERSION, "1.0");
             CMFHeaderObject.put(Constants.CMF.Header.MESSAGE_TYPE, Constants.CMF.HeaderValue.MESSAGE_TYPE);
-            CMFHeaderObject.put(Constants.CMF.Header.SOURCE_END_POINT_ID, pHelper.getAppSecurityObject().getAppInstanceID() + "_0001");
+            CMFHeaderObject.put(Constants.CMF.Header.SOURCE_END_POINT_ID, strGlobalDeviceNodeID);
             CMFHeaderObject.put(Constants.CMF.Header.DESTINATION_END_POINT_ID, strSceneModeEndPoint);
+//            CMFHeaderObject.put(Constants.CMF.Header.DESTINATION_END_POINT_ID, AppEndPointID);
             CMFHeaderObject.put(Constants.CMF.Header.DATE_TIME_STAMP, currentDate);
             CMFHeaderObject.put(Constants.CMF.Header.COMMAND_ID, Constants.CMF.HeaderValue.COMMAND_ID);
             CMFHeaderObject.put(Constants.CMF.Header.COMMAND_TYPE, "/1.0/" + strSceneModeEndPoint + "/management/GetSceneMode");
@@ -1175,7 +1518,7 @@ public class MainViewModel extends ViewModel {
             JSONObject jsonPayLoad = new JSONObject();
             String appInstanceID = pHelper.getAppSecurityObject().getAppInstanceID();
 
-            jsonPayLoad.put(Constants.Params.NODE_ID, appInstanceID + "_0001");
+            jsonPayLoad.put(Constants.Params.NODE_ID, strGlobalDeviceNodeID);
 
             jsonObjectAccessTokenPayload.put(com.scenera.nicesecurityapplib.utilities.Constants.CMF.Payload.PAYLOAD_OBJECT, jsonPayLoad);
             jsonObjectAccessTokenPayload.put(com.scenera.nicesecurityapplib.utilities.Constants.CMF.Header.ACCESS_TOKEN, strSceneModeToken);
@@ -1214,7 +1557,9 @@ public class MainViewModel extends ViewModel {
 
 
                         String encryptedPayload = response.body().getEncryptedPayloadSceneMode();
-                        JSONObject appConrolObjectResponse = Utils.decryptAndValidateCMFGetSceneMode(activity, encryptedPayload);
+                        JSONObject appConrolObjectResponse = Utils.decryptAndValidateCMFGetSceneMode
+                                (activity, encryptedPayload, PreferenceHelper.getInstance(context).
+                                        getAppSecurityObject().getNICEASEndPoint().getAppEndPoint().getX509Certificate(), false);
                         AppLog.Log("GET_SCENEMODE", "****" + new Gson().toJson(appConrolObjectResponse));
                         GetSceneModeResponse getSceneModeResponse = new Gson().fromJson(appConrolObjectResponse.toString(),
                                 GetSceneModeResponse.class);

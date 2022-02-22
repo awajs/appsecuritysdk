@@ -6,6 +6,7 @@ import android.util.Log;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import com.scenera.nicesecurityapplib.models.data.DeviceSecurityObject;
 import com.scenera.nicesecurityapplib.models.data.NodeList;
 import com.scenera.nicesecurityapplib.models.response.AppConrolObjectResponse;
 import com.scenera.nicesecurityapplib.models.response.AppSecurityObjectResponse;
@@ -24,6 +25,8 @@ public class PreferenceHelper {
     private static SharedPreferences app_preferences;
     private static PreferenceHelper preferenceHelper = new PreferenceHelper();
 
+    private final String DEVICE_SECURITY_OBJECT = "deviceSecurityObject";
+    private final String DEVICE_PRIVATE_KEY = "devicePrivateKey";
     private final String APP_SECURITY_OBJECT = "appSecurityObject";
     private final String APP_CONTROL_OBJECT = "appControlObject";
 
@@ -133,6 +136,17 @@ public class PreferenceHelper {
             return null;
         }
     }
+
+    public void putDeviceSecurityObject(DeviceSecurityObject deviceSecurityObject) {
+        SharedPreferences.Editor editor = app_preferences.edit();
+        editor.putString(DEVICE_SECURITY_OBJECT, new Gson().toJson(deviceSecurityObject));
+        editor.apply();
+    }
+
+    public DeviceSecurityObject getDeviceSecurityObject() {
+        return new Gson().fromJson(app_preferences.getString(DEVICE_SECURITY_OBJECT, null), DeviceSecurityObject.class);
+    }
+
     public void putAppSecurityObject(AppSecurityObjectResponse appSecurityObject) {
         SharedPreferences.Editor editor = app_preferences.edit();
         editor.putString(APP_SECURITY_OBJECT, new Gson().toJson(appSecurityObject));
@@ -273,6 +287,17 @@ public class PreferenceHelper {
     public String getPrivateKeyRSA(){
         return app_preferences.getString(PRIVATE_KEY_RSA, null);
     }
+
+    public void putDevicePrivateKey(String privateKey){
+        SharedPreferences.Editor edit = app_preferences.edit();
+        edit.putString(DEVICE_PRIVATE_KEY, privateKey);
+        edit.apply();
+    }
+
+    public String getDevicePrivateKey(){
+        return app_preferences.getString(DEVICE_PRIVATE_KEY, null);
+    }
+
 
     public void putVideoLoaded(Boolean isVideoLoaded) {
         SharedPreferences.Editor edit = app_preferences.edit();

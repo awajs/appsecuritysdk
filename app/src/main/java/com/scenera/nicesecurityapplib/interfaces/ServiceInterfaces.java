@@ -86,6 +86,35 @@ public class ServiceInterfaces {
                                                 @Path("EndPointID") String EndPointID,
                                                 @Body RequestBody requestBody);
     }
+
+    public interface GetDeviceManagementEndpointObject {
+        @Headers("Content-Type:application/json")
+        @POST("/{Version}/{EndPointID}/management/"+ Constants.ServiceType.GET_DEVICE_MANAGEMENT_ENDPOINT)
+        Call<com.scenera.nicesecurityapplib.models.response.EncryptedCMFResponse> getDeviceManagementEndpointObject(
+                @Path("Version") String version,
+                @Path("EndPointID") String EndPointID,
+                @Body RequestBody requestBody);
+    }
+
+    public interface GetDeviceManagementObject {
+        @Headers("Content-Type:application/json")
+        @POST("/{Version}/{EndPointID}/management/"+ Constants.ServiceType.GET_DEVICE_MANAGEMENT_OBJECT)
+        Call<com.scenera.nicesecurityapplib.models.response.EncryptedCMFResponse> getDeviceManagementObject(
+                @Path("Version") String version,
+                @Path("EndPointID") String EndPointID,
+                @Body RequestBody requestBody);
+    }
+
+    public interface GetDeviceControlObject {
+        @Headers("Content-Type:application/json")
+        @POST("/{Version}/{EndPointID}/management/"+ Constants.ServiceType.GET_DEVICE_CONTROL_OBJECT)
+        Call<com.scenera.nicesecurityapplib.models.response.EncryptedCMFResponse> getDeviceControlObject(
+                @Header("Authorization") String auth,
+                @Path("Version") String version,
+                @Path("EndPointID") String EndPointID,
+                @Body RequestBody requestBody);
+    }
+
     public interface GetPrivacyObject {
 
         @Headers("Content-Type:application/json")

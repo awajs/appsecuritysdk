@@ -307,7 +307,52 @@ public class Utils {
 
             jsonObjectCMFHeader.put(Constants.CMF.Payload.ACCESSTOKEN_PAYLOAD , serializedJwe );
 
-            return sign(context, privateKey, x5cList, jsonObjectCMFHeader.toString());
+            return sign(privateKey, jsonObjectCMFHeader.toString(), PreferenceHelper.
+                    getInstance(context).getAppSecurityObject().getAppInstanceCertificate(),
+                    PreferenceHelper.getInstance(context).getAppSecurityObject()
+                            .getNICEASEndPoint().getAppEndPoint().getEndPointID());
+
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+
+        return jwe;
+    }
+
+    public static String encryptAndSignCMF(JSONObject jsonObjectCMFHeader,
+                                           String payLoadToEncrypt, String x509Certificate,
+                                           String appX509Certificate, String encodedPrivateKey,
+                                           String endPoint, String sourceEndPoint) {
+        String jwe = "";
+
+        AppLog.Log("payload", " ****"+payLoadToEncrypt);
+        try {
+
+            PrivateKey privateKey = getPrivateKey(encodedPrivateKey);
+
+            InputStream inputStream = null;
+
+            CertificateFactory certFactory = CertificateFactory.getInstance("X.509");
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                inputStream = new ByteArrayInputStream(java.util.Base64.getDecoder().decode(x509Certificate));
+            } else {
+                inputStream = new ByteArrayInputStream(org.spongycastle.util.encoders.Base64.decode(x509Certificate));
+            }
+            X509Certificate certJWE = (X509Certificate) certFactory.generateCertificate(inputStream);
+
+            JsonWebEncryption jwe1 = new JsonWebEncryption();
+            jwe1.setAlgorithmHeaderValue("RSA1_5");
+            jwe1.setEncryptionMethodHeaderParameter(ContentEncryptionAlgorithmIdentifiers.AES_256_GCM);
+            jwe1.setCertificateChainHeaderValue(certJWE);
+            jwe1.setHeader("kid", endPoint);
+            jwe1.setKey(certJWE.getPublicKey());
+            jwe1.setPayload(payLoadToEncrypt);
+            String serializedJwe = jwe1.getCompactSerialization();
+
+            jsonObjectCMFHeader.put(com.scenera.nicesecurityapplib.utilities.Constants.CMF.Payload.ACCESSTOKEN_PAYLOAD , serializedJwe );
+
+            return sign(privateKey, jsonObjectCMFHeader.toString(), appX509Certificate,
+                    sourceEndPoint);
 
         }catch (Exception e){
             e.printStackTrace();
@@ -338,12 +383,16 @@ public class Utils {
 
     }
 
-    public static JSONObject decryptAndValidateCMFGetSceneMode(Context context, String jws) {
+    public static JSONObject decryptAndValidateCMFGetSceneMode(Context context, String jws,
+                                                               String x509Certificate,
+                                                               boolean isDevice) {
         JSONObject getSceneModeResponse = null;
         try {
-            String privateKey = PreferenceHelper.getInstance(context).getPrivateKey();
-//            ECKey jwk = ECKey.parse(Constants.PRIVATE_KEY);
-//            PrivateKey privateKey1 = jwk.toPrivateKey();
+            String privateKey;
+            if(isDevice)
+                privateKey = PreferenceHelper.getInstance(context).getDevicePrivateKey();
+            else
+                privateKey = PreferenceHelper.getInstance(context).getPrivateKey();
 
             jws = jws.replace("\"", "");
             AppControlHeader appControlHeader = SplitAndDecrypt(jws);
@@ -351,8 +400,8 @@ public class Utils {
             /*********** Decrypt Encrypted Payload **************/
             EcdhDecrypt ecdhDecrypt = new EcdhDecrypt();
 
-            getSceneModeResponse = ecdhDecrypt.getSceneMode(jws, context, privateKey, appControlHeader);
-//            AppLog.Log("appConrolObjectResponse","****"+new Gson().toJson(appConrolObjectResponse));
+            getSceneModeResponse = ecdhDecrypt.getSceneMode(jws, context, privateKey, appControlHeader, x509Certificate);
+
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -423,6 +472,48 @@ public class Utils {
         }
 
         throw new IllegalStateException("How did we get here?");
+    }
+
+    public static String sign(PrivateKey privateKey,
+                              String payload, String appX509Certificate, String endPoint) {
+        try {
+
+            com.scenera.nicesecurityapplib.utilities.AppLog.Log("payload", " ****"+payload);
+            final String payloadPortion = java.util.Base64.getUrlEncoder().withoutPadding()
+                    .encodeToString(payload.getBytes(StandardCharsets.UTF_8));
+
+            InputStream inputStream = null;
+            final CertificateFactory certFactory = CertificateFactory.getInstance("X.509", "SC");
+            inputStream = new ByteArrayInputStream(java.util.Base64.getDecoder().decode(appX509Certificate));
+
+            X509Certificate deviceCert = (X509Certificate) certFactory.generateCertificate(inputStream);
+
+            JsonWebSignature jws = new JsonWebSignature();
+            jws.setPayload(payload);
+            jws.setKey(privateKey);
+            jws.setAlgorithmHeaderValue(AlgorithmIdentifiers.ECDSA_USING_P256_CURVE_AND_SHA256);
+            jws.setKeyIdHeaderValue(endPoint);
+//            jws.setHeader(HeaderParameterNames.X509_CERTIFICATE_CHAIN, x5cList);
+            jws.setCertificateChainHeaderValue(deviceCert);
+            String encryptedJws = jws.getCompactSerialization();
+
+            String[] parts = encryptedJws.split("//.");
+            System.out.println("jwsObject parts"+ parts.length );
+            System.out.println("jwsObject encryptedJws"+ encryptedJws);
+            int maxLogSize = 2000;
+            for(int i = 0; i <= encryptedJws.length() / maxLogSize; i++) {
+                int start = i * maxLogSize;
+                int end = (i+1) * maxLogSize;
+                end = end > encryptedJws.length() ? encryptedJws.length() : end;
+                android.util.Log.d("jwsObject encryptedJws " + i + "  ", encryptedJws.substring(start, end));
+            }
+
+            return encryptedJws;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "";
+        }
     }
 
 

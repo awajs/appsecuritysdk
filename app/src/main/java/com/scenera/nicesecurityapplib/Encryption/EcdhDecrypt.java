@@ -122,13 +122,13 @@ public class EcdhDecrypt {
         return jweResponse;
     }
 
-    private String parseCertificate(Context context, String jwe, List<String> listX5c) throws JoseException, CertificateException, NoSuchProviderException {
+    private String parseCertificate(Context context, String jwe, List<String> listX5c,
+                                    String x509Certificate) throws JoseException, CertificateException, NoSuchProviderException {
 
         String jweResponse = null;
         try {
             String encodedCert = listX5c.get(0);
-            String encodedASCert = PreferenceHelper.getInstance(context).
-                    getAppSecurityObject().getNICEASEndPoint().getAppEndPoint().getX509Certificate();
+            String encodedASCert = x509Certificate;
             System.out.println("encodedCert: " + encodedCert);
 
             InputStream inputStream = null, inputStreamAS = null;
@@ -205,7 +205,9 @@ public class EcdhDecrypt {
 
             Security.insertProviderAt(new org.spongycastle.jce.provider.BouncyCastleProvider(), 1);
 
-            String jwsPayload = parseCertificate(context, encryptedPayload, appControlHeader.getX5c());
+            String jwsPayload = parseCertificate(context, encryptedPayload, appControlHeader.getX5c(),
+                    PreferenceHelper.getInstance(context).
+                            getAppSecurityObject().getNICEASEndPoint().getAppEndPoint().getX509Certificate());
             appConrolObjectResponse = new Gson().fromJson(jwsPayload, AppConrolObjectResponse.class);
 
             System.out.println("Before ::" + jwsPayload);
@@ -235,7 +237,8 @@ public class EcdhDecrypt {
     }
 
     public JSONObject getSceneMode(String encryptedPayload, Context context,
-                                          String privateKeyToDecrypt, AppControlHeader appControlHeader)
+                                   String privateKeyToDecrypt, AppControlHeader appControlHeader,
+                                   String x509Certificate)
     {
         JSONObject appConrolObjectResponse = null;
 
@@ -243,7 +246,7 @@ public class EcdhDecrypt {
 
             Security.insertProviderAt(new org.spongycastle.jce.provider.BouncyCastleProvider(), 1);
 
-            String jwsPayload = parseCertificate(context, encryptedPayload, appControlHeader.getX5c());
+            String jwsPayload = parseCertificate(context, encryptedPayload, appControlHeader.getX5c(), x509Certificate);
             Utils.printLongLog("GET_SCENEMODE", jwsPayload);
             appConrolObjectResponse = new Gson().fromJson(jwsPayload, JSONObject.class);
             appConrolObjectResponse = new JSONObject(jwsPayload);
@@ -284,7 +287,9 @@ public class EcdhDecrypt {
 
             Security.insertProviderAt(new org.spongycastle.jce.provider.BouncyCastleProvider(), 1);
 
-            String jwsPayload = parseCertificate(context,encryptedPayload, appControlHeader.getX5c());
+            String jwsPayload = parseCertificate(context,encryptedPayload, appControlHeader.getX5c(),
+                    PreferenceHelper.getInstance(context).
+                    getAppSecurityObject().getNICEASEndPoint().getAppEndPoint().getX509Certificate());
             getPrivaceObjectResponse = new Gson().fromJson(jwsPayload, GetPrivaceObjectResponse.class);
 
             System.out.println("Before ::" + jwsPayload);
