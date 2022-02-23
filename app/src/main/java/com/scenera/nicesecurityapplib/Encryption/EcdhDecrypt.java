@@ -260,11 +260,11 @@ public class EcdhDecrypt {
             jsonWebEncryption.setKey(privateKey);
             jsonWebEncryption.setCompactSerialization(appConrolObjectResponse.getString("Payload"));
             String response = jsonWebEncryption.getPayload();
-            AppLog.LogMaxSize("jwsObject encryptedJws ",jsonWebEncryption.getPayload());
+
             System.out.println("JsonWebEncryption: " +jsonWebEncryption.getPayload()); // JWE
-            System.out.println("Payload: " +new Gson().fromJson(jsonWebEncryption.getPayload(), Payload.class).toString()); // JWE
+
             appConrolObjectResponse.put("Payload",new JSONObject(jsonWebEncryption.getPayload()));
-//            appConrolObjectResponse.setPayload(new Gson().fromJson(jsonWebEncryption.getPayload(), Payload.class));
+
 
             Utils.printLongLog("GET_SCENEMODE_RESPONSE", "****"+new Gson().toJson(appConrolObjectResponse));
         }

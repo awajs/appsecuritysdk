@@ -83,6 +83,9 @@ public class MainViewModel extends ViewModel {
     private MutableLiveData<Boolean> isFaceAdded;
     private MutableLiveData<Boolean> isFaceChanged;
     private MutableLiveData<GetSceneModeResponse> sceneModeResponseLiveData;
+    private MutableLiveData<Boolean> isDeviceManagementEndpointObjectReceived;
+    private MutableLiveData<Boolean> isDeviceManagementObjectReceived;
+    private MutableLiveData<Boolean> isDeviceControlObjectReceived;
     private MutableLiveData<Boolean> isSceneMarkCreated;
     private MutableLiveData<Boolean> isSceneDataImageUpdated;
     private MutableLiveData<Boolean> isSceneDataFullImageUpdated;
@@ -146,6 +149,9 @@ public class MainViewModel extends ViewModel {
         isTokenRemoved = new MutableLiveData<>();
         isFaceAdded = new MutableLiveData<>();
         isFaceChanged = new MutableLiveData<>();
+        isDeviceManagementEndpointObjectReceived = new MutableLiveData<>();
+        isDeviceManagementObjectReceived = new MutableLiveData<>();
+        isDeviceControlObjectReceived = new MutableLiveData<>();
         isSceneMarkCreated = new MutableLiveData<>();
         isSceneDataImageUpdated = new MutableLiveData<>();
         isSceneDataFullImageUpdated = new MutableLiveData<>();
@@ -241,6 +247,21 @@ public class MainViewModel extends ViewModel {
     public MutableLiveData<Boolean> getIsFaceChanged() {
 
         return isFaceChanged;
+    }
+
+    public MutableLiveData<Boolean> getIsDeviceManagementEndpointObjectReceived() {
+
+        return isDeviceManagementEndpointObjectReceived;
+    }
+
+    public MutableLiveData<Boolean> getIsDeviceManagementObjectReceived() {
+
+        return isDeviceManagementObjectReceived;
+    }
+
+    public MutableLiveData<Boolean> getIsDeviceControlObjectReceived() {
+
+        return isDeviceControlObjectReceived;
     }
 
     public MutableLiveData<Boolean> getIsSceneMarkCreated() {
@@ -1454,14 +1475,19 @@ public class MainViewModel extends ViewModel {
                                 DeviceControlObject deviceControlObject = new Gson().fromJson(payload.toString(),
                                         DeviceControlObject.class);
                                 GetDeviceControlObjectInfo(deviceControlObject);
+                                isDeviceControlObjectReceived.setValue(true);
 
                             } catch (JSONException e) {
                                 e.printStackTrace();
                             }
 
+                        }else {
+                            isDeviceControlObjectReceived.setValue(false);
                         }
 
 //
+                    }else {
+                        isDeviceControlObjectReceived.setValue(false);
                     }
                 }
 
