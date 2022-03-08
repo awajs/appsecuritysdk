@@ -5,27 +5,27 @@ import com.google.gson.annotations.SerializedName;
 
 public class EncryptedCMFResponse {
 
+    @SerializedName("EncryptedPayload")
+    @Expose
+    private String EncryptedPayload;
+
     @SerializedName("encryptedPayload")
     @Expose
     private String encryptedPayload;
 
-    @SerializedName("EncryptedPayload")
-    @Expose
-    private String encryptedPayloadSceneMode;
-
     public String getEncryptedPayload() {
-        return encryptedPayload;
+        return EncryptedPayload;
     }
 
     public void setEncryptedPayload(String encryptedPayload) {
+        this.EncryptedPayload = encryptedPayload;
+    }
+
+    public String getencryptedPayload() {
+        return encryptedPayload;
+    }
+
+    public void setencryptedPayload(String encryptedPayload) {
         this.encryptedPayload = encryptedPayload;
-    }
-
-    public String getEncryptedPayloadSceneMode() {
-        return encryptedPayloadSceneMode;
-    }
-
-    public void setEncryptedPayloadSceneMode(String encryptedPayloadSceneMode) {
-        this.encryptedPayloadSceneMode = encryptedPayloadSceneMode;
     }
 }

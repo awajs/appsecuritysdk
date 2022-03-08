@@ -963,7 +963,7 @@ public class MainViewModel extends ViewModel {
 
                     if (!response.equals("{}") && response != null && response.body() != null) {
 
-                        String encryptedPayload = response.body().getEncryptedPayload();
+                        String encryptedPayload = response.body().getencryptedPayload();
                         AppConrolObjectResponse appConrolObjectResponse = Utils.decryptAndValidateCMF(activity, encryptedPayload);
                         AppLog.Log("appConrolObjectResponse","****"+new Gson().toJson(appConrolObjectResponse));
                         pHelper.putAppControlObject(appConrolObjectResponse);
@@ -1080,7 +1080,7 @@ public class MainViewModel extends ViewModel {
                         Utils.removeCustomProgressDialog();
 
                         if (!response.equals("{}") && response != null && response.body() != null) {
-                            String encryptedPayload = response.body().getEncryptedPayload();
+                            String encryptedPayload = response.body().getencryptedPayload();
                             AppConrolObjectResponse appConrolObjectResponse = Utils.decryptAndValidateCMF(activity, encryptedPayload);
                             AppLog.Log("appConrolObjectResponse","****"+new Gson().toJson(appConrolObjectResponse));
                             pHelper.putAppControlObject(appConrolObjectResponse);
@@ -1241,7 +1241,7 @@ public class MainViewModel extends ViewModel {
                     if (!response.equals("{}") && response != null && response.body() != null) {
 
 
-                        String encryptedPayload = response.body().getEncryptedPayloadSceneMode();
+                        String encryptedPayload = response.body().getEncryptedPayload();
                         JSONObject appConrolObjectResponse = Utils.decryptAndValidateCMFGetSceneMode(
                                 activity, encryptedPayload, strNICELARootCertificate, true);
                         com.scenera.nicesecurityapplib.utilities.AppLog.Log("GET_SCENEMODE",
@@ -1343,7 +1343,7 @@ public class MainViewModel extends ViewModel {
                     if (!response.equals("{}") && response != null && response.body() != null) {
 
 
-                        String encryptedPayload = response.body().getEncryptedPayloadSceneMode();
+                        String encryptedPayload = response.body().getEncryptedPayload();
                         JSONObject appConrolObjectResponse = Utils.decryptAndValidateCMFGetSceneMode
                                 (activity, encryptedPayload, NiceLAEndPointX509Certificate, true);
                         com.scenera.nicesecurityapplib.utilities.AppLog.Log("GET_DEVICE_MANAGEMENT_OBJECT", "****" + new Gson().toJson(appConrolObjectResponse));
@@ -1465,7 +1465,7 @@ public class MainViewModel extends ViewModel {
                     if (!response.equals("{}") && response != null && response.body() != null) {
 
 
-                        String encryptedPayload = response.body().getEncryptedPayloadSceneMode();
+                        String encryptedPayload = response.body().getEncryptedPayload();
                         JSONObject appConrolObjectResponse = Utils.decryptAndValidateCMFGetSceneMode
                                 (activity, encryptedPayload, NiceASEndPointX509Certificate, true);
                         com.scenera.nicesecurityapplib.utilities.AppLog.Log("GET_DEVICE_CONTROL_OBJECT", "****" + new Gson().toJson(appConrolObjectResponse));
@@ -1582,9 +1582,9 @@ public class MainViewModel extends ViewModel {
                     if (!response.equals("{}") && response != null && response.body() != null) {
 
 
-                        String encryptedPayload = response.body().getEncryptedPayloadSceneMode();
+                        String encryptedPayload = response.body().getEncryptedPayload();
                         JSONObject appConrolObjectResponse = Utils.decryptAndValidateCMFGetSceneMode
-                                (activity, encryptedPayload, PreferenceHelper.getInstance(context).
+                                (activity, encryptedPayload, pHelper.
                                         getAppSecurityObject().getNICEASEndPoint().getAppEndPoint().getX509Certificate(), false);
                         AppLog.Log("GET_SCENEMODE", "****" + new Gson().toJson(appConrolObjectResponse));
                         GetSceneModeResponse getSceneModeResponse = new Gson().fromJson(appConrolObjectResponse.toString(),

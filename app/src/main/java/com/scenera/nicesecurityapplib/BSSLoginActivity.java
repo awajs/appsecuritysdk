@@ -362,7 +362,7 @@ public class BSSLoginActivity extends BaseActivity {
                         if (!response.equals("{}") && response != null && response.body() != null) {
 
                             /**************************** PUT APPCONTROL TIME*********************************/
-                            String encryptedPayload = response.body().getEncryptedPayload();
+                            String encryptedPayload = response.body().getencryptedPayload();
                             AppConrolObjectResponse appConrolObjectResponse = Utils.decryptAndValidateCMF(BSSLoginActivity.this, encryptedPayload);
                             AppLog.Log("appConrolObjectResponse", "****" + new Gson().toJson(appConrolObjectResponse));
                             pHelper.putAppControlObject(appConrolObjectResponse);
