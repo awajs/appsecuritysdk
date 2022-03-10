@@ -6,6 +6,7 @@ import android.os.Parcelable;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -15,10 +16,10 @@ public class NodeList implements Parcelable
 {
     @SerializedName("isSelected")
     @Expose
-    private Boolean isSelected = false;
+    private boolean isSelected = false;
     @SerializedName("isNotificationEnabled")
     @Expose
-    private Boolean isNotificationEnabled = false;
+    private boolean isNotificationEnabled = false;
     @SerializedName("Description")
     @Expose
     private String description;
@@ -36,37 +37,57 @@ public class NodeList implements Parcelable
     private String timeZone;
     @SerializedName("isTimeZoneSelected")
     @Expose
-    private Boolean isTimeZoneSelected = false;
-    public final static Creator<NodeList> CREATOR = new Creator<NodeList>() {
+    private boolean isTimeZoneSelected = false;
+    @SerializedName("DeviceType")
+    @Expose
+    private String deviceType;
+    @SerializedName("Tags")
+    @Expose
+    private List<String> tags;
 
 
-        @SuppressWarnings({
-                "unchecked"
-        })
+
+    public NodeList() {
+    }
+
+    protected NodeList(Parcel in) {
+        isSelected = in.readByte() != 0;
+        isNotificationEnabled = in.readByte() != 0;
+        description = in.readString();
+        nodeID = in.readString();
+        imageURL = in.readString();
+        status = in.readString();
+        timeZone = in.readString();
+        isTimeZoneSelected = in.readByte() != 0;
+        deviceType = in.readString();
+        tags = in.createStringArrayList();
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeByte((byte) (isSelected ? 1 : 0));
+        dest.writeByte((byte) (isNotificationEnabled ? 1 : 0));
+        dest.writeString(description);
+        dest.writeString(nodeID);
+        dest.writeString(imageURL);
+        dest.writeString(status);
+        dest.writeString(timeZone);
+        dest.writeByte((byte) (isTimeZoneSelected ? 1 : 0));
+        dest.writeString(deviceType);
+        dest.writeStringList(tags);
+    }
+
+    public static final Creator<NodeList> CREATOR = new Creator<NodeList>() {
+        @Override
         public NodeList createFromParcel(Parcel in) {
             return new NodeList(in);
         }
 
+        @Override
         public NodeList[] newArray(int size) {
-            return (new NodeList[size]);
+            return new NodeList[size];
         }
-
-    }
-            ;
-
-    protected NodeList(Parcel in) {
-        this.description = ((String) in.readValue((String.class.getClassLoader())));
-        this.nodeID = ((String) in.readValue((String.class.getClassLoader())));
-        this.imageURL = ((String) in.readValue((String.class.getClassLoader())));
-        this.status = ((String) in.readValue((String.class.getClassLoader())));
-        this.timeZone = ((String) in.readValue((String.class.getClassLoader())));
-        this.isSelected = ((Boolean)in.readValue((Boolean.class.getClassLoader())));
-        this.isNotificationEnabled = ((Boolean)in.readValue((Boolean.class.getClassLoader())));
-        this.isTimeZoneSelected = ((Boolean)in.readValue((Boolean.class.getClassLoader())));
-    }
-
-    public NodeList() {
-    }
+    };
 
     public String getDescription() {
         return description;
@@ -109,42 +130,49 @@ public class NodeList implements Parcelable
         this.timeZone = timeZone;
     }
 
-    public void writeToParcel(Parcel dest, int flags) {
-        dest.writeValue(description);
-        dest.writeValue(nodeID);
-        dest.writeValue(imageURL);
-        dest.writeValue(status);
-        dest.writeValue(timeZone);
-        dest.writeValue(isSelected);
-        dest.writeValue(isNotificationEnabled);
-        dest.writeValue(isTimeZoneSelected);
-    }
+
 
     public int describeContents() {
         return 0;
     }
-    public Boolean getSelected() {
+    public boolean getSelected() {
         return isSelected;
     }
 
-    public void setSelected(Boolean selected) {
+    public void setSelected(boolean selected) {
         isSelected = selected;
     }
 
-    public Boolean getNotificationEnabled() {
+    public boolean getNotificationEnabled() {
         return isNotificationEnabled;
     }
 
-    public void setNotificationEnabled(Boolean notificationEnabled) {
+    public void setNotificationEnabled(boolean notificationEnabled) {
         isNotificationEnabled = notificationEnabled;
     }
 
-    public Boolean getTimezoneSelected() {
+    public boolean getTimezoneSelected() {
         return isTimeZoneSelected;
     }
 
-    public void setTimezoneSelected(Boolean timezoneSelected) {
+    public void setTimezoneSelected(boolean timezoneSelected) {
         isTimeZoneSelected = timezoneSelected;
+    }
+
+    public String getDeviceType() {
+        return deviceType;
+    }
+
+    public void setDeviceType(String deviceType) {
+        this.deviceType = deviceType;
+    }
+
+    public List<String> getTags() {
+        return tags;
+    }
+
+    public void setTags(List<String> tags) {
+        this.tags = tags;
     }
 
     @Override
