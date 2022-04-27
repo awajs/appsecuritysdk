@@ -2156,8 +2156,8 @@ public class MainViewModel extends ViewModel {
             jsonDetectedObjects.put("Probability",sceneMarkValues.getProbability());
 
             JSONArray jsonArrayAttributes = new JSONArray();
-            JSONObject jsonAttributes = new JSONObject();
-            jsonArrayAttributes.put(jsonAttributes);
+//            JSONObject jsonAttributes = new JSONObject();
+//            jsonArrayAttributes.put(jsonAttributes);
             jsonDetectedObjects.put("Attributes",jsonArrayAttributes);
 
             JSONObject jsonBoundingBox = new JSONObject();
