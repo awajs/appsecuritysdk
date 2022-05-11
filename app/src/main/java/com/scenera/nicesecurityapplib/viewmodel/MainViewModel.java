@@ -19,6 +19,8 @@ import com.scenera.nicesecurityapplib.models.data.ControlEndPoint;
 import com.scenera.nicesecurityapplib.models.data.DetectedObjectsClass;
 import com.scenera.nicesecurityapplib.models.data.DeviceControlObject;
 import com.scenera.nicesecurityapplib.models.data.DeviceManagementObject;
+import com.scenera.nicesecurityapplib.models.data.DevicePrivateKey;
+import com.scenera.nicesecurityapplib.models.data.DeviceSecurityObject;
 import com.scenera.nicesecurityapplib.models.data.Encryption;
 import com.scenera.nicesecurityapplib.models.data.NetEndPointPrivacy;
 import com.scenera.nicesecurityapplib.models.data.NodeList;
@@ -47,10 +49,13 @@ import com.scenera.nicesecurityapplib.utilities.Constants;
 import com.scenera.nicesecurityapplib.utilities.PreferenceHelper;
 import com.scenera.nicesecurityapplib.utilities.Utils;
 
+import org.jose4j.json.JsonUtil;
+import org.jose4j.jwk.EllipticCurveJsonWebKey;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.security.PrivateKey;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Base64;
@@ -58,6 +63,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import okhttp3.RequestBody;
 import okhttp3.ResponseBody;
@@ -1163,6 +1169,24 @@ public class MainViewModel extends ViewModel {
 
     }
 
+    public void saveDeviceSecurityObject(Context context,String objectJson){
+        DeviceSecurityObject jsonObject = new Gson().fromJson(objectJson, DeviceSecurityObject.class);
+        PreferenceHelper.getInstance(context).putDeviceSecurityObject(jsonObject);
+    }
+
+    public void saveDevicePrivateKey(Context context,String objectJson){
+        try {
+            final Map<String, Object> parsed = JsonUtil.parseJson(objectJson);
+            final EllipticCurveJsonWebKey ellipticCurveJsonWebKey = new EllipticCurveJsonWebKey(parsed, "BC");
+            PrivateKey privateKey = ellipticCurveJsonWebKey.getEcPrivateKey();
+            String priStr = Utils.base64Encode(privateKey.getEncoded());
+            PreferenceHelper.getInstance(context).putDevicePrivateKey(priStr);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+
+    }
+
     public void getDeviceManagementEndpointObject(AppCompatActivity activity) {
         pHelper = PreferenceHelper.getInstance(activity);
         strGlobalBrigdeUUID = pHelper.getDeviceSecurityObject().getDeviceID();
@@ -1255,6 +1279,7 @@ public class MainViewModel extends ViewModel {
                                         Body1.class);
                                 strGlobalNICELAEndPoint = deviceManagementEndpointObject.getNetEndPoint().getEndPointID();
                                 strGlobalNICELAAuthority = deviceManagementEndpointObject.getNetEndPoint().getScheme().get(0).getAuthority();
+                                isDeviceManagementEndpointObjectReceived.setValue(true);
                                 getDeviceManagementObject(activity, strNiceLAAccessToken, strNICELARootCertificate);
                             } catch (JSONException e) {
                                 e.printStackTrace();
@@ -1355,6 +1380,7 @@ public class MainViewModel extends ViewModel {
                                 DeviceManagementObject deviceManagementObject = new Gson().fromJson(body.toString(),
                                         DeviceManagementObject.class);
                                 GetManagementObjectInfo(deviceManagementObject);
+                                isDeviceManagementObjectReceived.setValue(true);
                                 getDeviceControlObject(activity,strNICEASAuthority, strGlobalBrigdeUUID,
                                         strNICEASEndPoint, strNICEASAccessToken, base64NiceASCertificate);
                             } catch (JSONException e) {
