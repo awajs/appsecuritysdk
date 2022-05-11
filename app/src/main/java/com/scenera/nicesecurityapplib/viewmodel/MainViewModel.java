@@ -19,7 +19,6 @@ import com.scenera.nicesecurityapplib.models.data.ControlEndPoint;
 import com.scenera.nicesecurityapplib.models.data.DetectedObjectsClass;
 import com.scenera.nicesecurityapplib.models.data.DeviceControlObject;
 import com.scenera.nicesecurityapplib.models.data.DeviceManagementObject;
-import com.scenera.nicesecurityapplib.models.data.DevicePrivateKey;
 import com.scenera.nicesecurityapplib.models.data.DeviceSecurityObject;
 import com.scenera.nicesecurityapplib.models.data.Encryption;
 import com.scenera.nicesecurityapplib.models.data.NetEndPointPrivacy;
@@ -1279,7 +1278,6 @@ public class MainViewModel extends ViewModel {
                                         Body1.class);
                                 strGlobalNICELAEndPoint = deviceManagementEndpointObject.getNetEndPoint().getEndPointID();
                                 strGlobalNICELAAuthority = deviceManagementEndpointObject.getNetEndPoint().getScheme().get(0).getAuthority();
-                                isDeviceManagementEndpointObjectReceived.setValue(true);
                                 getDeviceManagementObject(activity, strNiceLAAccessToken, strNICELARootCertificate);
                             } catch (JSONException e) {
                                 e.printStackTrace();
@@ -1380,7 +1378,6 @@ public class MainViewModel extends ViewModel {
                                 DeviceManagementObject deviceManagementObject = new Gson().fromJson(body.toString(),
                                         DeviceManagementObject.class);
                                 GetManagementObjectInfo(deviceManagementObject);
-                                isDeviceManagementObjectReceived.setValue(true);
                                 getDeviceControlObject(activity,strNICEASAuthority, strGlobalBrigdeUUID,
                                         strNICEASEndPoint, strNICEASAccessToken, base64NiceASCertificate);
                             } catch (JSONException e) {
