@@ -1167,7 +1167,7 @@ public class MainViewModel extends ViewModel {
         }
 
     }
-/*
+
     public void saveDeviceSecurityObject(Context context,String objectJson){
         DeviceSecurityObject jsonObject = new Gson().fromJson(objectJson, DeviceSecurityObject.class);
         PreferenceHelper.getInstance(context).putDeviceSecurityObject(jsonObject);
@@ -1184,7 +1184,7 @@ public class MainViewModel extends ViewModel {
             e.printStackTrace();
         }
 
-    }*/
+    }
 
     public void getDeviceManagementEndpointObject(AppCompatActivity activity) {
         pHelper = PreferenceHelper.getInstance(activity);
