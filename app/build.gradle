@@ -40,8 +40,8 @@ dependencies {
 
     // External Libraries...
     implementation 'com.madgag.spongycastle:prov:1.54.0.0'
-    implementation (group: 'com.nimbusds', name: 'nimbus-jose-jwt', version: '8.17.1')
-            { exclude group: "net.minidev", module: "json-smart" }
+    implementation group: 'com.nimbusds', name: 'nimbus-jose-jwt', version: '9.12.1'
+           /* { exclude group: "net.minidev", module: "json-smart" }*/
 
     implementation 'com.squareup.retrofit2:retrofit:2.6.0'
     implementation 'com.squareup.retrofit2:converter-gson:2.6.0'
