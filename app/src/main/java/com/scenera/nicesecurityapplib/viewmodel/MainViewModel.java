@@ -1219,7 +1219,7 @@ public class MainViewModel extends ViewModel {
 
             JSONObject jsonBody = new JSONObject();
             JSONObject jsonPayLoad = new JSONObject();
-            String appInstanceID = pHelper.getAppSecurityObject().getAppInstanceID();
+//            String appInstanceID = pHelper.getAppSecurityObject().getAppInstanceID();
 
             jsonPayLoad.put(Constants.Params.DEVICE_ID, strGlobalBrigdeUUID);
 
@@ -1321,7 +1321,7 @@ public class MainViewModel extends ViewModel {
 
             JSONObject jsonBody = new JSONObject();
             JSONObject jsonPayLoad = new JSONObject();
-            String appInstanceID = pHelper.getAppSecurityObject().getAppInstanceID();
+//            String appInstanceID = pHelper.getAppSecurityObject().getAppInstanceID();
 
             jsonPayLoad.put(Constants.Params.DEVICE_ID, strGlobalBrigdeUUID);
 
@@ -1565,7 +1565,7 @@ public class MainViewModel extends ViewModel {
             CMFHeaderObject.put(Constants.CMF.Header.COMMAND_TYPE, "/1.0/" + strSceneModeEndPoint + "/management/GetSceneMode");
 
             JSONObject jsonPayLoad = new JSONObject();
-            String appInstanceID = pHelper.getAppSecurityObject().getAppInstanceID();
+//            String appInstanceID = pHelper.getAppSecurityObject().getAppInstanceID();
 
             jsonPayLoad.put(Constants.Params.NODE_ID, strGlobalDeviceNodeID);
 

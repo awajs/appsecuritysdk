@@ -41,6 +41,9 @@ public class NodeList implements Parcelable
     @SerializedName("DeviceType")
     @Expose
     private String deviceType;
+    @SerializedName("NodeName")
+    @Expose
+    private String nodeName;
     @SerializedName("Tags")
     @Expose
     private List<String> tags;
@@ -61,6 +64,7 @@ public class NodeList implements Parcelable
         isTimeZoneSelected = in.readByte() != 0;
         deviceType = in.readString();
         tags = in.createStringArrayList();
+        nodeName = in.readString();
     }
 
     @Override
@@ -75,6 +79,7 @@ public class NodeList implements Parcelable
         dest.writeByte((byte) (isTimeZoneSelected ? 1 : 0));
         dest.writeString(deviceType);
         dest.writeStringList(tags);
+        dest.writeString(nodeName);
     }
 
     public static final Creator<NodeList> CREATOR = new Creator<NodeList>() {
