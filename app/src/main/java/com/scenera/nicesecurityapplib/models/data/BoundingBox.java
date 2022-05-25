@@ -13,84 +13,81 @@ public class BoundingBox implements Parcelable {
 
     @SerializedName("Height")
     @Expose
-    private Integer height;
+    private double height;
     @SerializedName("Width")
     @Expose
-    private Integer width;
+    private double width;
     @SerializedName("XCoordinate")
     @Expose
-    private Integer xCoordinate;
+    private double xCoordinate;
     @SerializedName("YCoordinate")
     @Expose
-    private Integer yCoordinate;
-    public final static Creator<BoundingBox> CREATOR = new Creator<BoundingBox>() {
-
-
-        @SuppressWarnings({
-                "unchecked"
-        })
-        public BoundingBox createFromParcel(Parcel in) {
-            return new BoundingBox(in);
-        }
-
-        public BoundingBox[] newArray(int size) {
-            return (new BoundingBox[size]);
-        }
-
-    }
-            ;
-
-    protected BoundingBox(Parcel in) {
-        this.height = ((Integer) in.readValue((Integer.class.getClassLoader())));
-        this.width = ((Integer) in.readValue((Integer.class.getClassLoader())));
-        this.xCoordinate = ((Integer) in.readValue((Integer.class.getClassLoader())));
-        this.yCoordinate = ((Integer) in.readValue((Integer.class.getClassLoader())));
-    }
+    private double yCoordinate;
 
     public BoundingBox() {
     }
 
-    public Integer getHeight() {
-        return height;
+    protected BoundingBox(Parcel in) {
+        height = in.readDouble();
+        width = in.readDouble();
+        xCoordinate = in.readDouble();
+        yCoordinate = in.readDouble();
     }
 
-    public void setHeight(Integer height) {
-        this.height = height;
-    }
-
-    public Integer getWidth() {
-        return width;
-    }
-
-    public void setWidth(Integer width) {
-        this.width = width;
-    }
-
-    public Integer getXCoordinate() {
-        return xCoordinate;
-    }
-
-    public void setXCoordinate(Integer xCoordinate) {
-        this.xCoordinate = xCoordinate;
-    }
-
-    public Integer getYCoordinate() {
-        return yCoordinate;
-    }
-
-    public void setYCoordinate(Integer yCoordinate) {
-        this.yCoordinate = yCoordinate;
-    }
-
+    @Override
     public void writeToParcel(Parcel dest, int flags) {
-        dest.writeValue(height);
-        dest.writeValue(width);
-        dest.writeValue(xCoordinate);
-        dest.writeValue(yCoordinate);
+        dest.writeDouble(height);
+        dest.writeDouble(width);
+        dest.writeDouble(xCoordinate);
+        dest.writeDouble(yCoordinate);
     }
 
+    @Override
     public int describeContents() {
         return 0;
     }
 
+    public static final Creator<BoundingBox> CREATOR = new Creator<BoundingBox>() {
+        @Override
+        public BoundingBox createFromParcel(Parcel in) {
+            return new BoundingBox(in);
+        }
+
+        @Override
+        public BoundingBox[] newArray(int size) {
+            return new BoundingBox[size];
+        }
+    };
+
+    public double getHeight() {
+        return height;
+    }
+
+    public void setHeight(double height) {
+        this.height = height;
+    }
+
+    public double getWidth() {
+        return width;
+    }
+
+    public void setWidth(double width) {
+        this.width = width;
+    }
+
+    public double getxCoordinate() {
+        return xCoordinate;
+    }
+
+    public void setxCoordinate(double xCoordinate) {
+        this.xCoordinate = xCoordinate;
+    }
+
+    public double getyCoordinate() {
+        return yCoordinate;
+    }
+
+    public void setyCoordinate(double yCoordinate) {
+        this.yCoordinate = yCoordinate;
+    }
 }
