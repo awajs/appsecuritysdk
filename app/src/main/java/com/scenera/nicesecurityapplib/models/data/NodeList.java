@@ -180,6 +180,14 @@ public class NodeList implements Parcelable
         this.tags = tags;
     }
 
+    public String getNodeName() {
+        return nodeName;
+    }
+
+    public void setNodeName(String nodeName) {
+        this.nodeName = nodeName;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
