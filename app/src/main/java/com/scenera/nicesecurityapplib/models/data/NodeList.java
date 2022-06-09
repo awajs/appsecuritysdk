@@ -47,11 +47,14 @@ public class NodeList implements Parcelable
     @SerializedName("Tags")
     @Expose
     private List<String> tags;
-
+    @SerializedName("ListOfROIs")
+    @Expose
+    private List<ListOfROI> listOfROIs;
 
 
     public NodeList() {
     }
+
 
     protected NodeList(Parcel in) {
         isSelected = in.readByte() != 0;
@@ -63,8 +66,9 @@ public class NodeList implements Parcelable
         timeZone = in.readString();
         isTimeZoneSelected = in.readByte() != 0;
         deviceType = in.readString();
-        tags = in.createStringArrayList();
         nodeName = in.readString();
+        tags = in.createStringArrayList();
+        listOfROIs = in.createTypedArrayList(ListOfROI.CREATOR);
     }
 
     @Override
@@ -78,8 +82,14 @@ public class NodeList implements Parcelable
         dest.writeString(timeZone);
         dest.writeByte((byte) (isTimeZoneSelected ? 1 : 0));
         dest.writeString(deviceType);
-        dest.writeStringList(tags);
         dest.writeString(nodeName);
+        dest.writeStringList(tags);
+        dest.writeTypedList(listOfROIs);
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
     }
 
     public static final Creator<NodeList> CREATOR = new Creator<NodeList>() {
@@ -137,9 +147,6 @@ public class NodeList implements Parcelable
 
 
 
-    public int describeContents() {
-        return 0;
-    }
     public boolean getSelected() {
         return isSelected;
     }
@@ -186,6 +193,14 @@ public class NodeList implements Parcelable
 
     public void setNodeName(String nodeName) {
         this.nodeName = nodeName;
+    }
+
+    public List<ListOfROI> getListOfROIs() {
+        return listOfROIs;
+    }
+
+    public void setListOfROIs(List<ListOfROI> listOfROIs) {
+        this.listOfROIs = listOfROIs;
     }
 
     @Override
