@@ -16,7 +16,8 @@
         android:largeHeap="true"
         android:supportsRtl="true"
         android:usesCleartextTraffic="true">
-        <activity android:name="com.scenera.nicesecurityapplib.BSSLoginActivity">
+        <activity android:name="com.scenera.nicesecurityapplib.BSSLoginActivity"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
