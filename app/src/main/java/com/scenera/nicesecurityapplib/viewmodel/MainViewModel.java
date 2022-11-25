@@ -1024,8 +1024,10 @@ public class MainViewModel extends ViewModel {
                                      String deviceName, String deviceTimeZone) {
         Utils.showCustomProgressDialog(activity, "", false);
         this.pHelper = PreferenceHelper.getInstance(activity);
+
         Date today = new Date();
         currentDate =  format.format(today);
+
         String accessToken = pHelper.getAppSecurityObject().getNICEASEndPoint().getNetEndPoint().getScheme().get(0).getAccessToken();
 
         JSONObject jsonObject = new JSONObject();
@@ -1049,7 +1051,7 @@ public class MainViewModel extends ViewModel {
             jsonObjectAccessTokenPayload.put(Constants.CMF.Header.ACCESS_TOKEN, accessToken);
 
 
-            jsonObject.put(Constants.CMF.Payload.EndPointX509Certificate,appSecurityObject.getNICEASEndPoint().getAppEndPoint().getX509Certificate());
+            //jsonObject.put(Constants.CMF.Payload.EndPointX509Certificate,appSecurityObject.getNICEASEndPoint().getAppEndPoint().getX509Certificate());
             jsonObject.put(Constants.CMF.Payload.CMF_HEADER,CMFHeaderObject.toString());
             jsonObject.put(Constants.CMF.Payload.ACCESSTOKEN_PAYLOAD,jsonObjectAccessTokenPayload);
 
@@ -1060,8 +1062,9 @@ public class MainViewModel extends ViewModel {
                                 jsonObjectAccessTokenPayload.toString());
 
                 JSONObject jsonObjectRequest = new JSONObject();
-                jsonObjectRequest.put(Constants.CMF.Payload.ENCRYPTED_KEY, PreferenceHelper.getInstance(activity).getPublicKeyRSA());
-                jsonObjectRequest.put(Constants.CMF.Payload.ENCRYPTED_PAYLOAD,encryptedPayload);
+              //  jsonObjectRequest.put(Constants.CMF.Payload.ENCRYPTED_KEY, PreferenceHelper.getInstance(activity).getPublicKeyRSA());
+              //  jsonObjectRequest.put(Constants.CMF.Payload.ENCRYPTED_PAYLOAD,encryptedPayload);
+                jsonObjectRequest.put(Constants.CMF.Payload.SIGNED_CMF,encryptedPayload);
 
                 ServiceInterfaces.GetAppControlObjectEncrypted api = ApiClient.getClientAccount(activity,"https://" +
                         pHelper.getAppSecurityObject().getNICEASEndPoint().getNetEndPoint().getScheme().get(0).getAuthority()).create(ServiceInterfaces.GetAppControlObjectEncrypted.class);

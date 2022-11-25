@@ -91,6 +91,8 @@ public class BSSLoginActivity extends BaseActivity {
     static {
         Security.insertProviderAt(new org.spongycastle.jce.provider.BouncyCastleProvider(), 1);
     }
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -138,13 +140,16 @@ public class BSSLoginActivity extends BaseActivity {
                 Log.d("encodedPublicKey => ", encodedPublicKey + "");
                 String bssUrl = Constants.ServiceType.LINK_APP_TO_BSS_ACCOUNT;
                 String appId = Constants.APP_ID;
+
                 if(getIntent() != null && getIntent().hasExtra(Constants.BSS_URL)){
                     bssUrl = getIntent().getStringExtra(Constants.BSS_URL);
                     pHelper.putSignInMode(getIntent().getIntExtra(Constants.SIGN_IN_MODE, 0));
                 }
+
                 if(getIntent() != null && getIntent().hasExtra(Constants.BSS_APP_ID)){
                     appId = getIntent().getStringExtra(Constants.BSS_APP_ID);
                 }
+
                 niceUrl = bssUrl + "/" + "link_app/" + appId + "/" + encodedPublicKey;
 
                 Log.d(TAG + "NiceURL==> ", niceUrl + "");
@@ -152,6 +157,7 @@ public class BSSLoginActivity extends BaseActivity {
                 wvNiceAS.loadUrl(niceUrl);
 
                 wvNiceAS.addJavascriptInterface(new MyJavaScriptInterface(BSSLoginActivity.this), "HtmlViewer");
+
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -278,6 +284,7 @@ public class BSSLoginActivity extends BaseActivity {
             System.out.println("Total " + "Dots ==> " + dotsCount);
             /********************** encryption ***********************/
             String JWE_Header = strArray[0];
+
             /*  String JWE_Encrypted_Key = strArray[1];
             String JWE_Initialization_Vector = strArray[2];
             String JWE_CipherText = strArray[3];
@@ -326,7 +333,7 @@ public class BSSLoginActivity extends BaseActivity {
             jsonObjectAccessTokenPayload.put(Constants.CMF.Payload.PAYLOAD_OBJECT, jsonPayLoad);
             jsonObjectAccessTokenPayload.put(Constants.CMF.Header.ACCESS_TOKEN, accessToken);
 
-            jsonObject.put(Constants.CMF.Payload.EndPointX509Certificate,appSecurityObject.getNICEASEndPoint().getAppEndPoint().getX509Certificate());
+           // jsonObject.put(Constants.CMF.Payload.EndPointX509Certificate,appSecurityObject.getNICEASEndPoint().getAppEndPoint().getX509Certificate());
             jsonObject.put(Constants.CMF.Payload.CMF_HEADER,CMFHeaderObject.toString());
             jsonObject.put(Constants.CMF.Payload.ACCESSTOKEN_PAYLOAD,jsonObjectAccessTokenPayload);
 
@@ -339,8 +346,9 @@ public class BSSLoginActivity extends BaseActivity {
 
 
                 JSONObject jsonObjectRequest = new JSONObject();
-                jsonObjectRequest.put(Constants.CMF.Payload.ENCRYPTED_KEY, PreferenceHelper.getInstance(this).getPublicKeyRSA());
-                jsonObjectRequest.put(Constants.CMF.Payload.ENCRYPTED_PAYLOAD,encryptedPayload);
+               // jsonObjectRequest.put(Constants.CMF.Payload.ENCRYPTED_KEY, PreferenceHelper.getInstance(this).getPublicKeyRSA());
+               // jsonObjectRequest.put(Constants.CMF.Payload.ENCRYPTED_PAYLOAD,encryptedPayload);
+                jsonObjectRequest.put(Constants.CMF.Payload.SIGNED_CMF,encryptedPayload);
 
                 ServiceInterfaces.GetAppControlObjectEncrypted api = ApiClient.getClientAccount(this, "https://" +
                         pHelper.getAppSecurityObject().getNICEASEndPoint().getNetEndPoint().getScheme().get(0).getAuthority()).create(ServiceInterfaces.GetAppControlObjectEncrypted.class);
@@ -564,6 +572,7 @@ public class BSSLoginActivity extends BaseActivity {
                 saveRSAKeyPair(keyPairRSA);
 
                 keyPairRSA = readKeyPairRSA();
+
             }
 
             publicKeyRSA = keyPairRSA.getPublic();

@@ -113,7 +113,9 @@ public class Constants {
     }
 
     public static class CMF {
+
         public static class Header {
+
             /*Request*/
             public static final String VERSION = "Version";
             public static final String MESSAGE_TYPE = "MessageType";
@@ -132,6 +134,7 @@ public class Constants {
             public static final String REPLY_STATUS_CODE = "ReplyStatusCode";
             public static final String REPLY_ERROR_CODE = "ReplyErrorCode";
             public static final String REPLY_STATUS_MESSAGE = "ReplyStatusMessage";
+
         }
 
         public static class Payload {
@@ -143,6 +146,7 @@ public class Constants {
             public static final String PAYLOAD = "Payload";
             public static final String BODY = "Body";
             public static final String ENCRYPTED_KEY = "EncryptionKey";
+            public static final String SIGNED_CMF = "SignedCMF";
             public static final String ENCRYPTED_PAYLOAD = "EncryptedPayload";
         }
 
