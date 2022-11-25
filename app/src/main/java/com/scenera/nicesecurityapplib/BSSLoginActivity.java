@@ -1,8 +1,5 @@
 package com.scenera.nicesecurityapplib;
 
-import androidx.annotation.Nullable;
-import androidx.lifecycle.ViewModelProvider;
-
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
@@ -19,6 +16,9 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Toast;
 
+import androidx.annotation.Nullable;
+import androidx.lifecycle.ViewModelProvider;
+
 import com.google.gson.Gson;
 import com.scenera.nicesecurityapplib.Encryption.Crypto;
 import com.scenera.nicesecurityapplib.Encryption.EcdhDecrypt;
@@ -33,7 +33,6 @@ import com.scenera.nicesecurityapplib.models.response.EncryptedCMFResponse;
 import com.scenera.nicesecurityapplib.retrofit.ApiClient;
 import com.scenera.nicesecurityapplib.utilities.AppLog;
 import com.scenera.nicesecurityapplib.utilities.Constants;
-import com.scenera.nicesecurityapplib.utilities.PreferenceHelper;
 import com.scenera.nicesecurityapplib.utilities.Utils;
 import com.scenera.nicesecurityapplib.viewmodel.MainViewModel;
 
@@ -58,7 +57,6 @@ import java.security.spec.ECGenParameterSpec;
 import java.security.spec.ECPoint;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Base64;
 import java.util.Date;
 
 import javax.crypto.BadPaddingException;
@@ -67,7 +65,6 @@ import javax.crypto.NoSuchPaddingException;
 
 import retrofit2.Call;
 import retrofit2.Callback;
-import retrofit2.Response;
 
 public class BSSLoginActivity extends BaseActivity {
 
@@ -92,6 +89,8 @@ public class BSSLoginActivity extends BaseActivity {
         Security.insertProviderAt(new org.spongycastle.jce.provider.BouncyCastleProvider(), 1);
     }
 
+    //lib update token
+    //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
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -112,9 +111,9 @@ public class BSSLoginActivity extends BaseActivity {
             Date today = new Date();
 
             SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss:" + "000000");
-            currentDate =  format.format(today);
+            currentDate = format.format(today);
             System.out.println("currentDate:    " + currentDate);
-            wvNiceAS =(WebView) findViewById(R.id.wvNiceAS);
+            wvNiceAS = (WebView) findViewById(R.id.wvNiceAS);
             WebSettings webSettings = wvNiceAS.getSettings();
             WebViewClient webViewClient = new WebViewClient() {
                 @Override
@@ -141,12 +140,12 @@ public class BSSLoginActivity extends BaseActivity {
                 String bssUrl = Constants.ServiceType.LINK_APP_TO_BSS_ACCOUNT;
                 String appId = Constants.APP_ID;
 
-                if(getIntent() != null && getIntent().hasExtra(Constants.BSS_URL)){
+                if (getIntent() != null && getIntent().hasExtra(Constants.BSS_URL)) {
                     bssUrl = getIntent().getStringExtra(Constants.BSS_URL);
                     pHelper.putSignInMode(getIntent().getIntExtra(Constants.SIGN_IN_MODE, 0));
                 }
 
-                if(getIntent() != null && getIntent().hasExtra(Constants.BSS_APP_ID)){
+                if (getIntent() != null && getIntent().hasExtra(Constants.BSS_APP_ID)) {
                     appId = getIntent().getStringExtra(Constants.BSS_APP_ID);
                 }
 
@@ -192,7 +191,7 @@ public class BSSLoginActivity extends BaseActivity {
                         appLinkDialog.setButton(android.app.AlertDialog.BUTTON_POSITIVE, "OK", new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int which) {
                                 dialog.dismiss();
-                             }
+                            }
                         });
                         appLinkDialog.show();
                     } else {
@@ -204,6 +203,7 @@ public class BSSLoginActivity extends BaseActivity {
         }
 
     }
+
     private void convertToJson() {
         AppLog.Log(TAG, "responseStringJson=>" + responseString);
 
@@ -213,7 +213,7 @@ public class BSSLoginActivity extends BaseActivity {
                 try {
 
                     try {
-                      //  pHelper.putServiceProviderName(serviceProviderName);
+                        //  pHelper.putServiceProviderName(serviceProviderName);
                         parseAppSecurity();
 
                     } catch (Exception e) {
@@ -229,6 +229,7 @@ public class BSSLoginActivity extends BaseActivity {
 
 
     }
+
     private void parseAppSecurity() {
         try {
             String privateKey = pHelper.getPrivateKey();
@@ -240,7 +241,7 @@ public class BSSLoginActivity extends BaseActivity {
             /*********** Decrypt Encrypted Payload **************/
             EcdhDecrypt ecdhDecrypt = new EcdhDecrypt();
 
-            AppSecurityObjectResponse appSecurityObject = ecdhDecrypt.getAppSecurityObject(this,responseString, privateKey, appControlHeader);
+            AppSecurityObjectResponse appSecurityObject = ecdhDecrypt.getAppSecurityObject(this, responseString, privateKey, appControlHeader);
             Gson gson = new Gson();
             String jsonInString = gson.toJson(appSecurityObject);
 
@@ -249,15 +250,15 @@ public class BSSLoginActivity extends BaseActivity {
                 /************ Call api to get the AppControl Object *************/
                 pHelper.putAppSecurityObject(appSecurityObject);
                 pHelper.putAppInstanceId(appSecurityObject.getAppInstanceID()); // AppInstanceID
-              //  pHelper.putAppInstanceId("00000001-5e84-224c-8003-000000000065");
+                //  pHelper.putAppInstanceId("00000001-5e84-224c-8003-000000000065");
                 AppLog.Log(TAG + " AppInstaceID => ", pHelper.getAppSecurityObject().getAppInstanceID());
 
                 /**********************GET APP CONTROL OBJECT FROM CURRENT USER'S APP SECURITY OBJECT**********************************************/
                 Date today = new Date();
                 SimpleDateFormat format = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
                 String currentTime = format.format(today);
-                AppLog.Log("currentTime:    " , currentTime);
-                AppLog.Log("appControlTime:    " , pHelper.getAppControlTime());
+                AppLog.Log("currentTime:    ", currentTime);
+                AppLog.Log("appControlTime:    ", pHelper.getAppControlTime());
 
                 getAppControlObject(pHelper.getAppSecurityObject());
 
@@ -266,6 +267,7 @@ public class BSSLoginActivity extends BaseActivity {
             e.printStackTrace();
         }
     }
+
     private AppControlHeader SplitAndDecrypt(String encryptedPaylodString) throws InvalidKeyException, BadPaddingException, NoSuchAlgorithmException, IllegalBlockSizeException, NoSuchPaddingException, CertificateException, KeyStoreException, IOException, NoSuchProviderException, JoseException {
         AppControlHeader appControlHeader = null;
         try {
@@ -333,84 +335,85 @@ public class BSSLoginActivity extends BaseActivity {
             jsonObjectAccessTokenPayload.put(Constants.CMF.Payload.PAYLOAD_OBJECT, jsonPayLoad);
             jsonObjectAccessTokenPayload.put(Constants.CMF.Header.ACCESS_TOKEN, accessToken);
 
-           // jsonObject.put(Constants.CMF.Payload.EndPointX509Certificate,appSecurityObject.getNICEASEndPoint().getAppEndPoint().getX509Certificate());
-            jsonObject.put(Constants.CMF.Payload.CMF_HEADER,CMFHeaderObject.toString());
-            jsonObject.put(Constants.CMF.Payload.ACCESSTOKEN_PAYLOAD,jsonObjectAccessTokenPayload);
+            // jsonObject.put(Constants.CMF.Payload.EndPointX509Certificate,appSecurityObject.getNICEASEndPoint().getAppEndPoint().getX509Certificate());
+            jsonObject.put(Constants.CMF.Payload.CMF_HEADER, CMFHeaderObject.toString());
+            //jsonObject.put(Constants.CMF.Payload.ACCESSTOKEN_PAYLOAD, jsonObjectAccessTokenPayload);
 
             AppLog.Log("jsonObjectMain => ", jsonObject.toString());
 
 
 //            if(pHelper.getSignInMode() == Constants.STAGING_SIGN_IN) {
-                String encryptedPayload = Utils.encryptAndSignCMF(this, jsonObject,
-                        jsonObjectAccessTokenPayload.toString());
+            String encryptedPayload = Utils.encryptAndSignCMF(this, jsonObject,
+                    jsonObjectAccessTokenPayload.toString());
+
+            AppLog.Log("encryptedPayload => ", encryptedPayload.toString());
+
+            JSONObject jsonObjectRequest = new JSONObject();
+            // jsonObjectRequest.put(Constants.CMF.Payload.ENCRYPTED_KEY, PreferenceHelper.getInstance(this).getPublicKeyRSA());
+            // jsonObjectRequest.put(Constants.CMF.Payload.ENCRYPTED_PAYLOAD,encryptedPayload);
+            jsonObjectRequest.put(Constants.CMF.Payload.SIGNED_CMF, encryptedPayload);
+
+            ServiceInterfaces.GetAppControlObjectEncrypted api = ApiClient.getClientAccount(this, "https://" +
+                    pHelper.getAppSecurityObject().getNICEASEndPoint().getNetEndPoint().getScheme().get(0).getAuthority()).create(ServiceInterfaces.GetAppControlObjectEncrypted.class);
+
+            Call<EncryptedCMFResponse> call = api.getAppControlObject("Bearer " + accessToken,
+                    pHelper.getAppSecurityObject().getNICEASEndPoint().getNetEndPoint().getAPIVersion(),
+                    pHelper.getAppSecurityObject().getNICEASEndPoint().getNetEndPoint().getEndPointID(),
+                    Constants.CODE_GET_APP_CONTROL_REQUEST,
+                    ApiClient.makeJSONRequestBody(jsonObjectRequest));
 
 
-                JSONObject jsonObjectRequest = new JSONObject();
-               // jsonObjectRequest.put(Constants.CMF.Payload.ENCRYPTED_KEY, PreferenceHelper.getInstance(this).getPublicKeyRSA());
-               // jsonObjectRequest.put(Constants.CMF.Payload.ENCRYPTED_PAYLOAD,encryptedPayload);
-                jsonObjectRequest.put(Constants.CMF.Payload.SIGNED_CMF,encryptedPayload);
+            call.enqueue(new Callback<EncryptedCMFResponse>() {
+                @Override
+                public void onResponse(Call<EncryptedCMFResponse> call, retrofit2.Response<EncryptedCMFResponse> response) {
+                    Log.i(TAG, "---->>> AppControl " + response.raw().request().url());
 
-                ServiceInterfaces.GetAppControlObjectEncrypted api = ApiClient.getClientAccount(this, "https://" +
-                        pHelper.getAppSecurityObject().getNICEASEndPoint().getNetEndPoint().getScheme().get(0).getAuthority()).create(ServiceInterfaces.GetAppControlObjectEncrypted.class);
+                    Utils.removeCustomProgressDialog();
 
-                Call<EncryptedCMFResponse> call = api.getAppControlObject("Bearer "+ accessToken,
-                        pHelper.getAppSecurityObject().getNICEASEndPoint().getNetEndPoint().getAPIVersion(),
-                        pHelper.getAppSecurityObject().getNICEASEndPoint().getNetEndPoint().getEndPointID(),
-                        Constants.CODE_GET_APP_CONTROL_REQUEST,
-                        ApiClient.makeJSONRequestBody(jsonObjectRequest));
+                    if (!response.equals("{}") && response != null && response.body() != null) {
 
+                        /**************************** PUT APPCONTROL TIME*********************************/
+                        String encryptedPayload = response.body().getencryptedPayload();
+                        AppConrolObjectResponse appConrolObjectResponse = Utils.decryptAndValidateCMF(BSSLoginActivity.this, encryptedPayload);
+                        AppLog.Log("appConrolObjectResponse", "****" + new Gson().toJson(appConrolObjectResponse));
+                        pHelper.putAppControlObject(appConrolObjectResponse);
+                        pHelper.putEmail("test");
+                        Toast.makeText(getApplicationContext(), getResources().getString(R.string.text_error_app_link_success), Toast.LENGTH_LONG).show();
+                        //((HomeActivity) getActivity()).changeButtonUI(R.id.tvCameras);
 
-                call.enqueue(new Callback<EncryptedCMFResponse>() {
-                    @Override
-                    public void onResponse(Call<EncryptedCMFResponse> call, retrofit2.Response<EncryptedCMFResponse> response) {
-                        Log.i(TAG, "---->>> AppControl " + response.raw().request().url());
+                        String token = appConrolObjectResponse.getPayload().getDataEndPoints().get(0).
+                                getNetEndPointAppControl().getSchemeAppControlObject().get(0).getAccessToken();
+                        if (!TextUtils.isEmpty(token)) {
+                            String[] strArray = token.split("\\.");
+                            String JWTPayload = new String(org.jose4j.base64url.internal.apache.
+                                    commons.codec.binary.Base64.decodeBase64(strArray[1]));
 
-                        Utils.removeCustomProgressDialog();
-
-                        if (!response.equals("{}") && response != null && response.body() != null) {
-
-                            /**************************** PUT APPCONTROL TIME*********************************/
-                            String encryptedPayload = response.body().getencryptedPayload();
-                            AppConrolObjectResponse appConrolObjectResponse = Utils.decryptAndValidateCMF(BSSLoginActivity.this, encryptedPayload);
-                            AppLog.Log("appConrolObjectResponse", "****" + new Gson().toJson(appConrolObjectResponse));
-                            pHelper.putAppControlObject(appConrolObjectResponse);
-                            pHelper.putEmail("test");
-                            Toast.makeText(getApplicationContext(), getResources().getString(R.string.text_error_app_link_success), Toast.LENGTH_LONG).show();
-                            //((HomeActivity) getActivity()).changeButtonUI(R.id.tvCameras);
-
-                            String token = appConrolObjectResponse.getPayload().getDataEndPoints().get(0).
-                                    getNetEndPointAppControl().getSchemeAppControlObject().get(0).getAccessToken();
-                            if(!TextUtils.isEmpty(token)){
-                                String[] strArray = token.split("\\.");
-                                String JWTPayload = new String(org.jose4j.base64url.internal.apache.
-                                        commons.codec.binary.Base64.decodeBase64(strArray[1]));
-
-                                try {
-                                    JSONObject jsonObject = new JSONObject(JWTPayload);
-                                    AppLog.Log("EXPIRY_DATE","****"+jsonObject.getString("exp"));
-                                    AppLog.Log("NOT_BEFORE_DATE","****"+jsonObject.getString("nbf"));
-                                    pHelper.putExpiryDate(jsonObject.getLong("exp") * 1000);
-                                    pHelper.putNotBeforeDate(jsonObject.getLong("nbf") * 1000);
-                                }catch (Exception e){
-                                    e.printStackTrace();
-                                }
+                            try {
+                                JSONObject jsonObject = new JSONObject(JWTPayload);
+                                AppLog.Log("EXPIRY_DATE", "****" + jsonObject.getString("exp"));
+                                AppLog.Log("NOT_BEFORE_DATE", "****" + jsonObject.getString("nbf"));
+                                pHelper.putExpiryDate(jsonObject.getLong("exp") * 1000);
+                                pHelper.putNotBeforeDate(jsonObject.getLong("nbf") * 1000);
+                            } catch (Exception e) {
+                                e.printStackTrace();
                             }
-                            Intent intent = new Intent();
-                            intent.putExtra("TestData", "TestData");
-                            setResult(RESULT_OK, intent);
-                            finish();
+                        }
+                        Intent intent = new Intent();
+                        intent.putExtra("TestData", "TestData");
+                        setResult(RESULT_OK, intent);
+                        finish();
                       /*  Intent intent = new Intent(MainActivity.this, HomeActivity.class);
                         startActivity(intent);*/
-                            // finish();
-                        }
+                        // finish();
                     }
+                }
 
-                    @Override
-                    public void onFailure(Call<EncryptedCMFResponse> call, Throwable t) {
-                        Utils.removeCustomProgressDialog();
-                        Log.i("onFailure", "---->>>> " + t.toString());
-                    }
-                });
+                @Override
+                public void onFailure(Call<EncryptedCMFResponse> call, Throwable t) {
+                    Utils.removeCustomProgressDialog();
+                    Log.i("onFailure", "---->>>> " + t.toString());
+                }
+            });
 //            }else {
 //                ServiceInterfaces.GetAppControlObject api = ApiClient.getClientAccount(this,"https://" +
 //                        pHelper.getAppSecurityObject().getNICEASEndPoint().getNetEndPoint().getScheme().get(0).getAuthority()).create(ServiceInterfaces.GetAppControlObject.class);
@@ -458,7 +461,7 @@ public class BSSLoginActivity extends BaseActivity {
         super.onActivityResult(requestCode, resultCode, data);
         if (resultCode == Activity.RESULT_OK) {
             if (requestCode == MY_REQUEST_CODE) {
-                if (data != null){
+                if (data != null) {
                     ArrayList<NodeList> nodeLists = data.getParcelableArrayListExtra("nodeList");
                     AppLog.Log("ArrayListIntent: ", nodeLists.size() + "");
                 }
@@ -476,8 +479,8 @@ public class BSSLoginActivity extends BaseActivity {
             keyPairGenerator.initialize(ecSpec);
 
             if (pHelper.getPublicKey() != null && pHelper.getPrivateKey() != null) {
-                 keyPair = readKeyPair();
-             } else {
+                keyPair = readKeyPair();
+            } else {
 
                 keyPair = keyPairGenerator.generateKeyPair();
 
@@ -499,9 +502,9 @@ public class BSSLoginActivity extends BaseActivity {
 
             try {
                 jsonObjectMain.put(Constants.Crypto.ALGORITHM, Constants.Crypto.ECDH_ES);
-           
+
                 JSONObject jsonObjPubKey = new JSONObject();
-              
+
                 jsonObjPubKey.put(Constants.Crypto.CRV, Constants.Crypto.P_256);
                 jsonObjPubKey.put(Constants.Crypto.KTY, Constants.Crypto.EC);
                 jsonObjPubKey.put(Constants.Crypto.X, stringBigEndianBigIntegerX);
@@ -524,6 +527,7 @@ public class BSSLoginActivity extends BaseActivity {
         }
 
     }
+
     private void saveKeyPair(KeyPair keyPair) {
         String pubStr = Utils.base64Encode(keyPair.getPublic().getEncoded());
         String priStr = Utils.base64Encode(keyPair.getPrivate().getEncoded());
