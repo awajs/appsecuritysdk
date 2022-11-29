@@ -33,6 +33,7 @@ import com.scenera.nicesecurityapplib.models.response.EncryptedCMFResponse;
 import com.scenera.nicesecurityapplib.retrofit.ApiClient;
 import com.scenera.nicesecurityapplib.utilities.AppLog;
 import com.scenera.nicesecurityapplib.utilities.Constants;
+import com.scenera.nicesecurityapplib.utilities.PreferenceHelper;
 import com.scenera.nicesecurityapplib.utilities.Utils;
 import com.scenera.nicesecurityapplib.viewmodel.MainViewModel;
 
@@ -335,9 +336,9 @@ public class BSSLoginActivity extends BaseActivity {
             jsonObjectAccessTokenPayload.put(Constants.CMF.Payload.PAYLOAD_OBJECT, jsonPayLoad);
             jsonObjectAccessTokenPayload.put(Constants.CMF.Header.ACCESS_TOKEN, accessToken);
 
-            // jsonObject.put(Constants.CMF.Payload.EndPointX509Certificate,appSecurityObject.getNICEASEndPoint().getAppEndPoint().getX509Certificate());
+            jsonObject.put(Constants.CMF.Payload.EndPointX509Certificate,appSecurityObject.getNICEASEndPoint().getAppEndPoint().getX509Certificate());
             jsonObject.put(Constants.CMF.Payload.CMF_HEADER, CMFHeaderObject.toString());
-            //jsonObject.put(Constants.CMF.Payload.ACCESSTOKEN_PAYLOAD, jsonObjectAccessTokenPayload);
+            jsonObject.put(Constants.CMF.Payload.ACCESSTOKEN_PAYLOAD, jsonObjectAccessTokenPayload);
 
             AppLog.Log("jsonObjectMain => ", jsonObject.toString());
 
@@ -349,9 +350,9 @@ public class BSSLoginActivity extends BaseActivity {
             AppLog.Log("encryptedPayload => ", encryptedPayload.toString());
 
             JSONObject jsonObjectRequest = new JSONObject();
-            // jsonObjectRequest.put(Constants.CMF.Payload.ENCRYPTED_KEY, PreferenceHelper.getInstance(this).getPublicKeyRSA());
-            // jsonObjectRequest.put(Constants.CMF.Payload.ENCRYPTED_PAYLOAD,encryptedPayload);
-            jsonObjectRequest.put(Constants.CMF.Payload.SIGNED_CMF, encryptedPayload);
+            jsonObjectRequest.put(Constants.CMF.Payload.ENCRYPTED_KEY, PreferenceHelper.getInstance(this).getPublicKeyRSA());
+            jsonObjectRequest.put(Constants.CMF.Payload.ENCRYPTED_PAYLOAD,encryptedPayload);
+            //jsonObjectRequest.put(Constants.CMF.Payload.SIGNED_CMF, encryptedPayload);
 
             ServiceInterfaces.GetAppControlObjectEncrypted api = ApiClient.getClientAccount(this, "https://" +
                     pHelper.getAppSecurityObject().getNICEASEndPoint().getNetEndPoint().getScheme().get(0).getAuthority()).create(ServiceInterfaces.GetAppControlObjectEncrypted.class);

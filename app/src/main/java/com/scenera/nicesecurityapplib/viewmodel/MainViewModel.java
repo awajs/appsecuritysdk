@@ -1081,9 +1081,9 @@ public class MainViewModel extends ViewModel {
             jsonObjectAccessTokenPayload.put(Constants.CMF.Header.ACCESS_TOKEN, accessToken);
 
 
-            //jsonObject.put(Constants.CMF.Payload.EndPointX509Certificate,appSecurityObject.getNICEASEndPoint().getAppEndPoint().getX509Certificate());
+            jsonObject.put(Constants.CMF.Payload.EndPointX509Certificate,appSecurityObject.getNICEASEndPoint().getAppEndPoint().getX509Certificate());
             jsonObject.put(Constants.CMF.Payload.CMF_HEADER, CMFHeaderObject.toString());
-            //jsonObject.put(Constants.CMF.Payload.ACCESSTOKEN_PAYLOAD,jsonObjectAccessTokenPayload);
+            jsonObject.put(Constants.CMF.Payload.ACCESSTOKEN_PAYLOAD,jsonObjectAccessTokenPayload);
 
             AppLog.Log("jsonObjectMain => ", jsonObject.toString());
 //            if(pHelper.getSignInMode() == Constants.STAGING_SIGN_IN){
@@ -1094,9 +1094,9 @@ public class MainViewModel extends ViewModel {
             AppLog.Log("encryptedPayload => ", encryptedPayload.toString());
 
             JSONObject jsonObjectRequest = new JSONObject();
-            //  jsonObjectRequest.put(Constants.CMF.Payload.ENCRYPTED_KEY, PreferenceHelper.getInstance(activity).getPublicKeyRSA());
-            //  jsonObjectRequest.put(Constants.CMF.Payload.ENCRYPTED_PAYLOAD,encryptedPayload);
-            jsonObjectRequest.put(Constants.CMF.Payload.SIGNED_CMF, encryptedPayload);
+            jsonObjectRequest.put(Constants.CMF.Payload.ENCRYPTED_KEY, PreferenceHelper.getInstance(activity).getPublicKeyRSA());
+            jsonObjectRequest.put(Constants.CMF.Payload.ENCRYPTED_PAYLOAD,encryptedPayload);
+            //jsonObjectRequest.put(Constants.CMF.Payload.SIGNED_CMF, encryptedPayload);
 
             ServiceInterfaces.GetAppControlObjectEncrypted api = ApiClient.getClientAccount(activity, "https://" +
                     pHelper.getAppSecurityObject().getNICEASEndPoint().getNetEndPoint().getScheme().get(0).getAuthority()).create(ServiceInterfaces.GetAppControlObjectEncrypted.class);

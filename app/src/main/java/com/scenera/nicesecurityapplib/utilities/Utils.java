@@ -305,11 +305,10 @@ public class Utils {
             jwe1.setPayload(payLoadToEncrypt);
             String serializedJwe = jwe1.getCompactSerialization();
 
-           // jsonObjectCMFHeader.put(Constants.CMF.Payload.ACCESSTOKEN_PAYLOAD , serializedJwe );
-            jsonObjectCMFHeader.put(Constants.CMF.Payload.PAYLOAD , serializedJwe );
+            jsonObjectCMFHeader.put(Constants.CMF.Payload.ACCESSTOKEN_PAYLOAD , serializedJwe );
 
             return sign(privateKey, jsonObjectCMFHeader.toString(), PreferenceHelper.
-                    getInstance(context).getAppSecurityObject().getAppInstanceCertificate(),
+                            getInstance(context).getAppSecurityObject().getAppInstanceCertificate(),
                     PreferenceHelper.getInstance(context).getAppSecurityObject()
                             .getNICEASEndPoint().getAppEndPoint().getEndPointID());
 
