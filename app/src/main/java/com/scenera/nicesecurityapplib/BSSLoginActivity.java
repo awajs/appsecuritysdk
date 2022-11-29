@@ -91,7 +91,7 @@ public class BSSLoginActivity extends BaseActivity {
     }
 
     //lib update token
-    //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
+    //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
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

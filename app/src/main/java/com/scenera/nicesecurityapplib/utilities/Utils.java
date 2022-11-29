@@ -1,5 +1,6 @@
 package com.scenera.nicesecurityapplib.utilities;
 
+import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -229,6 +230,7 @@ public class Utils {
         return diffHours;
     }
 
+    @SuppressLint("ObsoleteSdkInt")
     public static String encryptAndSignCMF(Context context, JSONObject jsonObjectCMFHeader, String payLoadToEncrypt){
         String jwe = "";
 
@@ -247,11 +249,16 @@ public class Utils {
             InputStream inputStream = null;
 
             CertificateFactory certFactory = CertificateFactory.getInstance("X.509");
+
+            inputStream = new ByteArrayInputStream(org.spongycastle.util.encoders.Base64.decode( PreferenceHelper.getInstance(context).getAppSecurityObject().getNICEASEndPoint().getAppEndPoint().getX509Certificate()));
+
+            /*
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 inputStream = new ByteArrayInputStream(java.util.Base64.getDecoder().decode( PreferenceHelper.getInstance(context).getAppSecurityObject().getNICEASEndPoint().getAppEndPoint().getX509Certificate()));
             } else {
                 inputStream = new ByteArrayInputStream(org.spongycastle.util.encoders.Base64.decode( PreferenceHelper.getInstance(context).getAppSecurityObject().getNICEASEndPoint().getAppEndPoint().getX509Certificate()));
-            }
+            }*/
+
             X509Certificate certJWE = (X509Certificate) certFactory.generateCertificate(inputStream);
 
             jsonObjectHeader.addProperty("alg", KeyManagementAlgorithmIdentifiers.RSA_OAEP_256);
