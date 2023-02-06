@@ -253,6 +253,7 @@ public class BSSLoginActivity extends BaseActivity {
                 pHelper.putAppInstanceId(appSecurityObject.getAppInstanceID()); // AppInstanceID
                 //  pHelper.putAppInstanceId("00000001-5e84-224c-8003-000000000065");
                 AppLog.Log(TAG + " AppInstaceID => ", pHelper.getAppSecurityObject().getAppInstanceID());
+                AppLog.Log(TAG + " appSecurityObject => ", String.valueOf(appSecurityObject));
 
                 /**********************GET APP CONTROL OBJECT FROM CURRENT USER'S APP SECURITY OBJECT**********************************************/
                 Date today = new Date();
