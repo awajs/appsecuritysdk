@@ -13,44 +13,72 @@ public class DeviceSecurityObject implements Parcelable {
     @SerializedName("FirmwareSourceCertificate")
     @Expose
     private String firmwareSourceCertificate;
+
+
     @SerializedName("DeviceCertificate")
     @Expose
-    private String deviceCertificate;
+    private List<Object> deviceCertificate = null;
+
+
+
     @SerializedName("DevicePassword")
     @Expose
     private String devicePassword;
+
+
+
     @SerializedName("Version")
     @Expose
     private String version;
+
+
+
     @SerializedName("DeviceID")
     @Expose
     private String deviceID;
+
+
+
     @SerializedName("DevicePrivateKey")
     @Expose
     private DevicePrivateKeyEncypted devicePrivateKeyEncypted;
+
+
+
+
     @SerializedName("AllowedTLSRootCertificates")
     @Expose
     private List<Object> allowedTLSRootCertificates = null;
+
+
+
     @SerializedName("NICELARootCertificate")
     @Expose
-    private String nICELARootCertificate;
+    private List<Object> nICELARootCertificate= null;
+
+
+
+
     @SerializedName("NICELAEndPoint")
     @Expose
     private NetEndPointAppControl nICELAEndPoint;
+
+
+
     @SerializedName("MasterIssuerID")
     @Expose
     private String masterIssuerID;
+
+
     @SerializedName("FirmwareSourceID")
     @Expose
     private String firmwareSourceID;
 
     protected DeviceSecurityObject(Parcel in) {
         firmwareSourceCertificate = in.readString();
-        deviceCertificate = in.readString();
         devicePassword = in.readString();
         version = in.readString();
         deviceID = in.readString();
-        nICELARootCertificate = in.readString();
         nICELAEndPoint = in.readParcelable(NetEndPointAppControl.class.getClassLoader());
         masterIssuerID = in.readString();
         firmwareSourceID = in.readString();
@@ -59,11 +87,9 @@ public class DeviceSecurityObject implements Parcelable {
     @Override
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeString(firmwareSourceCertificate);
-        dest.writeString(deviceCertificate);
         dest.writeString(devicePassword);
         dest.writeString(version);
         dest.writeString(deviceID);
-        dest.writeString(nICELARootCertificate);
         dest.writeParcelable(nICELAEndPoint, flags);
         dest.writeString(masterIssuerID);
         dest.writeString(firmwareSourceID);
@@ -94,11 +120,11 @@ public class DeviceSecurityObject implements Parcelable {
         this.firmwareSourceCertificate = firmwareSourceCertificate;
     }
 
-    public String getDeviceCertificate() {
+    public List<Object> getDeviceCertificate() {
         return deviceCertificate;
     }
 
-    public void setDeviceCertificate(String deviceCertificate) {
+    public void setDeviceCertificate(List<Object> deviceCertificate) {
         this.deviceCertificate = deviceCertificate;
     }
 
@@ -142,11 +168,11 @@ public class DeviceSecurityObject implements Parcelable {
         this.allowedTLSRootCertificates = allowedTLSRootCertificates;
     }
 
-    public String getNICELARootCertificate() {
+    public List<Object> getnICELARootCertificate() {
         return nICELARootCertificate;
     }
 
-    public void setNICELARootCertificate(String nICELARootCertificate) {
+    public void setnICELARootCertificate(List<Object> nICELARootCertificate) {
         this.nICELARootCertificate = nICELARootCertificate;
     }
 

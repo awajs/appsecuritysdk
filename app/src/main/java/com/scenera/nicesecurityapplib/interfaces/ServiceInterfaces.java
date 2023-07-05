@@ -1,6 +1,7 @@
 package com.scenera.nicesecurityapplib.interfaces;
 
 
+import com.scenera.nicesecurityapplib.models.data.EncryptedCMFResponseNew;
 import com.scenera.nicesecurityapplib.models.response.AddFaceResponse;
 import com.scenera.nicesecurityapplib.models.response.AllItemTypesResponse;
 import com.scenera.nicesecurityapplib.models.response.AppConrolObjectResponse;
@@ -115,6 +116,15 @@ public class ServiceInterfaces {
                 @Body RequestBody requestBody);
     }
 
+    public interface GetDeviceControlObjectt {
+        @Headers("Content-Type:application/json")
+        @POST("/{Version}/{EndPointID}/management/"+ Constants.ServiceType.GET_DEVICE_CONTROL_OBJECT)
+        Call<EncryptedCMFResponseNew> getDeviceControlObjectt(
+                @Header("Authorization") String auth,
+                @Path("Version") String version,
+                @Path("EndPointID") String EndPointID,
+                @Body RequestBody requestBody);
+    }
     public interface GetPrivacyObject {
 
         @Headers("Content-Type:application/json")
@@ -216,20 +226,36 @@ public class ServiceInterfaces {
         Call<AddFaceResponse> changeFaceDatabaseApi(@Body RequestBody requestBody);
     }
 
-    public interface SetSceneMark{
+   /* public interface SetSceneMark{
 
         @Headers("Content-Type:application/json")
         @POST("/scenemark/1.0/setscenemark")
         Call<ResponseBody> setSceneMark( @Header("Authorization") String auth,
                                          @Body RequestBody requestBody);
+    }*/
+
+    public interface SetSceneMark{
+
+        @Headers("Content-Type:application/json")
+        @POST("/1.0/{EndPointID}/data/{NodeID}/{PortID}/SetSceneMark")
+        Call<ResponseBody> setSceneMark( @Header("Authorization") String auth,
+                                         @Path("EndPointID") String EndPointID,
+                                         @Path("NodeID") String NodeID,
+                                         @Path("PortID") String PortID,
+                                         @Body RequestBody requestBody);
     }
+
 
     public interface SetSceneData{
 
         @Headers("Content-Type:application/json")
-        @POST("/scenedata/1.0/setscenedata")
+        @POST("/1.0/{EndPointID}/data/{NodeID}/{PortID}/SetSceneData")
         Call<ResponseBody> setSceneData( @Header("Authorization") String auth,
+                                         @Path("EndPointID") String EndPointID,
+                                         @Path("NodeID") String NodeID,
+                                         @Path("PortID") String PortID,
                                          @Body RequestBody requestBody);
+
     }
 
 

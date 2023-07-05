@@ -15,6 +15,17 @@ public class SceneDataValues {
     private String HashMethod = "";
     private String OriginalFileHash = "";
     private String SectionBase64 = "";
+
+    private String MediaFormat = "";
+
+    public String getMediaFormat() {
+        return MediaFormat;
+    }
+
+    public void setMediaFormat(String mediaFormat) {
+        MediaFormat = mediaFormat;
+    }
+
     private List<String> RelatedSceneMarks = new ArrayList<>();
 
     public String getVersion() {

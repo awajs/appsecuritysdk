@@ -93,6 +93,19 @@ import javax.crypto.spec.SecretKeySpec;
  */
 public class Utils {
     private static Dialog mDialog;
+
+    private static String strGlobalDeviceNodeID = "", strGlobalDevicePortID = "";
+
+    private static String strGlobalBrigdeUUID = "00000001-619f-2365-8003-004900000200",
+            strGlobalVideoSceneDataID = "";
+
+    private static int NodeID = 1, PortID = 1;
+
+
+    private static byte[] sessionKey, ivBytes;
+
+    private static AppCompatActivity context;
+
     private static String uniqueID = null;
     private final static String JWE_SECTION_DELIMITER = ".";
     static {
@@ -174,6 +187,85 @@ public class Utils {
         }
         return jsonArray;
     }
+
+    public static String getDeviceNodeIDOnly(int nodeID) {
+
+        String hexInstance = Integer.toHexString(nodeID);
+        String subString = hexInstance.length() > 3 ? hexInstance.substring(2) : hexInstance;
+        String hexNodeIDPadded = ("0000" + subString).substring(subString.length());
+        String DeviceNodeID =  hexNodeIDPadded;
+        return DeviceNodeID;
+    }
+
+    public static byte[] EncryptImageData(byte[] binImage) {
+        EncryptData encryptData = new EncryptData();
+        byte[] binEncryptedData = null;
+        try {
+            binEncryptedData = encryptData.execute(binImage).get();
+        } catch (InterruptedException | ExecutionException e) {
+            e.printStackTrace();
+        }
+        return binEncryptedData;
+    }
+
+
+    public static class EncryptData extends AsyncTask<byte[], Void, byte[]> {
+
+        @Override
+        protected byte[] doInBackground(byte[]... binImage) {
+
+            // This is done in a background thread
+            AppLog.Log("doInBackground => ", "doInBackground");
+            try {
+                /*************************************/
+                Cipher cipher = null;
+                //   keyEncrypted = pHelper.getSceneEncryptionID();
+
+                sessionKey = org.jose4j.base64url.internal.apache.commons.codec.binary.Base64.
+                        decodeBase64(PreferenceHelper.getInstance(context).getSceneEncryptionID().getBytes("UTF-8"));
+                AppLog.Log("sessionKey => ", sessionKey + "");
+                //    ivEncrypted = pHelper.getIvBytes();
+                ivBytes = org.jose4j.base64url.internal.apache.commons.codec.binary.Base64.
+                        decodeBase64(PreferenceHelper.getInstance(context).getIvBytes().getBytes("UTF-8"));
+                AppLog.Log("ivBytes => ", ivBytes + "");
+
+                AlgorithmParameterSpec ivSpec = new IvParameterSpec(ivBytes);
+                SecretKeySpec newKey = new SecretKeySpec(sessionKey, "AES");
+
+                cipher = Cipher.getInstance("AES/CTR/NoPadding");
+                cipher.init(Cipher.ENCRYPT_MODE, newKey, ivSpec);
+                return cipher.doFinal(binImage[0]);
+
+
+            } catch (Exception e) {
+                Log.e("Error reading file", e.toString());
+            }
+
+            return null;
+        }
+
+        protected void onPostExecute(byte[] image) {
+            //   setImage(image);
+        }
+
+
+    }
+
+
+    public static String createSceneDataID(int instance) {
+
+        String hexInstance = Integer.toHexString(instance);
+        String subString = hexInstance;
+        subString = subString.substring(2);
+        AppLog.Log("hexInstance", "***" + subString);
+        String hexInstancePadded = ("00000000" + subString).substring(subString.length());
+//        String hexInstancePadded = String.format("%08X",Integer.parseInt(subString));
+        AppLog.Log("hexInstancePadded", "***" + hexInstancePadded);
+        strGlobalDeviceNodeID = getDeviceNodeID(strGlobalBrigdeUUID, NodeID);
+        String sceneDataID = "SDT_" + strGlobalDeviceNodeID + "_" + hexInstancePadded;
+        return sceneDataID;
+    }
+
     public static String base64Encode(byte[] b) {
         try {
             return new String(Base64.encode(b), "ASCII");
@@ -326,6 +418,38 @@ public class Utils {
         return jwe;
     }
 
+    public static JSONObject decryptAndValidateCMFGetManagementendPoints(Context context,
+                                                                         String jws,
+                                                                         String x509Certificate,
+                                                                         boolean isDevice) {
+        JSONObject getSceneModeResponse = null;
+        try {
+            String privateKey;
+            if (isDevice)
+                privateKey = PreferenceHelper.getInstance(context).getDevicePrivateKey();
+            else
+                privateKey = PreferenceHelper.getInstance(context).getPrivateKey();
+//            ECKey jwk = ECKey.parse(Constants.PRIVATE_KEY);
+//            PrivateKey privateKey1 = jwk.toPrivateKey();
+
+            jws = jws.replace("\"", "");
+            AppControlHeader appControlHeader = SplitAndDecrypt(jws);
+
+            /*********** Decrypt Encrypted Payload **************/
+            EcdhDecrypt ecdhDecrypt = new EcdhDecrypt();
+
+            getSceneModeResponse = ecdhDecrypt.getSceneMode(jws, context, privateKey, appControlHeader, x509Certificate);
+//            AppLog.Log("appConrolObjectResponse","****"+new Gson().toJson(appConrolObjectResponse));
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return getSceneModeResponse;
+
+    }
+
+
     public static String encryptAndSignCMF(JSONObject jsonObjectCMFHeader,
                                            String payLoadToEncrypt, String x509Certificate,
                                            String appX509Certificate, String encodedPrivateKey,
@@ -367,6 +491,57 @@ public class Utils {
 
         return jwe;
     }
+
+
+
+
+    @SuppressLint("ObsoleteSdkInt")
+    public static String encryptAndSignCMFForAccessToken(Context context, JSONObject jsonObjectAccessToken,
+                                                         String payLoadToEncrypt, String x509Certificate,
+                                                         String appX509Certificate, String encodedPrivateKey,
+                                                         String endPoint, String sourceEndPoint) {
+        String jwe = "";
+
+        AppLog.Log("payload", " ****" + payLoadToEncrypt);
+        try {
+
+            PrivateKey privateKey = getPrivateKey(encodedPrivateKey);
+
+            InputStream inputStream = null;
+
+            CertificateFactory certFactory = CertificateFactory.getInstance("X.509");
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                inputStream = new ByteArrayInputStream(java.util.Base64.getDecoder().decode(x509Certificate));
+            } else {
+                inputStream = new ByteArrayInputStream(org.spongycastle.util.encoders.Base64.decode(x509Certificate));
+            }
+
+            inputStream = new ByteArrayInputStream(org.spongycastle.util.encoders.Base64.decode(x509Certificate));
+
+            X509Certificate certJWE = (X509Certificate) certFactory.generateCertificate(inputStream);
+
+            JsonWebEncryption jwe1 = new JsonWebEncryption();
+            jwe1.setAlgorithmHeaderValue("RSA1_5");
+            jwe1.setEncryptionMethodHeaderParameter(ContentEncryptionAlgorithmIdentifiers.AES_256_GCM);
+            jwe1.setCertificateChainHeaderValue(certJWE);
+            jwe1.setHeader("kid", endPoint);
+            jwe1.setKey(certJWE.getPublicKey());
+            jwe1.setPayload(payLoadToEncrypt);
+            String serializedJwe = jwe1.getCompactSerialization();
+
+            jsonObjectAccessToken.put(com.scenera.nicesecurityapplib.utilities.Constants.CMF.Payload.PAYLOAD, serializedJwe);
+
+            return sign( privateKey, jsonObjectAccessToken.toString(), appX509Certificate,
+                    sourceEndPoint);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return jwe;
+    }
+
 
     public static AppConrolObjectResponse decryptAndValidateCMF(Context context, String jws){
         AppConrolObjectResponse appConrolObjectResponse = null;
@@ -638,14 +813,28 @@ public class Utils {
         return DeviceNodeID;
     }
 
+    public static String getDevicePortID(String strUUID, int nodeID, int portID) {
+
+        String hexNodeID = Integer.toHexString(nodeID);
+        String subString = hexNodeID.length() > 3 ? hexNodeID.substring(2) : hexNodeID;
+        String hexNodeIDPadded = ("0000" + subString).substring(subString.length());
+
+        String hexPortID = Integer.toHexString(portID);
+        String subString1 = hexPortID.length() > 3 ? hexPortID.substring(2) : hexPortID;
+        String hexPortIDPadded = ("0000" + subString1).substring(subString1.length());
+//        String hexNodeIDPadded = String.format("%04X",Integer.parseInt(subString));
+        String DevicePortID = strUUID + "_" + hexNodeIDPadded + "_" + hexPortIDPadded;
+        return DevicePortID;
+    }
 
     public static String GetDateTime(){
         Date dateNow = new Date();
         Constants.sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
         return Constants.sdf.format(dateNow);
+
     }
 
-    public static byte[] EncryptImageData(Context context,byte[] binImage){
+    /*public static byte[] EncryptImageData(Context context,byte[] binImage){
         EncryptData encryptData = new EncryptData(context);
         byte[] binEncryptedData = null;
         try {
@@ -665,7 +854,7 @@ public class Utils {
             e.printStackTrace();
         }
         return binEncryptedData;
-    }
+    }*/
 
     public static void writeToFile(Context context,String filename, String data) {
         try {
@@ -700,6 +889,10 @@ public class Utils {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    public static void setContext(Context activity) {
+        context = (AppCompatActivity) activity;
     }
 
 }

@@ -7,16 +7,16 @@ public class NICEASEndPoint {
 
     @SerializedName("AppEndPoint")
     @Expose
-    private AppEndPointAppSecurity appEndPoint;
+    private AppEndPointAppSecurityForDevice appEndPoint;
     @SerializedName("NetEndPoint")
     @Expose
     private NetEndPointAppSecurity netEndPoint;
 
-    public AppEndPointAppSecurity getAppEndPoint() {
+    public AppEndPointAppSecurityForDevice getAppEndPoint() {
         return appEndPoint;
     }
 
-    public void setAppEndPoint(AppEndPointAppSecurity appEndPoint) {
+    public void setAppEndPoint(AppEndPointAppSecurityForDevice appEndPoint) {
         this.appEndPoint = appEndPoint;
     }
 

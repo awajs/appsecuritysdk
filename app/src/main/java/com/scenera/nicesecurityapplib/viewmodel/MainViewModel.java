@@ -1,6 +1,9 @@
 package com.scenera.nicesecurityapplib.viewmodel;
 
+import static com.scenera.nicesecurityapplib.utilities.Utils.getDeviceNodeID;
+
 import android.content.Context;
+import android.os.Environment;
 import android.text.TextUtils;
 import android.util.Log;
 import android.widget.Switch;
@@ -10,6 +13,10 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
+import com.androidnetworking.AndroidNetworking;
+import com.androidnetworking.common.Priority;
+import com.androidnetworking.error.ANError;
+import com.androidnetworking.interfaces.OkHttpResponseListener;
 import com.auth0.android.jwt.JWT;
 import com.google.gson.Gson;
 import com.scenera.nicesecurityapplib.interfaces.ServiceInterfaces;
@@ -19,6 +26,7 @@ import com.scenera.nicesecurityapplib.models.data.DetectedObjectsClass;
 import com.scenera.nicesecurityapplib.models.data.DeviceControlObject;
 import com.scenera.nicesecurityapplib.models.data.DeviceManagementObject;
 import com.scenera.nicesecurityapplib.models.data.DeviceSecurityObject;
+import com.scenera.nicesecurityapplib.models.data.EncryptedCMFResponseNew;
 import com.scenera.nicesecurityapplib.models.data.Encryption;
 import com.scenera.nicesecurityapplib.models.data.NetEndPointPrivacy;
 import com.scenera.nicesecurityapplib.models.data.NodeList;
@@ -35,6 +43,7 @@ import com.scenera.nicesecurityapplib.models.response.AllItemTypesResponse;
 import com.scenera.nicesecurityapplib.models.response.AppConrolObjectResponse;
 import com.scenera.nicesecurityapplib.models.response.AppSecurityObjectResponse;
 import com.scenera.nicesecurityapplib.models.response.EncryptedCMFResponse;
+import com.scenera.nicesecurityapplib.models.response.GetDeviceManagementEndPointResponse;
 import com.scenera.nicesecurityapplib.models.response.GetDevicesResponse;
 import com.scenera.nicesecurityapplib.models.response.GetFaceDataResponse;
 import com.scenera.nicesecurityapplib.models.response.GetPrivaceObjectResponse;
@@ -49,10 +58,15 @@ import com.scenera.nicesecurityapplib.utilities.Utils;
 
 import org.jose4j.json.JsonUtil;
 import org.jose4j.jwk.EllipticCurveJsonWebKey;
+import org.jose4j.jwk.PublicJsonWebKey;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.security.PrivateKey;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -1201,18 +1215,21 @@ public class MainViewModel extends ViewModel {
 
     }
 
+
     public void saveDeviceSecurityObject(Context context, String objectJson) {
-        DeviceSecurityObject jsonObject = new Gson().fromJson(objectJson, DeviceSecurityObject.class);
-        PreferenceHelper.getInstance(context).putDeviceSecurityObject(jsonObject);
+       DeviceSecurityObject jsonObject = new Gson().fromJson(objectJson, DeviceSecurityObject.class);
+       PreferenceHelper.getInstance(context).putDeviceSecurityObject(jsonObject);
     }
 
     public void saveDevicePrivateKey(Context context, String objectJson) {
         try {
             final Map<String, Object> parsed = JsonUtil.parseJson(objectJson);
-            final EllipticCurveJsonWebKey ellipticCurveJsonWebKey = new EllipticCurveJsonWebKey(parsed, "BC");
-            PrivateKey privateKey = ellipticCurveJsonWebKey.getEcPrivateKey();
-            String priStr = Utils.base64Encode(privateKey.getEncoded());
-            PreferenceHelper.getInstance(context).putDevicePrivateKey(priStr);
+            // final EllipticCurveJsonWebKey ellipticCurveJsonWebKey = new EllipticCurveJsonWebKey(parsed, "BC");
+            PublicJsonWebKey jwk = PublicJsonWebKey.Factory.newPublicJwk(parsed);
+            PrivateKey privateKey = jwk.getPrivateKey();
+            //  PrivateKey privateKey = ellipticCurveJsonWebKey.getEcPrivateKey();
+            String priStr = com.scenera.nicesecurityapplib.utilities.Utils.base64Encode(privateKey.getEncoded());
+            com.scenera.nicesecurityapplib.utilities.PreferenceHelper.getInstance(context).putDevicePrivateKey(priStr);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -1222,15 +1239,16 @@ public class MainViewModel extends ViewModel {
     public void getDeviceManagementEndpointObject(AppCompatActivity activity) {
         pHelper = PreferenceHelper.getInstance(activity);
         strGlobalBrigdeUUID = pHelper.getDeviceSecurityObject().getDeviceID();
-        strGlobalDeviceNodeID = Utils.getDeviceNodeID(strGlobalBrigdeUUID, NodeID);
-//        strGlobalDevicePortID = Utils.getDevicePortID(strGlobalBrigdeUUID, NodeID, PortID);
-        deviceCertificate = pHelper.getDeviceSecurityObject().getDeviceCertificate();
+        strGlobalDeviceNodeID = getDeviceNodeID(strGlobalBrigdeUUID, NodeID);
+        strGlobalDevicePortID = Utils.getDevicePortID(strGlobalBrigdeUUID, NodeID, PortID);
+        deviceCertificate = String.valueOf(pHelper.getDeviceSecurityObject().getDeviceCertificate().get(0));
         String strGlobalNICELAEndPointEndPoint = pHelper.getDeviceSecurityObject().getNICELAEndPoint().getEndPointID();
         String strGlobalNICELAEndPointAuthority = pHelper.getDeviceSecurityObject().getNICELAEndPoint()
                 .getSchemeAppControlObject().get(0).getAuthority();
         String strNiceLAAccessToken = pHelper.getDeviceSecurityObject().getNICELAEndPoint()
                 .getSchemeAppControlObject().get(0).getAccessToken();
-        String strNICELARootCertificate = pHelper.getDeviceSecurityObject().getNICELARootCertificate();
+        // String strNICELARootCertificate = String.valueOf(pHelper.getDeviceSecurityObject().getnICELARootCertificate().get(0));
+        String strNICELARootCertificate = String.valueOf(pHelper.getDeviceSecurityObject().getDeviceCertificate().get(1));
         com.scenera.nicesecurityapplib.utilities.Utils.showCustomProgressDialog(activity, "", false);
         Date today = new Date();
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss:" + "000000");
@@ -1252,11 +1270,12 @@ public class MainViewModel extends ViewModel {
 
             JSONObject jsonBody = new JSONObject();
             JSONObject jsonPayLoad = new JSONObject();
-//            String appInstanceID = pHelper.getAppSecurityObject().getAppInstanceID();
+            String appInstanceID = pHelper.getAppSecurityObject().getAppInstanceID();
 
             jsonPayLoad.put(Constants.Params.DEVICE_ID, strGlobalBrigdeUUID);
 
             jsonBody.put(Constants.Params.BODY, jsonPayLoad);
+
 
             jsonObjectAccessTokenPayload.put(com.scenera.nicesecurityapplib.utilities.Constants.CMF.Payload.PAYLOAD_OBJECT, jsonBody);
             jsonObjectAccessTokenPayload.put(com.scenera.nicesecurityapplib.utilities.Constants.CMF.Header.ACCESS_TOKEN, strNiceLAAccessToken);
@@ -1267,6 +1286,7 @@ public class MainViewModel extends ViewModel {
             com.scenera.nicesecurityapplib.utilities.AppLog.Log("jsonObjectMain => ", jsonObject.toString());
 
             Utils.printLongLog("CMF_HEADER", CMFHeaderObject.toString());
+            Utils.printLongLog("PPPPPPP:::::", pHelper.getDevicePrivateKey());
 
             String encryptedPayload = Utils.encryptAndSignCMF(jsonObject,
                     jsonObjectAccessTokenPayload.toString(), strNICELARootCertificate, deviceCertificate,
@@ -1274,10 +1294,9 @@ public class MainViewModel extends ViewModel {
                     strGlobalNICELAEndPointEndPoint, strGlobalBrigdeUUID);
 
             JSONObject jsonObjectRequest = new JSONObject();
-//            jsonObjectRequest.put("EncryptionKey", PreferenceHelper.getInstance(activity).getPublicKeyRSA());
+
             jsonObjectRequest.put("EncryptedPayload", encryptedPayload);
-            ServiceInterfaces.GetDeviceManagementEndpointObject api = ApiClient.getClientAccount(activity,
-                    "https://" + strGlobalNICELAEndPointAuthority).create(ServiceInterfaces.GetDeviceManagementEndpointObject.class);
+            ServiceInterfaces.GetDeviceManagementEndpointObject api = ApiClient.getClientAccount(activity, "https://" + strGlobalNICELAEndPointAuthority).create(ServiceInterfaces.GetDeviceManagementEndpointObject.class);
 
             Call<EncryptedCMFResponse> call = api.getDeviceManagementEndpointObject(
                     "1.0",
@@ -1298,25 +1317,18 @@ public class MainViewModel extends ViewModel {
 
 
                         String encryptedPayload = response.body().getEncryptedPayload();
-                        JSONObject appConrolObjectResponse = Utils.decryptAndValidateCMFGetSceneMode(
+                        JSONObject appConrolObjectResponse = Utils.decryptAndValidateCMFGetManagementendPoints(
                                 activity, encryptedPayload, strNICELARootCertificate, true);
-                        com.scenera.nicesecurityapplib.utilities.AppLog.Log("GET_SCENEMODE",
-                                "****" + new Gson().toJson(appConrolObjectResponse));
-                        if (appConrolObjectResponse.has("Payload")) {
-                            try {
-                                JSONObject payload = (JSONObject) appConrolObjectResponse.get("Payload");
-                                JSONObject payload1 = (JSONObject) payload.get("Payload");
-                                JSONObject body = (JSONObject) payload1.get("Body");
-                                Body1 deviceManagementEndpointObject = new Gson().fromJson(body.toString(),
-                                        Body1.class);
-                                strGlobalNICELAEndPoint = deviceManagementEndpointObject.getNetEndPoint().getEndPointID();
-                                strGlobalNICELAAuthority = deviceManagementEndpointObject.getNetEndPoint().getScheme().get(0).getAuthority();
-                                getDeviceManagementObject(activity, strNiceLAAccessToken, strNICELARootCertificate);
-                            } catch (JSONException e) {
-                                e.printStackTrace();
-                            }
+                        com.scenera.nicesecurityapplib.utilities.AppLog.Log("GET_SCENEMODE", "****" + new Gson().toJson(appConrolObjectResponse));
+                        GetDeviceManagementEndPointResponse getDeviceManagementEndPointResponse = new Gson().fromJson(appConrolObjectResponse.toString(),
+                                GetDeviceManagementEndPointResponse.class);
+                        AppLog.Log("getDestinationEndPointID", getDeviceManagementEndPointResponse.getDestinationEndPointID());
 
-                        }
+                        strGlobalNICELAEndPoint = getDeviceManagementEndPointResponse.getPayload()
+                                .getPayload().getBody().getNetEndPoint().getEndPointID();
+                        strGlobalNICELAAuthority = getDeviceManagementEndPointResponse.getPayload()
+                                .getPayload().getBody().getNetEndPoint().getScheme().get(0).getAuthority();
+                        getDeviceManagementObject(activity, strNiceLAAccessToken, strNICELARootCertificate);
                     }
                 }
 
@@ -1354,7 +1366,7 @@ public class MainViewModel extends ViewModel {
 
             JSONObject jsonBody = new JSONObject();
             JSONObject jsonPayLoad = new JSONObject();
-//            String appInstanceID = pHelper.getAppSecurityObject().getAppInstanceID();
+            String appInstanceID = pHelper.getAppSecurityObject().getAppInstanceID();
 
             jsonPayLoad.put(Constants.Params.DEVICE_ID, strGlobalBrigdeUUID);
 
@@ -1376,10 +1388,8 @@ public class MainViewModel extends ViewModel {
                     strGlobalNICELAEndPoint, strGlobalBrigdeUUID);
 
             JSONObject jsonObjectRequest = new JSONObject();
-//            jsonObjectRequest.put("EncryptionKey", PreferenceHelper.getInstance(activity).getPublicKeyRSA());
             jsonObjectRequest.put("EncryptedPayload", encryptedPayload);
-            ServiceInterfaces.GetDeviceManagementObject api = ApiClient.getClientAccount(activity,
-                    "https://" + strGlobalNICELAAuthority).create(ServiceInterfaces.GetDeviceManagementObject.class);
+            ServiceInterfaces.GetDeviceManagementObject api = ApiClient.getClientAccount(activity, "https://" + strGlobalNICELAAuthority).create(ServiceInterfaces.GetDeviceManagementObject.class);
 
             Call<EncryptedCMFResponse> call = api.getDeviceManagementObject(
                     "1.0",
@@ -1400,18 +1410,21 @@ public class MainViewModel extends ViewModel {
 
 
                         String encryptedPayload = response.body().getEncryptedPayload();
-                        JSONObject appConrolObjectResponse = Utils.decryptAndValidateCMFGetSceneMode
+                        JSONObject appConrolObjectResponse = Utils.decryptAndValidateCMFGetManagementendPoints
                                 (activity, encryptedPayload, NiceLAEndPointX509Certificate, true);
                         com.scenera.nicesecurityapplib.utilities.AppLog.Log("GET_DEVICE_MANAGEMENT_OBJECT", "****" + new Gson().toJson(appConrolObjectResponse));
                         if (appConrolObjectResponse.has("Payload")) {
                             try {
                                 JSONObject payload = (JSONObject) appConrolObjectResponse.get("Payload");
                                 JSONObject payload1 = (JSONObject) payload.get("Payload");
+
                                 JSONObject body = (JSONObject) payload1.get("Body");
                                 DeviceManagementObject deviceManagementObject = new Gson().fromJson(body.toString(),
                                         DeviceManagementObject.class);
                                 GetManagementObjectInfo(deviceManagementObject);
-                                getDeviceControlObject(activity, strNICEASAuthority, strGlobalBrigdeUUID,
+                                System.out.println("base64NiceASCertificate::::::" + base64NiceASCertificate);
+                                Utils.printLongLog("payload1:::", payload1.toString());
+                                getDeviceControlObjectLatest(activity, strNICEASAuthority, strGlobalBrigdeUUID,
                                         strNICEASEndPoint, strNICEASAccessToken, base64NiceASCertificate);
                             } catch (JSONException e) {
                                 e.printStackTrace();
@@ -1438,12 +1451,16 @@ public class MainViewModel extends ViewModel {
                 .getScheme().get(0).getAuthority();
         strNICEASAccessToken = deviceManagementObject.getNiceas().getNICEASEndPoint().getNetEndPoint()
                 .getScheme().get(0).getAccessToken();
-        base64NiceASCertificate = deviceManagementObject.getNiceas().getNICEASEndPoint().getAppEndPoint()
-                .getX509Certificate();
+        base64NiceASCertificate = String.valueOf(deviceManagementObject.getNiceas().getNICEASEndPoint().getAppEndPoint()
+                .getX509Certificate().get(0));
         strNICEASID = deviceManagementObject.getNiceas().getNiceasid();
     }
 
+
+
+
     private void GetDeviceControlObjectInfo(DeviceControlObject deviceControlObject) {
+
         strSceneModeEndPoint = deviceControlObject.getControlEndPoints().get(0).getNetEndPoint().getEndPointID();
         strSceneModeAuthority = deviceControlObject.getControlEndPoints().get(0).getNetEndPoint().
                 getSchemeAppControlObject().get(0).getAuthority();
@@ -1451,11 +1468,19 @@ public class MainViewModel extends ViewModel {
                 getSchemeAppControlObject().get(0).getAccessToken();
         base64ControllerCertificate = deviceControlObject.getControlEndPoints().get(0).getAppEndPoint().getX509Certificate();
         AppEndPointID = deviceControlObject.getControlEndPoints().get(0).getAppEndPoint().getEndPointID();
-        strGlobalDeviceNodeID = Utils.getDeviceNodeID(strGlobalBrigdeUUID, NodeID);
+        strGlobalDeviceNodeID = getDeviceNodeID(strGlobalBrigdeUUID, NodeID);
+
+        System.out.println("NodeID:::::::::" + strGlobalDeviceNodeID);
+        System.out.println("NodeID:::::::::" + AppEndPointID);
+        System.out.println("NodeID:::::::::" + strSceneModeToken);
+
     }
 
-    public void getDeviceControlObject(AppCompatActivity activity, String strNICEASAuthority,
-                                       String strBrigdeUUID, String strNICEASEndPoint, String AccessToken, String NiceASEndPointX509Certificate) {
+
+    public void getDeviceControlObjectLatest(AppCompatActivity activity, String strNICEASAuthority,
+                                             String strBrigdeUUID, String strNICEASEndPoint, String AccessToken, String NiceASEndPointX509Certificate) {
+
+        System.out.println("yeslat>>>");
         pHelper = PreferenceHelper.getInstance(activity);
         com.scenera.nicesecurityapplib.utilities.Utils.showCustomProgressDialog(activity, "", false);
         Date today = new Date();
@@ -1464,7 +1489,7 @@ public class MainViewModel extends ViewModel {
         PreferenceHelper pHelper = PreferenceHelper.getInstance(activity);
 
         JSONObject jsonObject = new JSONObject();
-        JSONObject jsonObjectAccessTokenPayload = new JSONObject();
+        JSONObject jsonObjectAccessTokenPayloadd = new JSONObject();
         JSONObject CMFHeaderObject = new JSONObject();
 
         try {
@@ -1476,45 +1501,36 @@ public class MainViewModel extends ViewModel {
             CMFHeaderObject.put(com.scenera.nicesecurityapplib.utilities.Constants.CMF.Header.COMMAND_ID, com.scenera.nicesecurityapplib.utilities.Constants.CMF.HeaderValue.COMMAND_ID);
             CMFHeaderObject.put(com.scenera.nicesecurityapplib.utilities.Constants.CMF.Header.COMMAND_TYPE, "/1.0/" + strNICEASEndPoint + "/management/" + Constants.ServiceType.GET_DEVICE_CONTROL_OBJECT);
 
-            JSONObject jsonPayLoad = new JSONObject();
 
-            jsonPayLoad.put(Constants.Params.DEVICE_ID, strGlobalBrigdeUUID);
+            jsonObjectAccessTokenPayloadd.put(com.scenera.nicesecurityapplib.utilities.Constants.CMF.Header.ACCESS_TOKEN, AccessToken);
 
+            CMFHeaderObject.put(com.scenera.nicesecurityapplib.utilities.Constants.CMF.Payload.PAYLOAD, jsonObjectAccessTokenPayloadd);
 
-            jsonObjectAccessTokenPayload.put(com.scenera.nicesecurityapplib.utilities.Constants.CMF.Payload.PAYLOAD_OBJECT, jsonPayLoad);
-            jsonObjectAccessTokenPayload.put(com.scenera.nicesecurityapplib.utilities.Constants.CMF.Header.ACCESS_TOKEN, AccessToken);
-
-            jsonObject.put(com.scenera.nicesecurityapplib.utilities.Constants.CMF.Payload.EndPointX509Certificate, NiceASEndPointX509Certificate);
-            jsonObject.put(com.scenera.nicesecurityapplib.utilities.Constants.CMF.Payload.CMF_HEADER, CMFHeaderObject.toString());
-            jsonObject.put(com.scenera.nicesecurityapplib.utilities.Constants.CMF.Payload.ACCESSTOKEN_PAYLOAD, jsonObjectAccessTokenPayload);
-            com.scenera.nicesecurityapplib.utilities.AppLog.Log("jsonObjectMain => ", jsonObject.toString());
-
-            Utils.printLongLog("CMF_HEADER", CMFHeaderObject.toString());
-
-            String encryptedPayload = Utils.encryptAndSignCMF(jsonObject,
-                    jsonObjectAccessTokenPayload.toString(), NiceASEndPointX509Certificate, deviceCertificate,
+            String encryptedPayload = Utils.encryptAndSignCMFForAccessToken(activity, CMFHeaderObject,
+                    jsonObjectAccessTokenPayloadd.toString(), NiceASEndPointX509Certificate, deviceCertificate,
                     pHelper.getDevicePrivateKey(),
                     strNICEASEndPoint, strGlobalBrigdeUUID);
 
             JSONObject jsonObjectRequest = new JSONObject();
-//            jsonObjectRequest.put("EncryptionKey", PreferenceHelper.getInstance(activity).getPublicKeyRSA());
-            jsonObjectRequest.put("EncryptedPayload", encryptedPayload);
-            ServiceInterfaces.GetDeviceControlObject api = ApiClient.getClientAccount(activity,
-                    "https://" + strNICEASAuthority).create(ServiceInterfaces.GetDeviceControlObject.class);
+            jsonObjectRequest.put("SignedCMF", encryptedPayload);
 
-            Call<EncryptedCMFResponse> call = api.getDeviceControlObject(
+            Utils.printLongLog("SignedCMF>>>>", jsonObjectRequest.toString());
+
+            ServiceInterfaces.GetDeviceControlObjectt api = ApiClient.getClientAccount(activity, "https://" + strNICEASAuthority).create(ServiceInterfaces.GetDeviceControlObjectt.class);
+
+            Call<EncryptedCMFResponseNew> call = api.getDeviceControlObjectt(
                     "Bearer " + AccessToken,
                     "1.0",
                     strNICEASEndPoint,
                     com.scenera.nicesecurityapplib.retrofit.ApiClient.makeJSONRequestBody(jsonObjectRequest));
 
 
-            call.enqueue(new Callback<EncryptedCMFResponse>() {
+            call.enqueue(new Callback<EncryptedCMFResponseNew>() {
                 @Override
-                public void onResponse(Call<EncryptedCMFResponse> call, retrofit2.Response<EncryptedCMFResponse> response) {
-                    Log.i(TAG, "---->>> AppControl " + response.raw().request().url());
+                public void onResponse(Call<EncryptedCMFResponseNew> call, retrofit2.Response<EncryptedCMFResponseNew> response) {
+                    Log.i(TAG, "---->>> DeviceControl " + response.raw().request().url());
                     Gson gson = new Gson();
-                    Log.i(TAG, "---->>> AppControl-RESPONSE " + gson.toJson(response.body()));
+                    Log.i("lat>>>>>>>", "getDeviceControlObjectLatest---->>>" + gson.toJson(response.body()));
 
                     com.scenera.nicesecurityapplib.utilities.Utils.removeCustomProgressDialog();
 
@@ -1522,33 +1538,32 @@ public class MainViewModel extends ViewModel {
 
 
                         String encryptedPayload = response.body().getEncryptedPayload();
-                        JSONObject appConrolObjectResponse = Utils.decryptAndValidateCMFGetSceneMode
+                        JSONObject appConrolObjectResponse = Utils.decryptAndValidateCMFGetManagementendPoints
                                 (activity, encryptedPayload, NiceASEndPointX509Certificate, true);
                         com.scenera.nicesecurityapplib.utilities.AppLog.Log("GET_DEVICE_CONTROL_OBJECT", "****" + new Gson().toJson(appConrolObjectResponse));
                         if (appConrolObjectResponse.has("Payload")) {
                             try {
                                 JSONObject payload = (JSONObject) appConrolObjectResponse.get("Payload");
-                                DeviceControlObject deviceControlObject = new Gson().fromJson(payload.toString(),
+                                JSONObject PayloadObject = (JSONObject) payload.get("PayloadObject");
+                                com.scenera.nicesecurityapplib.utilities.AppLog.Log("Payload:::::::::", "****" + payload.toString());
+                                com.scenera.nicesecurityapplib.utilities.AppLog.Log("PayloadObject:::::::::", "****" + PayloadObject.toString());
+
+                                DeviceControlObject deviceControlObject = new Gson().fromJson(PayloadObject.toString(),
                                         DeviceControlObject.class);
+
                                 GetDeviceControlObjectInfo(deviceControlObject);
-                                isDeviceControlObjectReceived.setValue(true);
 
                             } catch (JSONException e) {
                                 e.printStackTrace();
                             }
 
-                        } else {
-                            isDeviceControlObjectReceived.setValue(false);
                         }
 
-//
-                    } else {
-                        isDeviceControlObjectReceived.setValue(false);
                     }
                 }
 
                 @Override
-                public void onFailure(Call<EncryptedCMFResponse> call, Throwable t) {
+                public void onFailure(Call<EncryptedCMFResponseNew> call, Throwable t) {
                     com.scenera.nicesecurityapplib.utilities.Utils.removeCustomProgressDialog();
                     Log.i("onFailure", "---->>>> " + t.toString());
                 }
@@ -1557,6 +1572,7 @@ public class MainViewModel extends ViewModel {
             e.printStackTrace();
         }
     }
+
 
     public void getSceneMode(AppCompatActivity activity) {
         Utils.showCustomProgressDialog(activity, "", false);
@@ -1965,22 +1981,23 @@ public class MainViewModel extends ViewModel {
 
     }
 
-    public void clearDetectedObjectList(Context activityContext) {
-        Utils.showCustomProgressDialog(activityContext, "", false);
+    public static void clearDetectedObjectList() {
         if (listDetectedObjects != null)
             listDetectedObjects.clear();
-        Utils.removeCustomProgressDialog();
     }
+
+
+
+
 
 //    public static List<DetectedObjectsClass> getDetectedObjectList(){
 //        return listDetectedObjects;
 //    }
 
-    public void updateDetectedObjectList(Context activityContext, String strBase64OfSceneData,
-                                         String label, double probability, int xmin,
-                                         int ymin, int xmax, int ymax,
-                                         int width, int height) {
-        Utils.showCustomProgressDialog(activityContext, "", false);
+    public static void updateDetectedObjectList(String strBase64OfSceneData,
+                                                String label, double probability, int xmin,
+                                                int ymin, int xmax, int ymax,
+                                                int width, int height) {
         if (listDetectedObjects == null)
             listDetectedObjects = new ArrayList<>();
         strBase64OfSceneDataImage = strBase64OfSceneData;
@@ -1989,7 +2006,7 @@ public class MainViewModel extends ViewModel {
         iGlobalImageHeight = height;
 
         int iSceneDataInstance = Utils.createRandomNumber();
-        String strDetectedObjectSceneDataID = createSceneDataID(iSceneDataInstance);
+        String strDetectedObjectSceneDataID = Utils.createSceneDataID(iSceneDataInstance);
         DetectedObjectsClass detectedObjectsClass = new DetectedObjectsClass();
         detectedObjectsClass.setStrSceneDataID(strDetectedObjectSceneDataID);
         detectedObjectsClass.setStrBase64OfSceneData(strBase64OfSceneData);
@@ -2003,7 +2020,6 @@ public class MainViewModel extends ViewModel {
         detectedObjectsClass.setHeight(ymax - ymin);
 
         listDetectedObjects.add(detectedObjectsClass);
-        Utils.removeCustomProgressDialog();
     }
 
     public static String createSceneMarkID(int instance) {
@@ -2012,10 +2028,24 @@ public class MainViewModel extends ViewModel {
         String subString = hexInstance;
 //        subString = subString.substring(2);
         String hexInstancePadded = ("00000000" + subString).substring(subString.length());
-        strGlobalDeviceNodeID = Utils.getDeviceNodeID(strGlobalBrigdeUUID, NodeID);
+        strGlobalDeviceNodeID = getDeviceNodeID(strGlobalBrigdeUUID, NodeID);
         String sceneMarkID = "SMK_" + strGlobalDeviceNodeID + "_" + hexInstancePadded;
         return sceneMarkID;
     }
+
+    public static String createScenemarkID(int instance) {
+
+        String hexInstance = Integer.toHexString(instance);
+        String subString = hexInstance;
+//        subString = subString.substring(2);
+        String hexInstancePadded = ("00000000" + subString).substring(subString.length());
+//        String hexInstancePadded = String.format("%08X",Integer.parseInt(subString));
+        strGlobalDeviceNodeID = getDeviceNodeID(strGlobalBrigdeUUID, NodeID);
+        String sceneMarkID = "SMK_" + strGlobalDeviceNodeID + "_" + hexInstancePadded;
+        return sceneMarkID;
+    }
+
+
 
     public static String createSceneDataID(int instance) {
 
@@ -2023,30 +2053,28 @@ public class MainViewModel extends ViewModel {
         String subString = hexInstance;
 //        subString = subString.substring(2);
         String hexInstancePadded = ("00000000" + subString).substring(subString.length());
-        strGlobalDeviceNodeID = Utils.getDeviceNodeID(strGlobalBrigdeUUID, NodeID);
+        strGlobalDeviceNodeID = getDeviceNodeID(strGlobalBrigdeUUID, NodeID);
         String sceneDataID = "SDT_" + strGlobalDeviceNodeID + "_" + hexInstancePadded;
         return sceneDataID;
     }
 
-    public void createVideoSceneDataID(Context activityContext,
-                                       int iVideoDurationSec, int iVideoWidth, int iVideoHeight) {
-        Utils.showCustomProgressDialog(activityContext, "", false);
+
+    public static void createVideoSceneDataID(int iVideoDurationSec, int iVideoWidth, int iVideoHeight) {
         iVideoRecordingDurationSec = iVideoDurationSec;
         iGlobalVideoWidth = iVideoWidth;
         iGlobalVideoHeight = iVideoHeight;
 
         int iSceneDataInstance = Utils.createRandomNumber();
-        strGlobalVideoSceneDataID = createSceneDataID(iSceneDataInstance);
+        strGlobalVideoSceneDataID = Utils.createSceneDataID(iSceneDataInstance);
         listRelatedSceneMarksToVideo = new ArrayList<>();
-        Utils.removeCustomProgressDialog();
     }
 
 
-    public void sendSceneMark(Context activityContext) {
-        Utils.showCustomProgressDialog(activityContext, "", false);
+    public static void sendSceneMark(Context activityContext) {
         context = (AppCompatActivity) activityContext;
+        Utils.showCustomProgressDialog(context, "", false);
         int iSceneDataInstance = Utils.createRandomNumber();
-        strSceneMarkID = createSceneMarkID(iSceneDataInstance);
+        strSceneMarkID = createScenemarkID(iSceneDataInstance);
 
         iSceneDataInstance = Utils.createRandomNumber();
         strFullImageSceneDataID = createSceneDataID(iSceneDataInstance);
@@ -2058,11 +2086,12 @@ public class MainViewModel extends ViewModel {
         listRelatedSceneMarksToVideo.add(strSceneMarkID);
     }
 
-    private void CreateAndSendSceneMark(String strSceneMarkID, String strFullImageSceneDataID,
-                                        int iImageWidth, int iImageHeight,
-                                        List<DetectedObjectsClass> listDetectedObjects,
-                                        String strVideoSceneDataID, int iVideoDurationSec,
-                                        int iVideoWidth, int iVideoHeight) {
+
+    private static void CreateAndSendSceneMark(String strSceneMarkID, String strFullImageSceneDataID,
+                                               int iImageWidth, int iImageHeight,
+                                               List<DetectedObjectsClass> listDetectedObjects,
+                                               String strVideoSceneDataID, int iVideoDurationSec,
+                                               int iVideoWidth, int iVideoHeight) {
         PrivacyServerEndPoint privacyServerEndPoint = new PrivacyServerEndPoint();
         NetEndPointPrivacy netEndPointPrivacy = new NetEndPointPrivacy();
         List<SchemePrivacy> schemePrivacy = new ArrayList<>();
@@ -2160,7 +2189,7 @@ public class MainViewModel extends ViewModel {
 
     }
 
-    private JSONObject CreateSceneMark(SceneMarkValues sceneMarkValues) {
+    private static JSONObject CreateSceneMark(SceneMarkValues sceneMarkValues) {
         JSONObject dictSceneMark = new JSONObject();
         try {
             dictSceneMark.put("Version", sceneMarkValues.getVersion());
@@ -2212,8 +2241,12 @@ public class MainViewModel extends ViewModel {
             jsonDetectedObjects.put("Probability", sceneMarkValues.getProbability());
 
             JSONArray jsonArrayAttributes = new JSONArray();
-//            JSONObject jsonAttributes = new JSONObject();
-//            jsonArrayAttributes.put(jsonAttributes);
+            JSONObject jsonAttributes = new JSONObject();
+            jsonAttributes.put("VersionNumber", sceneMarkValues.getVersion());
+            jsonAttributes.put("Attribute", "Mood");
+            jsonAttributes.put("Value", "Happy");
+            jsonAttributes.put("ProbabilityOfAttribute", 0.8);
+            jsonArrayAttributes.put(jsonAttributes);
             jsonDetectedObjects.put("Attributes", jsonArrayAttributes);
 
             JSONObject jsonBoundingBox = new JSONObject();
@@ -2289,61 +2322,75 @@ public class MainViewModel extends ViewModel {
         }
 
         return dictSceneMark;
+
     }
 
-    private void NICESendScenemarkThread(JSONObject dictNiceSceneMark,
-                                         String strGlobalSceneMarkEndPoint,
-                                         String strGlobalSceneMarkToken,
-                                         String strGlobalSceneMarkAuthority) {
+
+    private static void NICESendScenemarkThread(JSONObject dictNiceSceneMark,
+                                                String strGlobalSceneMarkEndPoint,
+                                                String strGlobalSceneMarkToken,
+                                                String strGlobalSceneMarkAuthority) {
         NICERestAPISendSceneMarkToCloud(dictNiceSceneMark,
                 strGlobalSceneMarkEndPoint, strGlobalSceneMarkToken,
                 strGlobalSceneMarkAuthority);
 
     }
 
-    private void NICERestAPISendSceneMarkToCloud(JSONObject dictNiceSceneMark,
-                                                 String strGlobalSceneMarkEndPoint,
-                                                 String strGlobalSceneMarkToken,
-                                                 String strGlobalSceneMarkAuthority) {
+    private static void NICERestAPISendSceneMarkToCloud(JSONObject dictNiceSceneMark,
+                                                        String strGlobalSceneMarkEndPoint,
+                                                        String strGlobalSceneMarkToken,
+                                                        String strGlobalSceneMarkAuthority) {
         SendSceneMarkToMSPipeLine(dictNiceSceneMark,
                 strGlobalSceneMarkEndPoint, strGlobalSceneMarkToken,
                 strGlobalSceneMarkAuthority);
     }
 
-    private void SendSceneMarkToMSPipeLine(JSONObject dictNiceSceneMark,
-                                           String strGlobalSceneMarkEndPoint,
-                                           String strSceneMarkToken,
-                                           String strSceneMarkAuthority) {
+    private static void SendSceneMarkToMSPipeLine(JSONObject dictNiceSceneMark,
+                                                  String strGlobalSceneMarkEndPoint,
+                                                  String strSceneMarkToken,
+                                                  String strSceneMarkAuthority) {
         String authority = "https://" + strSceneMarkAuthority;
         ServiceInterfaces.SetSceneMark api = ApiClient.getClient(context, authority).create(ServiceInterfaces.SetSceneMark.class);
-        Utils.showCustomProgressDialog(context, "", false);
+
+
+        Utils.setContext(context);
+
+       /* Call<ResponseBody> call = api.setSceneMark("Bearer " + strSceneMarkToken,
+                ApiClient.makeJSONRequestBody(dictNiceSceneMark));*/
+
+        System.out.println("NodeID:::::::::" + Utils.getDeviceNodeIDOnly(NodeID));
+        System.out.println("strSceneModeEndPoint:::::::::" + strSceneModeEndPoint);
+        System.out.println("strGlobalDevicePortID:::::::::" + Utils.getDeviceNodeIDOnly(NodeID));
+
         Call<ResponseBody> call = api.setSceneMark("Bearer " + strSceneMarkToken,
+                strSceneModeEndPoint, Utils.getDeviceNodeIDOnly(NodeID), Utils.getDeviceNodeIDOnly(NodeID),
                 ApiClient.makeJSONRequestBody(dictNiceSceneMark));
+
 
         call.enqueue(new Callback<ResponseBody>() {
             @Override
             public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
                 Log.i("url", "SetSceneMarkURL------->>>> " + response.raw().request().url());
-                Utils.removeCustomProgressDialog();
                 if (!response.equals("{}") && response != null && response.body() != null) {
                     Log.i("SetSceneMark_RESPONSE", "Success");
-                    isSceneMarkCreated.setValue(true);
+                    SendDetectedObjectsSceneData();
                 }
             }
 
             @Override
             public void onFailure(Call<ResponseBody> call, Throwable t) {
-                Utils.removeCustomProgressDialog();
+                com.scenera.nicesecurityapplib.utilities.Utils.removeCustomProgressDialog();
+
             }
         });
-    }
 
-    public void SendDetectedObjectsSceneData() {
+    }
+    public static void SendDetectedObjectsSceneData() {
         SendObjectSceneData(strSceneMarkID, listDetectedObjects);
     }
 
-    private void SendObjectSceneData(String strSceneMarkID,
-                                     List<DetectedObjectsClass> listDetectedObjects) {
+    private static void SendObjectSceneData(String strSceneMarkID,
+                                            List<DetectedObjectsClass> listDetectedObjects) {
         objThumbnailSceneData = new SceneDataClass();
         for (DetectedObjectsClass detectedObjectsClass : listDetectedObjects) {
             objThumbnailSceneData.setStrSceneDataID(detectedObjectsClass.getStrSceneDataID());
@@ -2353,21 +2400,25 @@ public class MainViewModel extends ViewModel {
             objThumbnailSceneData.setStrBase64OfSceneData(detectedObjectsClass.getStrBase64OfSceneData());
             NiceRestAPISendImagesToCloud(objThumbnailSceneData, strGlobalBrigdeUUID,
                     strGlobalSceneDataImageEndPoint, strGlobalSceneDataImageToken,
-                    strGlobalSceneDataImageAuthority, false);
+                    strGlobalSceneDataImageAuthority, true);
             break;
         }
     }
 
-    private void NiceRestAPISendImagesToCloud(SceneDataClass objDetectedObject
+    private static void NiceRestAPISendImagesToCloud(SceneDataClass objDetectedObject
             , String strGlobalBrigdeUUID, String strGlobalSceneDataImageEndPoint
             , String strGlobalSceneDataImageToken, String strGlobalSceneDataImageAuthority, boolean isSendFullImage) {
-        Utils.showCustomProgressDialog(context, "", false);
+
         JSONObject jsonResponse = new JSONObject();
         String base64Image = objDetectedObject.getStrBase64OfSceneData();
+
+        Utils.printLongLog("base64Imagehere", base64Image);
+        Utils.printLongLog("base64Imagehere", String.valueOf(base64Image.length()));
+
         if (fIsImageEncrypted) {
             boolean fVideo = false;
             byte[] binImage = android.util.Base64.decode(base64Image, android.util.Base64.DEFAULT);
-            byte[] binEncryptedData = Utils.EncryptImageData(context, binImage);
+            byte[] binEncryptedData = Utils.EncryptImageData(binImage);
             String binbase64Image = android.util.Base64.encodeToString(binEncryptedData, android.util.Base64.DEFAULT);
             base64Image = binbase64Image;
         }
@@ -2384,57 +2435,150 @@ public class MainViewModel extends ViewModel {
         objSD.setHashMethod("SHA256");
         objSD.setOriginalFileHash("ABCDEFGHIJKLMNO");
         objSD.setSectionBase64(base64Image);
+        objSD.setMediaFormat("JPEG");
         List<String> relatedSceneMarks = new ArrayList<>();
         relatedSceneMarks.add(objDetectedObject.getStrSceneMarkID());
         objSD.setRelatedSceneMarks(relatedSceneMarks);
 
+        Utils.printLongLog("base64Image", base64Image);
+
         JSONObject dictDataSectionObject = CreateSceneData(objSD);
 
-        Utils.writeToFile(context, "SceneDataImageBase64_" + strFullImageSceneDataID,
-                dictDataSectionObject.toString());
+        writeToFile("SceneDataImageBase64_" + strFullImageSceneDataID, dictDataSectionObject.toString());
 
         SendSceneDataImageToMSPipeLine(strGlobalSceneDataImageEndPoint, strGlobalSceneDataImageToken
                 , strGlobalSceneDataImageAuthority, dictDataSectionObject, base64Image, isSendFullImage);
     }
 
-    private void SendSceneDataImageToMSPipeLine(
+    public static void writeToFile(String filename, String data) {
+
+        try {
+//            File path = context.getFilesDir();
+////            File path = context.getExternalFilesDir(null);
+//            String strFileDirectory = String.valueOf(context.getFilesDir());
+//            String strPathFilename = strFileDirectory;
+//            File file = new File(strFileDirectory, "SceneDataImageBase64_"+ strFullImageSceneDataID + ".txt");
+//            OutputStream stream = new FileOutputStream(file);
+//            stream.write(data.getBytes());
+//            stream.close();
+
+            File storageDir = null;
+            if (Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState())) {
+                storageDir = context.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS);
+                if (!storageDir.mkdirs() && !storageDir.exists()) {
+                    Utils.showAlert(context, "failed to create directory");
+
+                }
+                File imageF = new File(storageDir, filename + ".txt");
+                OutputStream stream1 = new FileOutputStream(imageF);
+                stream1.write(data.getBytes());
+                stream1.close();
+            }
+
+//            OutputStreamWriter outputStreamWriter = new OutputStreamWriter(context.openFileOutput(
+//                    "SceneDataImageBase64.txt", Context.MODE_PRIVATE));
+//            outputStreamWriter.write(data);
+//            outputStreamWriter.close();
+
+        } catch (IOException e) {
+            Log.e("Exception", "File write failed: " + e.toString());
+        }
+
+    }
+
+    private static void SendSceneDataImageToMSPipeLine(
             String strGlobalSceneDataImageEndPoint,
             String strGlobalSceneDataImageToken,
             String strGlobalSceneDataImageAuthority, JSONObject jsonCMP, String base64Image,
             boolean isSendFullImage) {
 
-        String authority = "https://" + strGlobalSceneDataImageAuthority;
+        String authority = strGlobalSceneDataImageAuthority;
         ServiceInterfaces.SetSceneData api = ApiClient.getClient(context, authority).create(ServiceInterfaces.SetSceneData.class);
 
-        Call<ResponseBody> call = api.setSceneData("Bearer " + strGlobalSceneDataImageToken,
+       /* Call<ResponseBody> call = api.setSceneData("Bearer " + strGlobalSceneDataImageToken,
+                ApiClient.makeJSONRequestBody(jsonCMP));*/
+
+        Utils.printLongLog("bodyyyyyyyy", jsonCMP.toString());
+        Utils.printLongLog("urllll", strGlobalSceneDataImageAuthority + "/1.0/" + strSceneModeEndPoint + "/data/" + Utils.getDeviceNodeIDOnly(NodeID) + "/" + Utils.getDeviceNodeIDOnly(NodeID) + "/SetSceneData");
+        AndroidNetworking.initialize(context);
+        AndroidNetworking.post(strGlobalSceneDataImageAuthority + "/1.0/" + strSceneModeEndPoint + "/data/" + Utils.getDeviceNodeIDOnly(NodeID) + "/" + Utils.getDeviceNodeIDOnly(NodeID) + "/SetSceneData")
+                .addHeaders("Content-Type", "application/json")
+                .addHeaders("Authorization", "Bearer " + strGlobalSceneDataImageToken)
+                .addJSONObjectBody(jsonCMP)
+                .setTag("test")
+                .setPriority(Priority.MEDIUM)
+                .build()
+                .getAsOkHttpResponse(new OkHttpResponseListener() {
+                    @Override
+                    public void onResponse(okhttp3.Response response) {
+                        Log.i("SetSceneDATA_RESPONSE", "Success>>>>" + response.code());
+
+                        response.header("Location");
+
+                        AndroidNetworking.post(response.header("Location"))
+                                .addHeaders("Content-Type", "application/json")
+                                .addHeaders("Authorization", "Bearer " + strGlobalSceneDataImageToken)
+                                .addJSONObjectBody(jsonCMP)
+                                .setTag("test")
+                                .setPriority(Priority.MEDIUM)
+                                .build()
+                                .getAsOkHttpResponse(new OkHttpResponseListener() {
+                                    @Override
+                                    public void onResponse(okhttp3.Response response) {
+                                        com.scenera.nicesecurityapplib.utilities.Utils.removeCustomProgressDialog();
+                                        Toast.makeText(context.getApplicationContext(), "Scene Data Send Successfully!", Toast.LENGTH_SHORT).show();
+                                    }
+
+                                    @Override
+                                    public void onError(ANError anError) {
+                                        com.scenera.nicesecurityapplib.utilities.Utils.removeCustomProgressDialog();
+                                        Log.i("SetSceneDATA_RESPONSE", "faill>>>>22222" + anError.getErrorCode());
+
+                                    }
+                                });
+                    }
+
+                    @Override
+                    public void onError(ANError anError) {
+                        com.scenera.nicesecurityapplib.utilities.Utils.removeCustomProgressDialog();
+
+                        Log.i("SetSceneDATA_RESPONSE", "faill>>>>" + anError.getErrorCode());
+
+                    }
+                });
+
+
+       /* Call<ResponseBody> call = api.setSceneData("Bearer " + strGlobalSceneDataImageToken,
+                strSceneModeEndPoint,Utils.getDeviceNodeIDOnly(NodeID),Utils.getDeviceNodeIDOnly(NodeID),
                 ApiClient.makeJSONRequestBody(jsonCMP));
 
         call.enqueue(new Callback<ResponseBody>() {
             @Override
             public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
                 if (!response.equals("{}") && response != null && response.body() != null) {
+                    com.scenera.nicesecurityapplib.utilities.Utils.removeCustomProgressDialog();
+
                     Log.i("SetSceneDATA_RESPONSE", "Success");
-                    Utils.removeCustomProgressDialog();
-                    if (isSendFullImage)
-                        isSceneDataFullImageUpdated.setValue(true);
-                    else
-                        isSceneDataImageUpdated.setValue(true);
 //                    if (isSendFullImage)
 //                        SendFullImageSceneData(strBase64OfSceneDataImage);
                 } else {
+                    com.scenera.nicesecurityapplib.utilities.Utils.removeCustomProgressDialog();
+
                     Log.i("SetSceneDATA_RESPONSE", "Fail");
                 }
             }
 
             @Override
             public void onFailure(Call<ResponseBody> call, Throwable t) {
+                com.scenera.nicesecurityapplib.utilities.Utils.removeCustomProgressDialog();
                 AppLog.Log("SetSceneDATA_RESPONSE", "failed >>>>" + t.toString());
             }
-        });
+        });*/
+
 
     }
 
-    private JSONObject CreateSceneData(SceneDataValues objSD) {
+    private static JSONObject CreateSceneData(SceneDataValues objSD) {
         JSONObject dictSceneData = new JSONObject();
         try {
             dictSceneData.put("Version", objSD.getVersion());
@@ -2446,6 +2590,7 @@ public class MainViewModel extends ViewModel {
             dictSceneData.put("LastSection", objSD.getLastSection());
             dictSceneData.put("HashMethod", objSD.getHashMethod());
             dictSceneData.put("OriginalFileHash", objSD.getOriginalFileHash());
+            dictSceneData.put("MediaFormat", objSD.getMediaFormat());
             dictSceneData.put("SectionBase64", objSD.getSectionBase64());
             JSONArray jsonArrayRelatedSceneMarks = new JSONArray();
             for (String relatedSceneMarkId : objSD.getRelatedSceneMarks())
@@ -2458,15 +2603,14 @@ public class MainViewModel extends ViewModel {
 
     }
 
-    public void SendFullImageSceneData(Context context, String strFullImageBase64) {
-        Utils.showCustomProgressDialog(context, "", false);
+    public void SendFullImageSceneData(String strFullImageBase64) {
+        com.scenera.nicesecurityapplib.utilities.Utils.showCustomProgressDialog(context, "", false);
         SceneDataClass objFullImageSceneData = new SceneDataClass();
         objFullImageSceneData.setStrSceneMarkID(strSceneMarkID);
         objFullImageSceneData.setStrSceneDataID(strFullImageSceneDataID);
         objFullImageSceneData.setStrBase64OfSceneData(strFullImageBase64);
         objFullImageSceneData.setiChunkNumber(1);
         objFullImageSceneData.setiNumberOfChunks(1);
-
 
         SendFullImageceneData(strSceneMarkID, objFullImageSceneData);
     }
@@ -2477,19 +2621,20 @@ public class MainViewModel extends ViewModel {
                 strGlobalSceneDataImageAuthority, true);
     }
 
-    public void SendVideoSection(Context context, String strBase64Video, int iChunkNumber, int iNumberOfChunksToUse) {
-        Utils.showCustomProgressDialog(context, "", false);
+    public static void SendVideoSection(String strBase64Video, int iChunkNumber, int iNumberOfChunksToUse) {
         SceneDataClass objVideoSceneData = new SceneDataClass();
-        objVideoSceneData.setStrSceneMarkID(strSceneMarkID);
+//        objFullImageSceneData.setStrSceneMarkID(strSceneMarkID);
         objVideoSceneData.setStrSceneDataID(strGlobalVideoSceneDataID);
         objVideoSceneData.setStrBase64OfSceneData(strBase64Video);
         objVideoSceneData.setiChunkNumber(iChunkNumber);
         objVideoSceneData.setiNumberOfChunks(iNumberOfChunksToUse);
 
         NiceRestAPISendVideoToCloud(objVideoSceneData, listRelatedSceneMarksToVideo);
+
     }
 
-    private void NiceRestAPISendVideoToCloud(SceneDataClass objVideo
+
+    private static void NiceRestAPISendVideoToCloud(SceneDataClass objVideo
             , List<String> listRelatedSceneMarksToVideo) {
 
         String strCreateSceneDataID = objVideo.getStrSceneDataID();
@@ -2512,14 +2657,12 @@ public class MainViewModel extends ViewModel {
 
         JSONObject dictDataSectionObject = CreateSceneData(objSD);
 
-        Utils.writeToFile(context, "SceneDataVideo_" + strGlobalVideoSceneDataID,
-                dictDataSectionObject.toString());
-
         SendSceneDataVideoToMSPipeLine(strGlobalSceneDataVideoEndPoint, strGlobalSceneDataVideoToken
                 , strGlobalSceneDataVideoAuthority, dictDataSectionObject);
+
     }
 
-    private void SendSceneDataVideoToMSPipeLine(
+    private static void SendSceneDataVideoToMSPipeLine(
             String strGlobalSceneDataVideoEndPoint,
             String strGlobalSceneDataVideoToken,
             String strGlobalSceneDataVideoAuthority, JSONObject dictDataSectionObject) {
@@ -2527,26 +2670,79 @@ public class MainViewModel extends ViewModel {
         String authority = "https://" + strGlobalSceneDataVideoAuthority;
         ServiceInterfaces.SetSceneData api = ApiClient.getClient(context, authority).create(ServiceInterfaces.SetSceneData.class);
 
+        /*Call<ResponseBody> call = api.setSceneData("Bearer " + strGlobalSceneDataVideoToken,
+                ApiClient.makeJSONRequestBody(dictDataSectionObject));*/
+
+        Utils.printLongLog("bodyyyyyyyy", dictDataSectionObject.toString());
+        Utils.printLongLog("urllll", strGlobalSceneDataVideoAuthority + "/1.0/" + strSceneModeEndPoint + "/data/" + Utils.getDeviceNodeIDOnly(NodeID) + "/" + Utils.getDeviceNodeIDOnly(NodeID) + "/SetSceneData");
+
+        AndroidNetworking.post(strGlobalSceneDataVideoAuthority + "/1.0/" + strSceneModeEndPoint + "/data/" + Utils.getDeviceNodeIDOnly(NodeID) + "/" + Utils.getDeviceNodeIDOnly(NodeID) + "/SetSceneData")
+                .addHeaders("Content-Type", "application/json")
+                .addHeaders("Authorization", "Bearer " + strGlobalSceneDataVideoToken)
+                .addJSONObjectBody(dictDataSectionObject)
+                .setTag("test")
+                .setPriority(Priority.MEDIUM)
+                .build()
+                .getAsOkHttpResponse(new OkHttpResponseListener() {
+                    @Override
+                    public void onResponse(okhttp3.Response response) {
+                        Log.i("SetSceneDATA_RESPONSE", "Success>>>>" + response.code());
+
+                        response.header("Location");
+
+                        AndroidNetworking.post(response.header("Location"))
+                                .addHeaders("Content-Type", "application/json")
+                                .addHeaders("Authorization", "Bearer " + strGlobalSceneDataImageToken)
+                                .addJSONObjectBody(dictDataSectionObject)
+                                .setTag("test")
+                                .setPriority(Priority.MEDIUM)
+                                .build()
+                                .getAsOkHttpResponse(new OkHttpResponseListener() {
+                                    @Override
+                                    public void onResponse(okhttp3.Response response) {
+                                        com.scenera.nicesecurityapplib.utilities.Utils.removeCustomProgressDialog();
+                                        Toast.makeText(context.getApplicationContext(), "Scene Data Send Successfully!", Toast.LENGTH_SHORT).show();
+                                    }
+
+                                    @Override
+                                    public void onError(ANError anError) {
+                                        com.scenera.nicesecurityapplib.utilities.Utils.removeCustomProgressDialog();
+                                        Log.i("SetSceneDATA_RESPONSE", "faill>>>>22222" + anError.getErrorCode());
+
+                                    }
+                                });
+                    }
+
+                    @Override
+                    public void onError(ANError anError) {
+                        com.scenera.nicesecurityapplib.utilities.Utils.removeCustomProgressDialog();
+
+                        Log.i("SetSceneDATA_RESPONSE", "faill>>>>" + anError.getErrorCode());
+
+                    }
+                });
+
+        /*
         Call<ResponseBody> call = api.setSceneData("Bearer " + strGlobalSceneDataVideoToken,
+                strSceneModeEndPoint, Utils.getDeviceNodeIDOnly(NodeID), Utils.getDeviceNodeIDOnly(NodeID),
                 ApiClient.makeJSONRequestBody(dictDataSectionObject));
+
 
         call.enqueue(new Callback<ResponseBody>() {
             @Override
             public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
                 Log.i("url", "SetSceneMarkURL------->>>> " + response.raw().request().url());
-                Utils.removeCustomProgressDialog();
                 if (!response.equals("{}") && response != null && response.body() != null) {
                     Log.i("SetSceneMark_RESPONSE", "Success");
-                    isSceneDataVideoUpdated.setValue(true);
 
                 }
             }
 
             @Override
             public void onFailure(Call<ResponseBody> call, Throwable t) {
-                Utils.removeCustomProgressDialog();
+
             }
-        });
+        });*/
 
     }
 

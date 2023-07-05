@@ -272,6 +272,7 @@ public class BSSLoginActivity extends BaseActivity {
 
     private AppControlHeader SplitAndDecrypt(String encryptedPaylodString) throws InvalidKeyException, BadPaddingException, NoSuchAlgorithmException, IllegalBlockSizeException, NoSuchPaddingException, CertificateException, KeyStoreException, IOException, NoSuchProviderException, JoseException {
         AppControlHeader appControlHeader = null;
+
         try {
             String[] strArray = encryptedPaylodString.split("\\.");
             for (String str : strArray) {
@@ -416,6 +417,8 @@ public class BSSLoginActivity extends BaseActivity {
                     Log.i("onFailure", "---->>>> " + t.toString());
                 }
             });
+
+
 //            }else {
 //                ServiceInterfaces.GetAppControlObject api = ApiClient.getClientAccount(this,"https://" +
 //                        pHelper.getAppSecurityObject().getNICEASEndPoint().getNetEndPoint().getScheme().get(0).getAuthority()).create(ServiceInterfaces.GetAppControlObject.class);
@@ -452,6 +455,8 @@ public class BSSLoginActivity extends BaseActivity {
 //                    }
 //                });
 //            }
+
+
         } catch (JSONException e) {
             e.printStackTrace();
         }
