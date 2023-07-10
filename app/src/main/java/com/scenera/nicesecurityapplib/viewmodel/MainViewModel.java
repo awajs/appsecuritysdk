@@ -31,12 +31,15 @@ import com.scenera.nicesecurityapplib.models.data.Encryption;
 import com.scenera.nicesecurityapplib.models.data.NetEndPointPrivacy;
 import com.scenera.nicesecurityapplib.models.data.NodeList;
 import com.scenera.nicesecurityapplib.models.data.Output;
+import com.scenera.nicesecurityapplib.models.data.PayloadObjectForDevice;
 import com.scenera.nicesecurityapplib.models.data.PersonFace;
 import com.scenera.nicesecurityapplib.models.data.PrivacyServerEndPoint;
 import com.scenera.nicesecurityapplib.models.data.SceneDataClass;
 import com.scenera.nicesecurityapplib.models.data.SceneDataValues;
+import com.scenera.nicesecurityapplib.models.data.SceneMarkOutputListForDevice;
 import com.scenera.nicesecurityapplib.models.data.SceneMarkValues;
 import com.scenera.nicesecurityapplib.models.data.SchemeAppControlObject;
+import com.scenera.nicesecurityapplib.models.data.SchemeAppSecurity;
 import com.scenera.nicesecurityapplib.models.data.SchemePrivacy;
 import com.scenera.nicesecurityapplib.models.response.AddFaceResponse;
 import com.scenera.nicesecurityapplib.models.response.AllItemTypesResponse;
@@ -150,6 +153,11 @@ public class MainViewModel extends ViewModel {
     private static AppCompatActivity context;
     private static String strBase64OfSceneDataImage;
 
+
+    private MutableLiveData<PayloadObjectForDevice> sceneModeResponseWithDeviceLiveData;
+
+
+
     public MainViewModel() {
 
         appConrolObjectLiveData = new MutableLiveData<>();
@@ -176,6 +184,7 @@ public class MainViewModel extends ViewModel {
 
         sceneMarkResponseLive = new MutableLiveData<>();
         sceneModeResponseLiveData = new MutableLiveData<>();
+        sceneModeResponseWithDeviceLiveData = new MutableLiveData<>();
 
         sceneMarkResponse = new SceneMarkResponseCMF();
         allTypesLiveData = new MutableLiveData();
@@ -187,6 +196,11 @@ public class MainViewModel extends ViewModel {
         nodeListLiveData = new MutableLiveData<>();
         nodeList = new ArrayList<>();
         format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss:" + "000000");
+    }
+
+    public MutableLiveData<PayloadObjectForDevice> getSceneModeResponseWithDeviceLiveData() {
+        Log.d(TAG, "getSceneModeResponseLiveData: " + sceneModeResponseWithDeviceLiveData);
+        return sceneModeResponseWithDeviceLiveData;
     }
 
     /**
@@ -1749,6 +1763,194 @@ public class MainViewModel extends ViewModel {
         } catch (JSONException e) {
             e.printStackTrace();
         }
+    }
+
+    public void getSceneModeWithDSO(AppCompatActivity activity) {
+
+        com.scenera.nicesecurityapplib.utilities.Utils.showCustomProgressDialog(activity, "", false);
+        Date today = new Date();
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss:" + "000000");
+        currentDate = format.format(today);
+        pHelper = PreferenceHelper.getInstance(activity);
+
+
+        JSONObject jsonObject = new JSONObject();
+        JSONObject jsonObjectAccessTokenPayloadd = new JSONObject();
+        JSONObject jsonObjectpayload = new JSONObject();
+        JSONObject CMFHeaderObject = new JSONObject();
+
+        try {
+            CMFHeaderObject.put(com.scenera.nicesecurityapplib.utilities.Constants.CMF.Header.VERSION, "1.0");
+            CMFHeaderObject.put(com.scenera.nicesecurityapplib.utilities.Constants.CMF.Header.MESSAGE_TYPE, com.scenera.nicesecurityapplib.utilities.Constants.CMF.HeaderValue.MESSAGE_TYPE);
+            // CMFHeaderObject.put(com.scenera.nicesecurityapplib.utilities.Constants.CMF.Header.SOURCE_END_POINT_ID, strGlobalDeviceNodeID);
+            CMFHeaderObject.put(com.scenera.nicesecurityapplib.utilities.Constants.CMF.Header.SOURCE_END_POINT_ID, pHelper.getAppInstanceId());
+            CMFHeaderObject.put(com.scenera.nicesecurityapplib.utilities.Constants.CMF.Header.DESTINATION_END_POINT_ID, strSceneModeEndPoint);
+            CMFHeaderObject.put(com.scenera.nicesecurityapplib.utilities.Constants.CMF.Header.DATE_TIME_STAMP, currentDate);
+            CMFHeaderObject.put(com.scenera.nicesecurityapplib.utilities.Constants.CMF.Header.COMMAND_TYPE, "/1.0/" + strSceneModeEndPoint + "/control/" + Utils.getDeviceNodeIDOnly(NodeID) + "/GetSceneMode");
+            //Utils.getDeviceNodeIDOnly(NodeID);
+            jsonObjectAccessTokenPayloadd.put(com.scenera.nicesecurityapplib.utilities.Constants.CMF.Header.ACCESS_TOKEN, strSceneModeToken);
+
+            jsonObjectpayload.put(com.scenera.nicesecurityapplib.utilities.Constants.CMF.Header.VERSION, "1.0");
+            jsonObjectpayload.put(com.scenera.nicesecurityapplib.utilities.Constants.Params.NODE_ID, pHelper.getAppInstanceId());
+            jsonObjectAccessTokenPayloadd.put(com.scenera.nicesecurityapplib.utilities.Constants.CMF.Payload.PAYLOAD_OBJECT, jsonObjectpayload);
+
+            CMFHeaderObject.put(com.scenera.nicesecurityapplib.utilities.Constants.CMF.Payload.PAYLOAD, jsonObjectAccessTokenPayloadd);
+
+
+            String encryptedPayload = Utils.encryptAndSignCMFForAccessToken(activity, CMFHeaderObject,
+                    jsonObjectAccessTokenPayloadd.toString(), base64NiceASCertificate, deviceCertificate,
+                    pHelper.getDevicePrivateKey(),
+                    strNICEASEndPoint, strGlobalBrigdeUUID);
+
+           /* String encryptedPayload = Utils.encryptAndSignCMF(activity, CMFHeaderObject,
+                    jsonObjectAccessTokenPayloadd.toString());*/
+
+
+            JSONObject jsonObjectRequest = new JSONObject();
+            jsonObjectRequest.put("SignedCMF", encryptedPayload);
+
+            System.out.println("SignedCMF>>>" + encryptedPayload);
+
+            ServiceInterfaces.GetSceneModeForDevice api = ApiClient.getClientAccount(activity, "https://" + strSceneModeAuthority).create(ServiceInterfaces.GetSceneModeForDevice.class);
+
+            Call<EncryptedCMFResponseNew> call = api.getSceneMode("Bearer " + strSceneModeToken,
+                    pHelper.getAppSecurityObject().getNICEASEndPoint().getNetEndPoint().getAPIVersion(),
+                    strSceneModeEndPoint, Utils.getDeviceNodeIDOnly(NodeID),
+                    com.scenera.nicesecurityapplib.retrofit.ApiClient.makeJSONRequestBody(jsonObjectRequest));
+
+
+            call.enqueue(new Callback<EncryptedCMFResponseNew>() {
+                @Override
+                public void onResponse(Call<EncryptedCMFResponseNew> call, retrofit2.Response<EncryptedCMFResponseNew> response) {
+                    Log.i(TAG, "---->>> getscenemode " + response.raw().request().url());
+                    Gson gson = new Gson();
+                    Log.i(TAG, "getSceneMode---->>" + gson.toJson(response.body()));
+
+                    com.scenera.nicesecurityapplib.utilities.Utils.removeCustomProgressDialog();
+
+                    if (!response.equals("{}") && response != null && response.body() != null) {
+
+
+                        String encryptedPayload = response.body().getEncryptedPayload();
+
+
+                        JSONObject appConrolObjectResponse = Utils.decryptAndValidateCMFGetManagementendPoints
+                                (activity, encryptedPayload, base64NiceASCertificate, true);
+
+
+                       /* JSONObject appConrolObjectResponse = com.scenera.nicesecurityapplib.utilities.Utils.decryptAndValidateCMFGetSceneMode
+                                (activity, encryptedPayload, pHelper.getAppSecurityObject().getNICEASEndPoint().getAppEndPoint().getX509Certificate(), true);*/
+
+
+                        Utils.printLongLog("getscenedata>>>>", appConrolObjectResponse.toString());
+
+                        if (appConrolObjectResponse.has("Payload")) {
+                            com.scenera.nicesecurityapplib.utilities.AppLog.Log("GET_SCENEMODE", "****" + new Gson().toJson(appConrolObjectResponse));
+                            try {
+                                JSONObject payload = (JSONObject) appConrolObjectResponse.get("Payload");
+                                JSONObject PayloadObject = (JSONObject) payload.get("PayloadObject");
+                                com.scenera.nicesecurityapplib.utilities.AppLog.Log("Payload:::::::::", "****" + payload.toString());
+                                Utils.printLongLog("PayloadObject:::::::", PayloadObject.toString());
+                                //GetSceneModeResponse getSceneModeResponse = new Gson().fromJson(PayloadObject.toString(), GetSceneModeResponse.class);
+                                PayloadObjectForDevice getSceneModeResponse = new Gson().fromJson(PayloadObject.toString(), PayloadObjectForDevice.class);
+                                for (SceneMarkOutputListForDevice controlEndPoint : getSceneModeResponse.getMode().getSceneMarkOutputList()) {
+                                    strGlobalSceneMarkEndPoint = controlEndPoint.getSceneMarkOutputEndPointForDevices().getEndPointID();
+                                    for (SchemeAppSecurity schemeAppControlObject : controlEndPoint.getSceneMarkOutputEndPointForDevices().getScheme()) {
+                                        strGlobalSceneMarkToken = schemeAppControlObject.getAccessToken();
+                                        strGlobalSceneMarkAuthority = schemeAppControlObject.getAuthority();
+                                        break;
+                                    }
+                                    break;
+                                }
+
+                                PrivacyServerEndPoint privacyServerEndPoint = new PrivacyServerEndPoint();
+                                NetEndPointPrivacy netEndPointPrivacy = new NetEndPointPrivacy();
+                                List<SchemePrivacy> schemePrivacy = new ArrayList<>();
+                                netEndPointPrivacy.setScheme(schemePrivacy);
+                                privacyServerEndPoint.setNetEndPoint(netEndPointPrivacy);
+
+                                JSONObject encryptionDictDefualt = new JSONObject();
+                                try {
+                                    encryptionDictDefualt.put("EncryptionOn", false);
+                                } catch (JSONException e) {
+                                    e.printStackTrace();
+                                }
+
+                                EncryptionImage = new Encryption(false, "",
+                                        privacyServerEndPoint, encryptionDictDefualt);
+                                EncryptionVideo = new Encryption(false, "",
+                                        privacyServerEndPoint, encryptionDictDefualt);
+
+                                for (Output output : getSceneModeResponse.getOutputs()) {
+                                    if (output.getEncryption() != null) {
+                                        try {
+                                            encryptionDictDefualt.put("EncryptionOn",
+                                                    output.getEncryption().getEncryptionOn());
+                                            encryptionDictDefualt.put("SceneEncryptionKeyID",
+                                                    output.getEncryption().getSceneEncryptionKeyID());
+                                        } catch (JSONException e) {
+                                            e.printStackTrace();
+                                        }
+                                    }
+                                    if (output.getType().equals("Video")) {
+                                        if (output.getEncryption() != null) {
+                                            EncryptionVideo = output.getEncryption();
+                                            EncryptionVideo.setDictEncryption(encryptionDictDefualt);
+                                            fIsVideoEncrypted = output.getEncryption().getEncryptionOn();
+                                        }
+                                        for (ControlEndPoint controlEndPoint : output.getDestinationEndPointList()) {
+                                            strGlobalSceneDataVideoEndPoint = controlEndPoint.getNetEndPointAppControl().getEndPointID();
+                                            for (SchemeAppControlObject schemeAppControlObject : controlEndPoint.getNetEndPointAppControl().getSchemeAppControlObject()) {
+                                                strGlobalSceneDataVideoToken = schemeAppControlObject.getAccessToken();
+                                                strGlobalSceneDataVideoAuthority = schemeAppControlObject.getAuthority();
+                                                break;
+                                            }
+                                            break;
+                                        }
+                                    }
+                                    if (output.getType().equals("Image")) {
+                                        if (output.getEncryption() != null) {
+                                            EncryptionImage = output.getEncryption();
+                                            EncryptionImage.setDictEncryption(encryptionDictDefualt);
+                                            fIsImageEncrypted = output.getEncryption().getEncryptionOn();
+                                        }
+                                        for (ControlEndPoint controlEndPoint : output.getDestinationEndPointList()) {
+                                            strGlobalSceneDataImageEndPoint = controlEndPoint.getNetEndPointAppControl().getEndPointID();
+                                            for (SchemeAppControlObject schemeAppControlObject : controlEndPoint.getNetEndPointAppControl().getSchemeAppControlObject()) {
+                                                strGlobalSceneDataImageToken = schemeAppControlObject.getAccessToken();
+                                                strGlobalSceneDataImageAuthority = schemeAppControlObject.getAuthority();
+                                                break;
+                                            }
+                                            break;
+                                        }
+
+                                    }
+
+
+                                }
+                                //sceneModeResponseLiveData.setValue(getSceneModeResponse);
+                                sceneModeResponseWithDeviceLiveData.setValue(getSceneModeResponse);
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            }
+
+                        }
+
+
+                    }
+                }
+
+                @Override
+                public void onFailure(Call<EncryptedCMFResponseNew> call, Throwable t) {
+                    com.scenera.nicesecurityapplib.utilities.Utils.removeCustomProgressDialog();
+                    Log.i("onFailure", "---->>>> " + t.toString());
+                }
+            });
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
     }
 
 

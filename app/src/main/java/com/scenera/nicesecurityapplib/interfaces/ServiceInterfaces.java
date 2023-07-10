@@ -162,6 +162,16 @@ public class ServiceInterfaces {
     }
 
 
+    public interface GetSceneModeForDevice {
+        @Headers("Content-Type:application/json")
+        @POST("/{Version}/{EndPointID}/control/{nodeID}/"+ com.scenera.nicesecurityapplib.utilities.Constants.ServiceType.GET_SCENEMODE)
+        Call<EncryptedCMFResponseNew> getSceneMode(@Header("Authorization") String auth,
+                                                   @Path("Version") String version,
+                                                   @Path("EndPointID") String EndPointID,
+                                                   @Path("nodeID") String nodeID,
+                                                   @Body RequestBody requestBody);
+    }
+
     public interface GetSceneMarkManifest {
 
         @Headers("Content-Type:application/json")
