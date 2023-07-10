@@ -9,7 +9,7 @@ public class Body1 {
     private String version;
     @SerializedName("AppEndPoint")
     @Expose
-    private AppEndPointAppSecurity appEndPoint;
+    private AppEndPointAppSecurityForDevice appEndPoint;
     @SerializedName("NetEndPoint")
     @Expose
     private NetEndPointAppSecurity netEndPoint;
@@ -22,11 +22,11 @@ public class Body1 {
         this.version = version;
     }
 
-    public AppEndPointAppSecurity getAppEndPoint() {
+    public AppEndPointAppSecurityForDevice getAppEndPoint() {
         return appEndPoint;
     }
 
-    public void setAppEndPoint(AppEndPointAppSecurity appEndPoint) {
+    public void setAppEndPoint(AppEndPointAppSecurityForDevice appEndPoint) {
         this.appEndPoint = appEndPoint;
     }
 

@@ -24,7 +24,7 @@ public class AppEndPointAppSecurityForDevice implements Parcelable
     @Expose
     private List<Object> x509Certificate = null;
 
-    public final static Creator<AppEndPointAppSecurity> CREATOR = new Creator<AppEndPointAppSecurity>() {
+    public final static Parcelable.Creator<AppEndPointAppSecurity> CREATOR = new Creator<AppEndPointAppSecurity>() {
 
 
         @SuppressWarnings({
