@@ -1270,7 +1270,7 @@ public class MainViewModel extends ViewModel {
 
             JSONObject jsonBody = new JSONObject();
             JSONObject jsonPayLoad = new JSONObject();
-            String appInstanceID = pHelper.getAppSecurityObject().getAppInstanceID();
+            //String appInstanceID = pHelper.getAppSecurityObject().getAppInstanceID();
 
             jsonPayLoad.put(Constants.Params.DEVICE_ID, strGlobalBrigdeUUID);
 
@@ -1366,7 +1366,7 @@ public class MainViewModel extends ViewModel {
 
             JSONObject jsonBody = new JSONObject();
             JSONObject jsonPayLoad = new JSONObject();
-            String appInstanceID = pHelper.getAppSecurityObject().getAppInstanceID();
+          //  String appInstanceID = pHelper.getAppSecurityObject().getAppInstanceID();
 
             jsonPayLoad.put(Constants.Params.DEVICE_ID, strGlobalBrigdeUUID);
 
