@@ -145,7 +145,11 @@ public class MainViewModel extends ViewModel {
             base64NiceASCertificate, strNICEASID;
     private static String strSceneModeEndPoint, strSceneModeAuthority, strSceneModeToken, AppEndPointID;
     private static List<String> base64ControllerCertificate;
-    private static String strGlobalSceneMarkEndPoint, strGlobalSceneMarkToken, strGlobalSceneMarkAuthority, strGlobalSceneDataImageEndPoint, strGlobalSceneDataImageToken, strGlobalSceneDataImageAuthority, strGlobalSceneDataVideoEndPoint, strGlobalSceneDataVideoToken, strGlobalSceneDataVideoAuthority;
+
+    private static String accessToken = "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsIng1dCI6Imwzc1EtNTBjQ0g0eEJWWkxIVEd3blNSNzY4MCIsImtpZCI6Imwzc1EtNTBjQ0g0eEJWWkxIVEd3blNSNzY4MCJ9.eyJhdWQiOiJhcGk6Ly85ZmExNGI5NC0wMmFkLTRhNDMtOTU1MC04MzA1NDM0OGRkZGMiLCJpc3MiOiJodHRwczovL3N0cy53aW5kb3dzLm5ldC8xMzEwMzFkNy1iOThjLTQzNWQtOGM1YS1mYTc0MDk1N2Q2MmIvIiwiaWF0IjoxNjM1NDAwOTM3LCJuYmYiOjE2MzU0MDA5MzcsImV4cCI6MTYzNTQ4NDAzNywiYWlvIjoiRTJaZ1lIZzgrZi9PZktHM1NhZldlVEE3SFZ1YUFBQT0iLCJhcHBpZCI6ImEzY2I0Mzc2LThkYWUtNDc2NC1iMGNhLWRjNzc3ZmNiODE1MCIsImFwcGlkYWNyIjoiMSIsImlkcCI6Imh0dHBzOi8vc3RzLndpbmRvd3MubmV0LzEzMTAzMWQ3LWI5OGMtNDM1ZC04YzVhLWZhNzQwOTU3ZDYyYi8iLCJvaWQiOiIzZmU4OTc3Zi1hZjg0LTQ4MTktYjRjZi05OTRkMTk2ODc4MDEiLCJyaCI6IjAuQVZnQTF6RVFFNHk1WFVPTVd2cDBDVmZXSzNaRHk2T3VqV1JIc01yY2QzX0xnVkJZQUFBLiIsInJvbGVzIjpbIkFwcFJvbGUiXSwic3ViIjoiM2ZlODk3N2YtYWY4NC00ODE5LWI0Y2YtOTk0ZDE5Njg3ODAxIiwidGlkIjoiMTMxMDMxZDctYjk4Yy00MzVkLThjNWEtZmE3NDA5NTdkNjJiIiwidXRpIjoiNDdTWEM3VGxta3VsYUJ3V05OTmNBQSIsInZlciI6IjEuMCJ9.JKQv0_FWnGoD3LlVV2aSyk6EsI9QMTKzX--0cx5qnNKXBeIRwtLnIiGH73www8bjWrvHzVFZsdTjJB_tBueYChxwEcpoFlq2iRlVSXcfMJboxLStcaCbNYX6797g6js15_1GNzwyA2cAe13pq-Wn4sMHAwj0D143fHFX60msgPmZ3bQa-lrNIOzZV0c65St1vAuHgYvY7sNdQvL-SHXJxoX2oyRJwp20G0g940Zp-Ba5AJLkoK3PlhedJPTJz3arTuW92JLPD547QVlk2Py-3NCDAm_FXtN7hP7MvFBPJrSxenwHDz_RYD9JLvL9muyFZBogwMN5L2QRgUw76iNGjw";
+
+    private static String strGlobalSceneMarkEndPoint = "00000001-5cdd-280b-8003-00020000ffff", strGlobalSceneMarkToken = accessToken, strGlobalSceneMarkAuthority = "ingress-dev.scenera.live", strGlobalSceneDataImageEndPoint = "00000001-5cdd-280b-8003-00020000ffff", strGlobalSceneDataImageToken = accessToken, strGlobalSceneDataImageAuthority = "ingress-dev.scenera.live", strGlobalSceneDataVideoEndPoint = "00000001-5cdd-280b-8003-00020000ffff", strGlobalSceneDataVideoToken = accessToken, strGlobalSceneDataVideoAuthority = "ingress-dev.scenera.live";
+
     private static boolean fIsImageEncrypted = false, fIsVideoEncrypted = false;
     private static Encryption EncryptionImage, EncryptionVideo;
     private static int NodeID = 1, PortID = 1;
@@ -1765,6 +1769,7 @@ public class MainViewModel extends ViewModel {
         }
     }
 
+
     public void getSceneModeWithDSO(AppCompatActivity activity) {
 
         com.scenera.nicesecurityapplib.utilities.Utils.showCustomProgressDialog(activity, "", false);
@@ -1784,6 +1789,10 @@ public class MainViewModel extends ViewModel {
             CMFHeaderObject.put(com.scenera.nicesecurityapplib.utilities.Constants.CMF.Header.MESSAGE_TYPE, com.scenera.nicesecurityapplib.utilities.Constants.CMF.HeaderValue.MESSAGE_TYPE);
             // CMFHeaderObject.put(com.scenera.nicesecurityapplib.utilities.Constants.CMF.Header.SOURCE_END_POINT_ID, strGlobalDeviceNodeID);
             CMFHeaderObject.put(com.scenera.nicesecurityapplib.utilities.Constants.CMF.Header.SOURCE_END_POINT_ID, pHelper.getAppInstanceId());
+            System.out.println("iddddd>>>" + strGlobalDeviceNodeID);
+            System.out.println("iddddd>>>appin" + pHelper.getAppInstanceId());
+
+
             CMFHeaderObject.put(com.scenera.nicesecurityapplib.utilities.Constants.CMF.Header.DESTINATION_END_POINT_ID, strSceneModeEndPoint);
             CMFHeaderObject.put(com.scenera.nicesecurityapplib.utilities.Constants.CMF.Header.DATE_TIME_STAMP, currentDate);
             CMFHeaderObject.put(com.scenera.nicesecurityapplib.utilities.Constants.CMF.Header.COMMAND_TYPE, "/1.0/" + strSceneModeEndPoint + "/control/" + Utils.getDeviceNodeIDOnly(NodeID) + "/GetSceneMode");
@@ -1929,6 +1938,9 @@ public class MainViewModel extends ViewModel {
 
                                 }
                                 //sceneModeResponseLiveData.setValue(getSceneModeResponse);
+                                Utils.printLongLog("urls>>>imageupload>>", strGlobalSceneDataImageAuthority);
+                                Utils.printLongLog("urls>>>videoupload>>", strGlobalSceneDataVideoAuthority);
+
                                 sceneModeResponseWithDeviceLiveData.setValue(getSceneModeResponse);
                             } catch (JSONException e) {
                                 e.printStackTrace();
@@ -1952,7 +1964,6 @@ public class MainViewModel extends ViewModel {
         }
 
     }
-
 
     /**
      * add token to server to get notification of particular node
@@ -2547,15 +2558,14 @@ public class MainViewModel extends ViewModel {
                 strGlobalSceneMarkAuthority);
     }
 
+
     private static void SendSceneMarkToMSPipeLine(JSONObject dictNiceSceneMark,
                                                   String strGlobalSceneMarkEndPoint,
                                                   String strSceneMarkToken,
                                                   String strSceneMarkAuthority) {
         String authority = "https://" + strSceneMarkAuthority;
+        System.out.println("urls>>>hereforimage>>" + authority);
         ServiceInterfaces.SetSceneMark api = ApiClient.getClient(context, authority).create(ServiceInterfaces.SetSceneMark.class);
-
-
-        Utils.setContext(context);
 
        /* Call<ResponseBody> call = api.setSceneMark("Bearer " + strSceneMarkToken,
                 ApiClient.makeJSONRequestBody(dictNiceSceneMark));*/
@@ -2568,6 +2578,9 @@ public class MainViewModel extends ViewModel {
                 strSceneModeEndPoint, Utils.getDeviceNodeIDOnly(NodeID), Utils.getDeviceNodeIDOnly(NodeID),
                 ApiClient.makeJSONRequestBody(dictNiceSceneMark));
 
+
+        AppLog.LogMaxSize("resp>>>>>>>>>",""+dictNiceSceneMark.toString());
+        AppLog.LogMaxSize("resp>>>>>>>>>ttok",""+strSceneMarkToken.toString());
 
         call.enqueue(new Callback<ResponseBody>() {
             @Override
@@ -2586,7 +2599,14 @@ public class MainViewModel extends ViewModel {
             }
         });
 
+
+
+
     }
+
+
+
+
     public static void SendDetectedObjectsSceneData() {
         SendObjectSceneData(strSceneMarkID, listDetectedObjects);
     }
