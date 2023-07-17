@@ -161,7 +161,6 @@ public class MainViewModel extends ViewModel {
     private MutableLiveData<PayloadObjectForDevice> sceneModeResponseWithDeviceLiveData;
 
 
-
     public MainViewModel() {
 
         appConrolObjectLiveData = new MutableLiveData<>();
@@ -1113,9 +1112,9 @@ public class MainViewModel extends ViewModel {
             jsonObjectAccessTokenPayload.put(Constants.CMF.Header.ACCESS_TOKEN, accessToken);
 
 
-            jsonObject.put(Constants.CMF.Payload.EndPointX509Certificate,appSecurityObject.getNICEASEndPoint().getAppEndPoint().getX509Certificate());
+            jsonObject.put(Constants.CMF.Payload.EndPointX509Certificate, appSecurityObject.getNICEASEndPoint().getAppEndPoint().getX509Certificate());
             jsonObject.put(Constants.CMF.Payload.CMF_HEADER, CMFHeaderObject.toString());
-            jsonObject.put(Constants.CMF.Payload.ACCESSTOKEN_PAYLOAD,jsonObjectAccessTokenPayload);
+            jsonObject.put(Constants.CMF.Payload.ACCESSTOKEN_PAYLOAD, jsonObjectAccessTokenPayload);
 
             AppLog.Log("jsonObjectMain => ", jsonObject.toString());
 //            if(pHelper.getSignInMode() == Constants.STAGING_SIGN_IN){
@@ -1127,7 +1126,7 @@ public class MainViewModel extends ViewModel {
 
             JSONObject jsonObjectRequest = new JSONObject();
             jsonObjectRequest.put(Constants.CMF.Payload.ENCRYPTED_KEY, PreferenceHelper.getInstance(activity).getPublicKeyRSA());
-            jsonObjectRequest.put(Constants.CMF.Payload.ENCRYPTED_PAYLOAD,encryptedPayload);
+            jsonObjectRequest.put(Constants.CMF.Payload.ENCRYPTED_PAYLOAD, encryptedPayload);
             //jsonObjectRequest.put(Constants.CMF.Payload.SIGNED_CMF, encryptedPayload);
 
             ServiceInterfaces.GetAppControlObjectEncrypted api = ApiClient.getClientAccount(activity, "https://" +
@@ -1235,8 +1234,8 @@ public class MainViewModel extends ViewModel {
 
 
     public void saveDeviceSecurityObject(Context context, String objectJson) {
-       DeviceSecurityObject jsonObject = new Gson().fromJson(objectJson, DeviceSecurityObject.class);
-       PreferenceHelper.getInstance(context).putDeviceSecurityObject(jsonObject);
+        DeviceSecurityObject jsonObject = new Gson().fromJson(objectJson, DeviceSecurityObject.class);
+        PreferenceHelper.getInstance(context).putDeviceSecurityObject(jsonObject);
     }
 
     public void saveDevicePrivateKey(Context context, String objectJson) {
@@ -1384,7 +1383,7 @@ public class MainViewModel extends ViewModel {
 
             JSONObject jsonBody = new JSONObject();
             JSONObject jsonPayLoad = new JSONObject();
-          //  String appInstanceID = pHelper.getAppSecurityObject().getAppInstanceID();
+            //  String appInstanceID = pHelper.getAppSecurityObject().getAppInstanceID();
 
             jsonPayLoad.put(Constants.Params.DEVICE_ID, strGlobalBrigdeUUID);
 
@@ -1473,8 +1472,6 @@ public class MainViewModel extends ViewModel {
                 .getX509Certificate().get(0));
         strNICEASID = deviceManagementObject.getNiceas().getNiceasid();
     }
-
-
 
 
     private void GetDeviceControlObjectInfo(DeviceControlObject deviceControlObject) {
@@ -2200,9 +2197,6 @@ public class MainViewModel extends ViewModel {
     }
 
 
-
-
-
 //    public static List<DetectedObjectsClass> getDetectedObjectList(){
 //        return listDetectedObjects;
 //    }
@@ -2257,7 +2251,6 @@ public class MainViewModel extends ViewModel {
         String sceneMarkID = "SMK_" + strGlobalDeviceNodeID + "_" + hexInstancePadded;
         return sceneMarkID;
     }
-
 
 
     public static String createSceneDataID(int instance) {
@@ -2579,8 +2572,8 @@ public class MainViewModel extends ViewModel {
                 ApiClient.makeJSONRequestBody(dictNiceSceneMark));
 
 
-        AppLog.LogMaxSize("resp>>>>>>>>>",""+dictNiceSceneMark.toString());
-        AppLog.LogMaxSize("resp>>>>>>>>>ttok",""+strSceneMarkToken.toString());
+        AppLog.LogMaxSize("resp>>>>>>>>>", "" + dictNiceSceneMark.toString());
+        AppLog.LogMaxSize("resp>>>>>>>>>ttok", "" + strSceneMarkToken.toString());
 
         call.enqueue(new Callback<ResponseBody>() {
             @Override
@@ -2600,11 +2593,7 @@ public class MainViewModel extends ViewModel {
         });
 
 
-
-
     }
-
-
 
 
     public static void SendDetectedObjectsSceneData() {
@@ -2889,8 +2878,14 @@ public class MainViewModel extends ViewModel {
             String strGlobalSceneDataVideoToken,
             String strGlobalSceneDataVideoAuthority, JSONObject dictDataSectionObject) {
 
-        String authority = "https://" + strGlobalSceneDataVideoAuthority;
-        ServiceInterfaces.SetSceneData api = ApiClient.getClient(context, authority).create(ServiceInterfaces.SetSceneData.class);
+        String authority = strGlobalSceneDataVideoAuthority;
+        if (!strGlobalSceneDataVideoAuthority.contains("http")) {
+            authority = "https://" + strGlobalSceneDataVideoAuthority;
+        }
+        
+        System.out.println("urls>>>hereforvideo>>" + authority);
+
+        // ServiceInterfaces.SetSceneData api = ApiClient.getClient(context, authority).create(ServiceInterfaces.SetSceneData.class);
 
         /*Call<ResponseBody> call = api.setSceneData("Bearer " + strGlobalSceneDataVideoToken,
                 ApiClient.makeJSONRequestBody(dictDataSectionObject));*/
