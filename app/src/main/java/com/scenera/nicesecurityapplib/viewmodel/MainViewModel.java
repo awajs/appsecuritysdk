@@ -2833,6 +2833,7 @@ public class MainViewModel extends ViewModel {
     }
 
     public static void SendVideoSection(String strBase64Video, int iChunkNumber, int iNumberOfChunksToUse) {
+        com.scenera.nicesecurityapplib.utilities.Utils.showCustomProgressDialog(context, "", false);
         SceneDataClass objVideoSceneData = new SceneDataClass();
 //        objFullImageSceneData.setStrSceneMarkID(strSceneMarkID);
         objVideoSceneData.setStrSceneDataID(strGlobalVideoSceneDataID);
@@ -2933,7 +2934,6 @@ public class MainViewModel extends ViewModel {
                     @Override
                     public void onError(ANError anError) {
                         com.scenera.nicesecurityapplib.utilities.Utils.removeCustomProgressDialog();
-
                         Log.i("SetSceneDATA_RESPONSE", "faill>>>>" + anError.getErrorCode());
 
                     }
