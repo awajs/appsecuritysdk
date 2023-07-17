@@ -1768,7 +1768,7 @@ public class MainViewModel extends ViewModel {
 
 
     public void getSceneModeWithDSO(AppCompatActivity activity) {
-
+        context = (AppCompatActivity) activity;
         com.scenera.nicesecurityapplib.utilities.Utils.showCustomProgressDialog(activity, "", false);
         Date today = new Date();
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss:" + "000000");
@@ -2882,7 +2882,7 @@ public class MainViewModel extends ViewModel {
         if (!strGlobalSceneDataVideoAuthority.contains("http")) {
             authority = "https://" + strGlobalSceneDataVideoAuthority;
         }
-        
+
         System.out.println("urls>>>hereforvideo>>" + authority);
 
         // ServiceInterfaces.SetSceneData api = ApiClient.getClient(context, authority).create(ServiceInterfaces.SetSceneData.class);
